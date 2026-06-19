@@ -1,0 +1,2218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV2A - Ecosistema Avanzado Territorial</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <style>
+        .smooth-ui { transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+        
+        /* Contenedor del Panel de Control */
+        .panel-master {
+            position: fixed;
+            width: 480px;
+            height: 480px;
+            left: 50%;
+            top: 55%;
+            transform: translate(-50%, -50%) scale(1);
+            z-index: 40;
+        }
+        .panel-master.scrolled {
+            left: 100% !important;
+            transform: translate(-74%, -50%) scale(0.8) !important;
+        }
+
+        /* Gráfica unificada inicial */
+        .grafica-inicial {
+            position: absolute;
+            inset: 0;
+            z-index: 45;
+            transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+            opacity: 1;
+            transform: scale(1);
+        }
+        .scrolled .grafica-inicial {
+            opacity: 0;
+            transform: scale(0.7);
+            pointer-events: none;
+        }
+
+        /* Posiciones y estados de las bolas individuales en transición */
+        .bola-ict { top: 0px; left: 50%; transform: translateX(-50%); opacity: 0; pointer-events: none; }
+        .bola-raa { top: 50%; left: 0px; transform: translateY(-50%); opacity: 0; pointer-events: none; }
+        .bola-spt { bottom: 0px; left: 50%; transform: translateX(-50%); opacity: 0; pointer-events: none; }
+        .centro-logo { opacity: 0; pointer-events: none; }
+
+        /* Comportamiento al hacer Scroll */
+        .scrolled .bola-ict { top: 40px !important; left: 50px !important; transform: none !important; opacity: 1; pointer-events: auto; }
+        .scrolled .bola-raa { top: 50% !important; left: 10px !important; transform: translateY(-50%) !important; opacity: 1; pointer-events: auto; }
+        .scrolled .bola-spt { bottom: 40px !important; left: 50px !important; transform: none !important; opacity: 1; pointer-events: auto; }
+        .scrolled .centro-logo { opacity: 1; pointer-events: auto; }
+
+        .bar-initial { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+
+        .custom-cluster {
+            background: rgba(37, 99, 235, 0.95);
+            color: white;
+            border: 2px solid white;
+            border-radius: 50%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            line-height: 28px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        #map-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.7s ease, visibility 0.7s ease;
+            z-index: 5;
+        }
+        .map-active { opacity: 1 !important; visibility: visible !important; }
+
+        .leaflet-top.leaflet-left {
+            top: 50% !important;
+            left: 24px !important;
+            transform: translateY(-50%) !important;
+            z-index: 45 !important;
+        }
+
+        /* ══ RESPONSIVE MOBILE ══ */
+
+        /* Nav mobile dropdown */
+        #nav-container.mobile-open {
+            display: flex !important;
+            flex-direction: column;
+            align-items: flex-start;
+            position: fixed;
+            top: 60px;
+            left: 0; right: 0;
+            background: white;
+            padding: 1rem 1.5rem 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+            border-top: 1px solid #e2e8f0;
+            z-index: 48;
+            gap: 0.75rem;
+            space-x: 0;
+        }
+        #nav-container.mobile-open a,
+        #nav-container.mobile-open button {
+            width: 100%;
+            text-align: left;
+        }
+        #nav-container.mobile-open button {
+            text-align: center;
+        }
+
+        @media (max-width: 767px) {
+
+            /* ── Ecosistema: panel inicial ──
+               Círculo más pequeño y en la parte superior de la pantalla,
+               dejando espacio abajo para los botones de perfil */
+            .panel-master {
+                width: 220px !important;
+                height: 220px !important;
+                top: 34% !important;           /* sube el círculo al tercio superior */
+            }
+
+            /* ── Ecosistema: panel CON MAPA ABIERTO (scrolled) ──
+               Migra a esquina superior-izquierda, compacto */
+            .panel-master.scrolled {
+                left: 12px !important;
+                top: 74px !important;
+                transform: translate(0, 0) scale(0.58) !important;
+                transform-origin: top left !important;
+            }
+
+            /* Bolas ICT/RAA/SPT: tamaño reducido y posiciones
+               para que no se empalmen entre sí ni con el logo central
+               dentro del panel de 220px escalado a 0.58 */
+            .scrolled .bola-ict {
+                width: 48px !important; height: 48px !important;
+                top: 6px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+            }
+            .scrolled .bola-raa {
+                width: 48px !important; height: 48px !important;
+                top: 50% !important;
+                left: -22px !important;
+                transform: translateY(-50%) !important;
+            }
+            .scrolled .bola-spt {
+                width: 48px !important; height: 48px !important;
+                bottom: 6px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+            }
+
+            /* Logo central más pequeño para no tapar las bolas */
+            .scrolled .centro-logo {
+                width: 68px !important;
+                height: 68px !important;
+            }
+
+            /* Iconos de cadena (Nuez/Vid/Carne/Leche): ocultar en mobile
+               para evitar empalmes en el panel compacto */
+            #cropNodes { display: none !important; }
+
+            /* Sidebar y panel de usuario: full-width */
+            #sidebar {
+                width: calc(100vw - 24px) !important;
+                left: 12px !important;
+                right: 12px !important;
+                top: 66px !important;
+                bottom: 76px !important;
+                border-radius: 1rem !important;
+            }
+            #userPanel {
+                width: calc(100vw - 24px) !important;
+                left: 12px !important;
+                right: 12px !important;
+                top: 66px !important;
+                bottom: 76px !important;
+                border-radius: 1rem !important;
+            }
+
+            /* Tabla de datos */
+            #tableSection { padding-top: 5rem; padding-left: 1rem; padding-right: 1rem; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased relative flex flex-col min-h-screen">
+
+    <nav class="fixed top-0 left-0 right-0 bg-white/95 backdrop-blur-md shadow-xs z-50 px-5 md:px-8 py-3 flex justify-between items-center border-b border-slate-100">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="switchSection(null,'ecosistema'); closeMobileMenu()">
+            <img src="Logo CV2A-05 (1).png" alt="Logo CV2A" class="h-10 md:h-11">
+            <span class="text-sm font-bold text-slate-800 border-l border-slate-200 pl-3 tracking-tight hidden lg:inline-block">Centro Virtual de Valor Agregado</span>
+        </div>
+
+        <!-- Hamburger button — solo visible en móvil -->
+        <button onclick="toggleMobileMenu()" id="nav-hamburger" class="md:hidden flex flex-col justify-center gap-1.5 p-2 cursor-pointer rounded-lg hover:bg-slate-100 transition" aria-label="Menú">
+            <span class="block w-5 h-0.5 bg-slate-700 transition-all" id="hb-1"></span>
+            <span class="block w-5 h-0.5 bg-slate-700 transition-all" id="hb-2"></span>
+            <span class="block w-5 h-0.5 bg-slate-700 transition-all" id="hb-3"></span>
+        </button>
+
+        <!-- Links — desktop: flex horizontal / mobile: dropdown via JS -->
+        <div class="hidden md:flex items-center space-x-6 font-semibold text-slate-600 text-sm" id="nav-container">
+            <a href="#" onclick="switchSection(event, 'ecosistema'); closeMobileMenu()" class="text-blue-600 border-b-2 border-blue-600 pb-1">Ecosistema</a>
+            <a href="#" onclick="switchSection(event, 'nosotros'); closeMobileMenu()" class="hover:text-blue-600 transition pb-1">Nosotros</a>
+            <a href="#" onclick="switchSection(event, 'inteligencia'); closeMobileMenu()" class="hover:text-blue-600 transition pb-1">Inteligencia</a>
+            <a href="#" onclick="switchSection(event, 'ruta'); closeMobileMenu()" class="hover:text-blue-600 transition pb-1">Ruta</a>
+            <a href="#" onclick="switchSection(event, 'mercado'); closeMobileMenu()" class="hover:text-blue-600 transition pb-1">Mercado</a>
+            <a href="#" onclick="switchSection(event, 'noticias'); closeMobileMenu()" class="hover:text-blue-600 transition pb-1">Blog</a>
+            <button onclick="toggleUserPanel()" class="bg-blue-600 text-white px-5 py-2 rounded-full font-bold text-xs hover:bg-blue-700 transition cursor-pointer">Panel de usuario</button>
+        </div>
+    </nav>
+
+    <main class="flex-grow">
+        <div id="section-ecosistema">
+            <div class="relative w-full h-[100vh] z-10">
+                
+                <div id="heroHeader" class="fixed top-24 left-12 z-10 max-w-md pointer-events-none transition-all duration-500 opacity-100">
+                    <h1 class="text-3xl font-black text-slate-900 tracking-tight leading-none">Ecosistema<br><span class="text-blue-600">del CV2A</span></h1>
+                    <p class="text-xs text-slate-500 mt-2 font-medium leading-relaxed">Capacidades científicas,<br>tecnológicas y de soporte</p>
+                </div>
+
+                <div id="map-wrapper">
+                    <div id="map" class="w-full h-full"></div>
+                </div>
+
+                <div id="perfilesContainer" class="bar-initial">
+                    <div id="perfilesLayout" class="relative w-full h-full">
+                        <button onclick="handlePerfilClick('Investigador')" id="perf1" class="smooth-ui absolute left-24 top-[40%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🔬 Investigadores</button>
+                        <button onclick="handlePerfilClick('Maestro')" id="perf2" class="smooth-ui absolute left-16 top-[53%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">👨‍🏫 Maestros</button>
+                        <button onclick="handlePerfilClick('Estudiante')" id="perf3" class="smooth-ui absolute left-24 top-[66%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🎓 Estudiantes</button>
+                        
+                        <button onclick="handlePerfilClick('Productor')" id="perf4" class="smooth-ui absolute right-24 top-[40%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🚜 Productores</button>
+                        <button onclick="handlePerfilClick('Facilitador')" id="perf5" class="smooth-ui absolute right-16 top-[53%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🤝 Facilitadores</button>
+                        <button onclick="handlePerfilClick('Empresario')" id="perf6" class="smooth-ui absolute right-24 top-[66%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">💼 Empresarios</button>
+                    </div>
+                </div>
+
+                <div id="masterPanel" class="smooth-ui panel-master">
+                    <div class="grafica-inicial cursor-pointer" onclick="window.scrollTo({ top: 120, behavior: 'smooth' })">
+                        <img src="CV2A grafica.png" alt="Ecosistema CV2A" class="w-full h-full object-contain filter drop-shadow-xl">
+                    </div>
+
+                    <button onclick="resetToAllPoints()" class="smooth-ui centro-logo absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-36 h-36 shadow-xl border-4 border-white z-20 p-3 flex items-center justify-center cursor-pointer transition active:scale-95">
+                        <img src="Logo CV2A-05 (1).png" alt="CV2A Central" class="w-full h-full object-contain">
+                    </button>
+
+                    <button onclick="handleBolaClick('ict')" class="smooth-ui bola-ict absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
+                        <img src="ICT.png" alt="ICT" class="w-full h-full object-cover">
+                    </button>
+                    <button onclick="handleBolaClick('raa')" class="smooth-ui bola-raa absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
+                        <img src="RAA.png" alt="RAA" class="w-full h-full object-cover">
+                    </button>
+                    <button onclick="handleBolaClick('spt')" class="smooth-ui bola-spt absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
+                        <img src="SPT.png" alt="SPT" class="w-full h-full object-cover">
+                    </button>
+
+                    <div id="cropNodes" class="absolute inset-0 z-10 pointer-events-none opacity-0 transition-opacity duration-500">
+                        <button onclick="filterByCrop('Vid')" class="absolute top-1/4 left-0 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Vid">
+                            <img src="icon.vid.png" alt="Vid" class="w-full h-full object-contain">
+                        </button>
+                        <button onclick="filterByCrop('Carne')" class="absolute top-8 left-1/3 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Carne">
+                            <img src="icon.meat.png" alt="Carne" class="w-full h-full object-contain">
+                        </button>
+                        <button onclick="filterByCrop('Leche')" class="absolute bottom-8 left-1/3 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Leche">
+                            <img src="icon.milk.png" alt="Leche" class="w-full h-full object-contain">
+                        </button>
+                        <button onclick="filterByCrop('Nuez')" class="absolute bottom-1/4 left-0 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Nuez">
+                            <img src="icon.nuts.png" alt="Nuez" class="w-full h-full object-contain">
+                        </button>
+                    </div>
+                </div>
+
+                <div id="sidebar" class="smooth-ui fixed top-24 left-6 bottom-20 w-85 bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl z-50 transform -translate-x-[115%] p-5 overflow-y-auto border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <h3 id="sideTitle" class="text-sm font-bold text-slate-900 leading-tight">Entidad</h3>
+                            <button onclick="closeSidebar()" class="text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full w-5 h-5 flex items-center justify-center text-[10px] cursor-pointer">✕</button>
+                        </div>
+                        <div id="sideBadge" class="inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider"></div>
+                        <div id="sideContent" class="text-xs text-slate-600 space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-100"></div>
+                    </div>
+                    <div id="showroomSpace" class="mt-3 pt-3 border-t border-slate-100">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Showroom de Infraestructura</p>
+                        <div class="bg-slate-100 border border-dashed border-slate-200 rounded-xl h-20 flex items-center justify-center text-slate-400 text-[10px] text-center p-2">
+                            [ Imagen del Establecimiento Comercial ]
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="scrollToTables()" class="fixed bottom-6 right-6 bg-blue-600 text-white p-3.5 rounded-full shadow-xl hover:bg-blue-700 transition-transform active:scale-95 z-50 flex items-center justify-center cursor-pointer" title="Ver tablas de datos">
+                    <span class="text-lg">📋</span>
+                </button>
+            </div>
+
+            <div id="tableSection" class="relative bg-white border-t border-slate-200 min-h-[100vh] p-6 md:p-10 pt-24 z-30 shadow-[0_-15px_30px_rgba(0,0,0,0.05)] mt-[100vh]">
+                <div class="max-w-6xl mx-auto">
+                    <h2 class="text-xl font-bold text-slate-900 mb-2">Registros del Ecosistema CV2A</h2>
+                    <p class="text-xs text-slate-500 mb-6">Información consolidada de las bases georeferenciadas de Chihuahua.</p>
+                    
+                    <div class="flex space-x-2 border-b border-slate-200 mb-6 font-bold text-sm overflow-x-auto">
+                        <button onclick="switchTableTab('ict')" id="tabBtn-ict" class="px-5 py-2.5 border-b-2 border-blue-600 text-blue-600 cursor-pointer whitespace-nowrap">Capacidades ICT</button>
+                        <button onclick="switchTableTab('spt')" id="tabBtn-spt" class="px-5 py-2.5 text-slate-500 border-b-2 border-transparent hover:text-slate-800 cursor-pointer whitespace-nowrap">Unidades SPT</button>
+                        <button onclick="switchTableTab('raa')" id="tabBtn-raa" class="px-5 py-2.5 text-slate-500 border-b-2 border-transparent hover:text-slate-800 cursor-pointer whitespace-nowrap">Aliados RAA</button>
+                    </div>
+
+                    <div class="overflow-x-auto shadow-xs rounded-xl border border-slate-200 bg-white">
+                        <table class="min-w-full divide-y divide-slate-200 text-xs text-left" id="tableData">
+                            <thead class="bg-slate-50 text-slate-400 font-bold uppercase tracking-wider">
+                                <tr>
+                                    <th class="px-4 py-3">ID</th>
+                                    <th class="px-4 py-3">Nombre</th>
+                                    <th class="px-4 py-3">Institución / Ubicación</th>
+                                    <th class="px-4 py-3">Contacto</th>
+                                    <th class="px-4 py-3">Descripción</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-slate-600" id="tableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-nosotros" class="hidden min-h-screen pt-28 pb-20 bg-slate-50">
+            <div class="max-w-5xl mx-auto px-6 md:px-8">
+
+                <!-- Encabezado -->
+                <div class="mb-10">
+                    <h1 class="text-4xl font-black text-slate-900 tracking-tight leading-none">Nosotros</h1>
+                    <p class="text-sm text-slate-500 mt-2 font-medium">Conócenos — quiénes somos y quiénes hacen posible el CV²A.</p>
+                </div>
+
+                <!-- Bloque 1: Iniciativa conjunta -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 md:p-10 mb-8">
+                    <p class="text-base text-slate-700 font-medium leading-relaxed mb-6">
+                        El CV²A es una iniciativa conjunta del sector privado, de la <strong class="text-slate-900">Secretaría de Desarrollo Rural</strong> y de la <strong class="text-slate-900">Secretaría de Innovación y Desarrollo Económico</strong> del Gobierno del Estado de Chihuahua.
+                    </p>
+                    <p class="text-sm text-slate-600 leading-relaxed mb-8">
+                        El tema del valor agregado se ha discutido por años en los distintos ambientes empresariales y de gobierno. Sin embargo, había sido complicado ordenar todas estas ideas. Es por eso que optamos, en esta primera etapa, en establecer un mecanismo virtual para conectar la red. <em>Antes de construir un edificio, necesitamos tener funcional la red.</em>
+                    </p>
+                    <div class="flex flex-wrap items-center justify-center gap-8">
+                        <img src="SDR.png" alt="Secretaría de Desarrollo Rural" class="h-16 object-contain">
+                        <img src="SIDE.png" alt="Secretaría de Innovación y Desarrollo Económico" class="h-16 object-contain">
+                    </div>
+                </div>
+
+                <!-- Bloque 2: Organizaciones del ecosistema -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 md:p-10 mb-8">
+                    <p class="text-sm text-slate-600 font-medium leading-relaxed mb-8">
+                        Como en todo ecosistema, la voluntad y el trabajo conjunto de las distintas organizaciones y personas es lo que logra el éxito. Las organizaciones que le dan vida y hacen posible el CV²A son las siguientes:
+                    </p>
+
+                    <!-- Clusters Agro -->
+                    <div class="mb-8">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Clusters Agro</p>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="agrocluster.png" alt="AgroCluster" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">AgroCluster</figcaption>
+                            </figure>
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="cluster.vid.png" alt="Cluster Vid" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">Cluster Vid</figcaption>
+                            </figure>
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="cluster.cervecero.png" alt="Cluster Cervecero" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">Cluster Cervecero</figcaption>
+                            </figure>
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="cluster.sotol.png" alt="Cluster Sotol" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">Cluster Sotol</figcaption>
+                            </figure>
+                        </div>
+                    </div>
+
+                    <!-- Consejos Productores -->
+                    <div class="mb-8">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Consejos Productores</p>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="ceach.png" alt="CEACH" class="h-20 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">CEACH</figcaption>
+                            </figure>
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="comenuez.png" alt="COMENUEZ" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">COMENUEZ</figcaption>
+                            </figure>
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="logo-comecarne.png" alt="COMECARNE" class="h-20 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">COMECARNE</figcaption>
+                            </figure>
+                        </div>
+                    </div>
+
+                    <!-- Asociaciones de productores -->
+                    <div class="mb-8">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Asociaciones de Productores</p>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="apronuez.png" alt="APRONUEZ" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">APRONUEZ</figcaption>
+                            </figure>
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="unifrut.png" alt="UNIFRUT" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">UNIFRUT</figcaption>
+                            </figure>
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="unipro.png" alt="UNIPRO" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">UNIPRO</figcaption>
+                            </figure>
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="LogoProduce.png" alt="Fundación Produce" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">Fundación Produce</figcaption>
+                            </figure>
+                        </div>
+                    </div>
+
+                    <!-- Instituciones de Ciencia y Tecnología -->
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Instituciones de Ciencia y Tecnología</p>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
+                                <img src="uach.png" alt="UACH" class="h-16 object-contain">
+                                <figcaption class="text-[10px] font-bold text-slate-500 text-center">UACH</figcaption>
+                            </figure>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloque 3: Jerarquía estratégica en cascada -->
+                <div>
+                    <div class="mb-6">
+                        <h2 class="text-xl font-black text-slate-900 tracking-tight">Contexto estratégico</h2>
+                        <p class="text-sm text-slate-500 mt-1">El CV²A forma parte de una cadena de iniciativas anidadas.</p>
+                    </div>
+
+                    <!-- Cascada jerárquica -->
+                    <div class="space-y-0">
+
+                        <!-- DESEC — nivel 1 (base) -->
+                        <div class="rounded-t-2xl overflow-hidden">
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/2 p-8 flex flex-col justify-center bg-slate-900">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">La organización</span>
+                                    <h3 class="text-2xl font-black text-white mb-2">DESEC A.C.</h3>
+                                    <p class="text-sm text-slate-300 leading-relaxed"><strong class="text-white">Desarrollo Económico del Estado de Chihuahua A.C.</strong> es una organización privada con +50 años impulsando el desarrollo económico de Chihuahua. Se compone de <strong class="text-white">8 vicepresidencias</strong>.</p>
+                                </div>
+                                <div class="md:w-1/2 flex items-center justify-center p-6 min-h-56" style="background:#eeeeee">
+                                    <img src="vice.desec.png" alt="DESEC vicepresidencias" class="w-full max-h-64 object-contain">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conector DESEC → Futura -->
+                        <div class="flex items-center bg-slate-100 border-x border-slate-200 px-8 py-2 gap-3">
+                            <div class="w-0.5 h-5 bg-slate-400 ml-2"></div>
+                            <span class="text-xs font-bold text-slate-500">Chihuahua Futura es una <strong>vicepresidencia</strong> de DESEC</span>
+                        </div>
+
+                        <!-- Chihuahua Futura — nivel 2 -->
+                        <div class="overflow-hidden border-x border-slate-600">
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/2 p-8 flex flex-col justify-center bg-slate-700">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">La vicepresidencia</span>
+                                    <h3 class="text-2xl font-black text-white mb-2">Chihuahua Futura</h3>
+                                    <p class="text-sm text-slate-300 leading-relaxed mb-3">Define la visión a mediano y largo plazo de Chihuahua hacia el 2050 bajo <strong class="text-white">4 estrategias</strong>:</p>
+                                    <ul class="text-xs text-slate-400 space-y-1">
+                                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0"></span>Industria inteligente</li>
+                                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0"></span>Movilidad</li>
+                                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0"></span>Hábitat y calidad de vida</li>
+                                        <li class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></span><strong class="text-blue-300">Agroindustria y Alimentación Avanzada: Chihuahua BIO</strong></li>
+                                    </ul>
+                                </div>
+                                <div class="md:w-1/2 flex items-center justify-center p-6 min-h-48" style="background:#eeeeee">
+                                    <img src="ch.futura.png" alt="Chihuahua Futura" class="w-full max-h-52 object-contain">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conector Futura → BIO -->
+                        <div class="flex items-center bg-slate-100 border-x border-slate-200 px-8 py-2 gap-3 ml-6">
+                            <div class="w-0.5 h-5 bg-slate-400 ml-2"></div>
+                            <span class="text-xs font-bold text-slate-500">Chihuahua BIO es una <strong>estrategia</strong> de Chihuahua Futura</span>
+                        </div>
+
+                        <!-- Chihuahua BIO — nivel 3 -->
+                        <div class="overflow-hidden border-x border-slate-400 ml-6">
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/2 p-8 flex flex-col justify-center bg-slate-500">
+                                    <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest mb-2">La estrategia</span>
+                                    <h3 class="text-2xl font-black text-white mb-2">Chihuahua BIO</h3>
+                                    <p class="text-sm text-slate-200 leading-relaxed">Estrategia de <strong class="text-white">Agroindustria y Alimentación Avanzada</strong> de cara al 2050, compuesta de <strong class="text-white">4 objetivos estratégicos</strong>, uno de los cuales es el <strong class="text-white">Valor Agregado</strong>.</p>
+                                </div>
+                                <div class="md:w-1/2 flex items-center justify-center p-6 min-h-56" style="background:#eeeeee">
+                                    <img src="ch.bio.flyer.png" alt="Chihuahua BIO" class="w-full max-h-64 object-contain">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conector BIO → CV2A -->
+                        <div class="flex items-center bg-slate-100 border-x border-slate-200 px-8 py-2 gap-3 ml-12">
+                            <div class="w-0.5 h-5 bg-blue-400 ml-2"></div>
+                            <span class="text-xs font-bold text-blue-600">El CV²A es una <strong>iniciativa</strong> del objetivo "Valor Agregado" de Chihuahua BIO</span>
+                        </div>
+
+                        <!-- CV2A — nivel 4 (punta) -->
+                        <div class="rounded-b-2xl overflow-hidden border-x border-blue-500 ml-12">
+                            <div class="flex flex-col md:flex-row">
+                                <div class="md:w-1/2 p-8 flex flex-col justify-center bg-blue-600">
+                                    <span class="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-2">La iniciativa</span>
+                                    <h3 class="text-2xl font-black text-white mb-2">CV²A</h3>
+                                    <p class="text-sm text-blue-100 leading-relaxed">El <strong class="text-white">Centro Virtual de Valor Agregado</strong> es la plataforma que conecta investigadores, productores, empresarios, facilitadores e inversionistas del ecosistema agroindustrial de Chihuahua.</p>
+                                </div>
+                                <div class="md:w-1/2 flex items-center justify-center p-8 min-h-44" style="background:#eeeeee">
+                                    <img src="cv2a.png" alt="CV2A" class="w-full max-h-36 object-contain">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-inteligencia" class="hidden min-h-screen pt-28 bg-slate-50">
+            <div class="max-w-7xl mx-auto px-6 md:px-8 py-8">
+                
+                <div id="inteligencia-selector" class="space-y-8">
+                    <div class="text-center max-w-3xl mx-auto mb-12">
+                        <h1 class="text-4xl font-black text-slate-900 tracking-tight">Módulos de <span class="text-blue-600">Inteligencia</span></h1>
+                        <p class="text-sm text-slate-500 mt-3 font-medium leading-relaxed">Selecciona una de las herramientas analíticas avanzadas del ecosistema del Centro Virtual de Valor Agregado.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                        <!-- Tarjeta 1: Inteligencia en Mercado (INNsights) -->
+                        <button onclick="showTableauDashboard()" class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col items-center justify-between hover:shadow-xl hover:scale-[1.02] transition duration-300 group cursor-pointer text-center w-full">
+                            <div class="h-20 flex items-center justify-center mb-4">
+                                <img src="INNSIGHTS_2.png" alt="INNSIGHTS" class="max-h-16 object-contain group-hover:scale-105 transition duration-300">
+                            </div>
+                            <div class="space-y-2 w-full text-center">
+                                <p class="text-base font-bold text-blue-600">Inteligencia en Mercado</p>
+                                <p class="text-xs text-slate-500 font-medium leading-relaxed mt-2">Visualiza cuánto se importa y se exporta de las cadenas de valor clave de Chihuahua en el mercado nacional e identifica a los jugadores clave.</p>
+                            </div>
+                            <div class="mt-5 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white text-slate-600 text-xs font-bold px-5 py-2 rounded-full transition duration-300">
+                                Abrir visualizador interactivo ➔
+                            </div>
+                        </button>
+
+                        <!-- Tarjeta 2: Inteligencia en Sectores -->
+                        <button onclick="showSectorialDashboard()" class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col items-center justify-between hover:shadow-xl hover:scale-[1.02] transition duration-300 group cursor-pointer text-center w-full">
+                            <div class="h-20 flex items-center justify-center mb-4">
+                                <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-blue-100 transition duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-9 h-9 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5V21h4.5v-7.5H3zM9.75 9V21h4.5V9h-4.5zM16.5 3.75V21H21V3.75h-4.5z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="space-y-2 w-full text-center">
+                                <p class="text-base font-bold text-blue-600">Inteligencia en Sectores</p>
+                                <p class="text-xs text-slate-500 font-medium leading-relaxed">Consulta estudios de sectores agroindustriales, estadísticas de ventas de materia prima y reportes especializados para fundamentar tu estrategia.</p>
+                            </div>
+                            <div class="mt-5 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white text-slate-600 text-xs font-bold px-5 py-2 rounded-full transition duration-300">
+                                Explorar repositorio ➔
+                            </div>
+                        </button>
+
+                        <!-- Tarjeta 3: Inteligencia en Patentes (Kanna) -->
+                        <a href="https://kannasolutions.com/auth/login" target="_blank" class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col items-center justify-between hover:shadow-xl hover:scale-[1.02] transition duration-300 group cursor-pointer text-center">
+                            <div class="h-20 flex items-center justify-center mb-4">
+                                <img src="kanna.png" alt="Kanna" class="max-h-16 object-contain group-hover:scale-105 transition duration-300">
+                            </div>
+                            <div class="space-y-2">
+                                <p class="text-base font-bold text-blue-600">Inteligencia en Patentes</p>
+                                <p class="text-xs text-slate-500 font-medium leading-relaxed">Kanna es una solución de investigación y vigilancia tecnológica. Con tecnología de vanguardia que te permite realizar búsquedas rápidas y especializadas de patentes.</p>
+                            </div>
+                            <div class="mt-5 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white text-slate-600 text-xs font-bold px-5 py-2 rounded-full transition duration-300">
+                                Ingresar a la plataforma ➔
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="inteligencia-tableau" class="hidden space-y-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-4 gap-4">
+                        <div>
+                            <button onclick="hideTableauDashboard()" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center space-x-1 mb-1 transition cursor-pointer">
+                                <span>←</span> <span>Volver a Módulos de Inteligencia</span>
+                            </button>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Inteligencia de cadenas de valor estratégicas</h2>
+                        </div>
+                        <div class="bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-md border border-blue-100">
+                            Visualizador Oficial 2025
+                        </div>
+                    </div>
+                    
+                    <div class="w-full overflow-x-auto bg-white p-4 rounded-2xl shadow-xs border border-slate-100 flex justify-center">
+                        <div class="min-w-[1450px]">
+                            <div class='tableauPlaceholder' id='viz1760114824145' style='position: relative'><noscript><a href='#'><img alt='CHIHUAHUA FUTURA Visualizador de fracciones clave 2025 ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;CH&#47;CHIHUAHUAFUTURA25&#47;InsightsPrincipal&#47;1_rss.png' style='border: none' /></a></noscript><object class='tableauViz'  style='display:none;'><param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' /> <param name='embed_code_version' value='3' /> <param name='site_root' value='' /><param name='name' value='CHIHUAHUAFUTURA25&#47;InsightsPrincipal' /><param name='tabs' value='no' /><param name='toolbar' value='yes' /><param name='static_image' value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;CH&#47;CHIHUAHUAFUTURA25&#47;InsightsPrincipal&#47;1.png' /> <param name='animate_transition' value='yes' /><param name='display_static_image' value='yes' /><param name='display_spinner' value='yes' /><param name='display_overlay' value='yes' /><param name='display_count' value='yes' /><param name='language' value='es-ES' /></object></div>                
+                            <script type='text/javascript'>                    
+                                var divElement = document.getElementById('viz1760114824145');                    
+                                var vizElement = divElement.getElementsByTagName('object')[0];                    
+                                vizElement.style.width='1450px';vizElement.style.height='977px';                    
+                                var scriptElement = document.createElement('script');                    
+                                scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';                    
+                                vizElement.parentNode.insertBefore(scriptElement, vizElement);                
+                            </script>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ INTELIGENCIA SECTORIAL Y ESTADÍSTICA ══ -->
+                <div id="inteligencia-sectorial" class="hidden space-y-6">
+
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-4 gap-4">
+                        <div>
+                            <button onclick="hideSectorialDashboard()" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center space-x-1 mb-1 transition cursor-pointer">
+                                <span>←</span><span>Volver a Módulos de Inteligencia</span>
+                            </button>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Inteligencia Sectorial y Estadística</h2>
+                        </div>
+                        <div class="bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-md border border-blue-100">Repositorio 2025</div>
+                    </div>
+
+                    <!-- Filtros por cadena de valor -->
+                    <div id="sectorial-filtros" class="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+                        <button onclick="filterSectorial('todos')" id="sf-todos" class="px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-bold text-sm cursor-pointer -mb-3">Todos los sectores</button>
+                        <button onclick="filterSectorial('nuez')" id="sf-nuez" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.nuts.png" class="h-7 w-7 object-contain"> Nuez</button>
+                        <button onclick="filterSectorial('vid')" id="sf-vid" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.vid.png" class="h-7 w-7 object-contain"> Vid</button>
+                        <button onclick="filterSectorial('carne')" id="sf-carne" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.meat.png" class="h-7 w-7 object-contain"> Carne</button>
+                        <button onclick="filterSectorial('leche')" id="sf-leche" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.milk.png" class="h-7 w-7 object-contain"> Leche</button>
+                    </div>
+
+                    <!-- Dashboard: KPIs -->
+                    <div id="sectorial-kpis" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+
+                    <!-- Dashboard: Gráficas -->
+                    <div id="sectorial-charts" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
+                            <p class="text-xs font-black text-slate-900 mb-3 uppercase tracking-wide">Volumen histórico de producción</p>
+                            <div class="max-h-40 flex items-center justify-center">
+                                <canvas id="chart-produccion"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
+                            <p class="text-xs font-black text-slate-900 mb-3 uppercase tracking-wide">Distribución por variedad / subsector</p>
+                            <div class="max-h-40 flex items-center justify-center">
+                                <canvas id="chart-variedades"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarjetas de estudios -->
+                    <div id="sectorial-estudios-section">
+                        <p class="text-sm font-black text-slate-900 mb-4">Estudios y Reportes</p>
+                        <div id="sectorial-estudios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    </div>
+
+                    <!-- Panel de detalle del estudio -->
+                    <div id="sectorial-detalle" class="hidden space-y-5">
+                        <button onclick="closeEstudio()" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 cursor-pointer transition">← Volver a Estudios y Reportes</button>
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 md:p-10">
+                            <div id="estudio-header" class="mb-6 pb-6 border-b border-slate-100"></div>
+                            <!-- Layout: texto 2/3 | gráficas 1/3 -->
+                            <div class="flex flex-col lg:flex-row gap-8">
+                                <!-- Texto izquierda -->
+                                <div class="flex-[2] min-w-0">
+                                    <div id="estudio-resumen"></div>
+                                    <div class="mt-8 pt-6 border-t border-slate-100">
+                                        <a id="estudio-download-btn" href="#" target="_blank" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-3 rounded-full transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                                            Descargar documento
+                                        </a>
+                                    </div>
+                                </div>
+                                <!-- Gráficas derecha 1/3 -->
+                                <div id="estudio-charts-col" class="hidden flex-[1] min-w-0 space-y-5">
+                                    <!-- Gráfica 1: Distribución varietal -->
+                                    <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                                        <p class="text-[10px] font-black text-slate-700 uppercase tracking-wide mb-3">Distribución varietal</p>
+                                        <canvas id="chart-vid-varietales"></canvas>
+                                    </div>
+                                    <!-- Gráfica 2: Superficie -->
+                                    <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                                        <p class="text-[10px] font-black text-slate-700 uppercase tracking-wide mb-3">Superficie (hectáreas)</p>
+                                        <canvas id="chart-vid-superficie"></canvas>
+                                    </div>
+                                    <!-- Gráfica 3: Rendimiento t/ha -->
+                                    <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                                        <p class="text-[10px] font-black text-slate-700 uppercase tracking-wide mb-3">Rendimiento t/ha</p>
+                                        <canvas id="chart-vid-rendimiento"></canvas>
+                                    </div>
+                                    <!-- Gráfica 4: Mercado nacional -->
+                                    <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                                        <p class="text-[10px] font-black text-slate-700 uppercase tracking-wide mb-3">Vino en mercado nacional</p>
+                                        <canvas id="chart-vid-mercado"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="section-ruta" class="hidden min-h-screen pt-28 pb-20 bg-slate-50">
+            <div class="max-w-5xl mx-auto px-6 md:px-8">
+
+                <!-- Header -->
+                <div class="text-center mb-14">
+                    <h1 class="text-4xl font-black tracking-tight leading-tight">Ruta de <span class="text-blue-600">Profesionalización</span><br>y Pasaporte del <span class="text-blue-600">Emprendedor</span></h1>
+                    <p class="text-sm text-slate-500 mt-3 font-medium max-w-xl mx-auto leading-relaxed">De productor tradicional a empresa exportadora. Identifica en qué etapa estás, descubre qué necesitas para avanzar al siguiente nivel e identifica quién te puede ayudar.</p>
+                </div>
+
+                <!-- Barra de pasos -->
+                <div class="flex items-start justify-between mb-10 relative">
+                    <!-- Línea conectora -->
+                    <div class="absolute top-5 left-0 right-0 h-0.5 bg-slate-200 z-0 mx-10"></div>
+                    <div id="ruta-progress-line" class="absolute top-5 left-0 h-0.5 bg-blue-500 z-0 mx-10 transition-all duration-500" style="width:0%"></div>
+
+                    <button onclick="selectStep(1)" id="step-btn-1" class="ruta-step-btn flex flex-col items-center gap-2 z-10 w-1/5 group cursor-pointer">
+                        <div class="ruta-circle w-10 h-10 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center text-xs font-black text-slate-400 transition-all duration-300 group-hover:border-blue-400 group-hover:text-blue-500">01</div>
+                        <span class="text-[10px] font-bold text-slate-400 text-center leading-tight transition-colors group-hover:text-blue-600">Inicio &<br>Formalización</span>
+                    </button>
+                    <button onclick="selectStep(2)" id="step-btn-2" class="ruta-step-btn flex flex-col items-center gap-2 z-10 w-1/5 group cursor-pointer">
+                        <div class="ruta-circle w-10 h-10 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center text-xs font-black text-slate-400 transition-all duration-300 group-hover:border-blue-400 group-hover:text-blue-500">02</div>
+                        <span class="text-[10px] font-bold text-slate-400 text-center leading-tight transition-colors group-hover:text-blue-600">Control<br>Operativo</span>
+                    </button>
+                    <button onclick="selectStep(3)" id="step-btn-3" class="ruta-step-btn flex flex-col items-center gap-2 z-10 w-1/5 group cursor-pointer">
+                        <div class="ruta-circle w-10 h-10 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center text-xs font-black text-slate-400 transition-all duration-300 group-hover:border-blue-400 group-hover:text-blue-500">03</div>
+                        <span class="text-[10px] font-bold text-slate-400 text-center leading-tight transition-colors group-hover:text-blue-600">Diferenciación<br>& Mercado</span>
+                    </button>
+                    <button onclick="selectStep(4)" id="step-btn-4" class="ruta-step-btn flex flex-col items-center gap-2 z-10 w-1/5 group cursor-pointer">
+                        <div class="ruta-circle w-10 h-10 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center text-xs font-black text-slate-400 transition-all duration-300 group-hover:border-blue-400 group-hover:text-blue-500">04</div>
+                        <span class="text-[10px] font-bold text-slate-400 text-center leading-tight transition-colors group-hover:text-blue-600">Industrialización<br>& Retail</span>
+                    </button>
+                    <button onclick="selectStep(5)" id="step-btn-5" class="ruta-step-btn flex flex-col items-center gap-2 z-10 w-1/5 group cursor-pointer">
+                        <div class="ruta-circle w-10 h-10 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center text-xs font-black text-slate-400 transition-all duration-300 group-hover:border-blue-400 group-hover:text-blue-500">05</div>
+                        <span class="text-[10px] font-bold text-slate-400 text-center leading-tight transition-colors group-hover:text-blue-600">Exportación<br>& Global</span>
+                    </button>
+                </div>
+
+                <!-- Panel de contenido por paso -->
+                <div id="ruta-panel" class="hidden">
+
+                    <!-- Paso 1 -->
+                    <div id="ruta-content-1" class="ruta-content hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="bg-slate-900 px-8 py-6 flex items-center gap-4">
+                                <span class="text-5xl font-black text-white/20 leading-none select-none">01</span>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Punto de partida</p>
+                                    <h2 class="text-2xl font-black text-white">Inicio & Formalización</h2>
+                                    <p class="text-sm text-slate-400 mt-0.5">Produces y vendes, pero de manera informal. Es momento de sentar las bases legales y operativas.</p>
+                                </div>
+                            </div>
+                            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Legal & Fiscal</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Constitución legal de la empresa (S.A. de C.V., S. de P.R. o RESICO)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Inscripción al RFC y selección de régimen fiscal</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Registro en SARE / apertura de establecimiento</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Apertura de cuenta bancaria empresarial</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Alta patronal en IMSS (si hay trabajadores)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Producto & Sanidad</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Aviso de funcionamiento ante COFEPRIS (alimentos/bebidas)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Etiquetado básico conforme a NOM-051</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Definición del producto mínimo viable (receta, ingredientes, gramaje)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Primeros análisis fisicoquímicos y microbiológicos básicos</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Negocio</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Definición de propuesta de valor y modelo de negocio</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Análisis de costos y cálculo de precio de venta</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Registro preliminar de nombre comercial ante IMPI</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Primeros canales de venta: mercados locales, familia y conocidos</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                    <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
+                                    <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div id="ruta-content-2" class="ruta-content hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="bg-slate-700 px-8 py-6 flex items-center gap-4">
+                                <span class="text-5xl font-black text-white/20 leading-none select-none">02</span>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Consolidación interna</p>
+                                    <h2 class="text-2xl font-black text-white">Control Operativo</h2>
+                                    <p class="text-sm text-slate-400 mt-0.5">Ya vendes con regularidad. Ahora debes estandarizar procesos y tener control total de tu operación.</p>
+                                </div>
+                            </div>
+                            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Procesos & Calidad</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Documentación de Procedimientos Operativos Estándar (POEs)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Implementación de Buenas Prácticas de Manufactura (BPM/GMP)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Sistema básico de control de calidad y trazabilidad por lote</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Control de temperatura, higiene y manejo de alérgenos</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Administración</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Contabilidad formal y emisión de facturas electrónicas (CFDI)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Software básico de gestión (inventarios, cuentas por cobrar)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Plan de producción mensual y proyección de ventas</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Gestión de proveedores y compras con cotizaciones formales</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Comercial</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Primeras ventas a tiendas, restaurantes y canales regionales</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Catálogo de productos con ficha técnica y precios</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Acuerdos comerciales por escrito (contratos de suministro básicos)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Participación en ferias y mercados artesanales locales</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                    <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
+                                    <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div id="ruta-content-3" class="ruta-content hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="bg-slate-500 px-8 py-6 flex items-center gap-4">
+                                <span class="text-5xl font-black text-white/20 leading-none select-none">03</span>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-200 uppercase tracking-widest">Posicionamiento</p>
+                                    <h2 class="text-2xl font-black text-white">Diferenciación & Mercado</h2>
+                                    <p class="text-sm text-slate-200 mt-0.5">Tu operación es estable. Es momento de construir marca, diferenciarte y ampliar tus mercados.</p>
+                                </div>
+                            </div>
+                            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Marca & Producto</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Registro de marca ante IMPI (marca registrada ®)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Desarrollo de identidad visual profesional (logo, colores, tipografía)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Diseño de empaque diferenciado y atractivo para punto de venta</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Desarrollo de nuevas presentaciones o líneas de producto</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Certificaciones</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Certificación en HACCP (Análisis de Peligros y Puntos Críticos)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Cumplimiento de NOMs aplicables al producto</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Análisis nutrimental completo para etiquetado frontal</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Certificaciones de origen o denominación (si aplica)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Canales & Marketing</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Sitio web profesional con tienda en línea</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Estrategia de redes sociales y contenido digital</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Participación en ferias regionales y nacionales (Expo Agroalimentaria)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Ingreso a plataformas de venta directa (Tribu Consciente, Chihuahua Market)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Análisis de competencia y estrategia de precio</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                    <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
+                                    <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paso 4 -->
+                    <div id="ruta-content-4" class="ruta-content hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="bg-blue-700 px-8 py-6 flex items-center gap-4">
+                                <span class="text-5xl font-black text-white/20 leading-none select-none">04</span>
+                                <div>
+                                    <p class="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Escalamiento</p>
+                                    <h2 class="text-2xl font-black text-white">Industrialización & Retail</h2>
+                                    <p class="text-sm text-blue-200 mt-0.5">Tu marca ya es reconocida. Escala la producción, entra a cadenas comerciales y consolida tu empresa.</p>
+                                </div>
+                            </div>
+                            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Infraestructura & Tecnología</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Inversión en maquinaria industrial y automatización de procesos</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Ampliación de planta productiva conforme a normas sanitarias</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Implementación de sistema ERP (SAP, Aspel, Microsip)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Código de barras registrado en GS1 México</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Certificaciones Avanzadas</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>ISO 9001 (gestión de calidad) o ISO 22000 (inocuidad alimentaria)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>FSSC 22000, BRC o SQF (requeridos por cadenas internacionales)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Certificación orgánica o de sostenibilidad (si aplica)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Certificación Kosher o Halal (amplía mercados)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Canales Retail & Financiamiento</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Ingreso a cadenas de supermercados nacionales (Walmart, HEB, Soriana, Chedraui)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Registro en MercadoLibre y Amazon México</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Financiamiento para expansión (FIRA, NAFIN, banca comercial)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Desarrollo de red de distribuidores regionales</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Plan de responsabilidad social y sostenibilidad empresarial</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                    <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
+                                    <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paso 5 -->
+                    <div id="ruta-content-5" class="ruta-content hidden">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="bg-blue-600 px-8 py-6 flex items-center gap-4">
+                                <span class="text-5xl font-black text-white/20 leading-none select-none">05</span>
+                                <div>
+                                    <p class="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Destino final</p>
+                                    <h2 class="text-2xl font-black text-white">Exportación & Global</h2>
+                                    <p class="text-sm text-blue-100 mt-0.5">Empresa madura, consolidada en México. Lista para conquistar mercados internacionales exigentes.</p>
+                                </div>
+                            </div>
+                            <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Regulatorio & Certificaciones</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Registro ante la FDA (Food Facility Registration) para EUA</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Cumplimiento FSMA (Food Safety Modernization Act)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>USDA Organic / GlobalGAP (según producto y mercado destino)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Etiquetado en idioma del país destino (inglés, alemán, etc.)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Certificado fitosanitario / zoosanitario (SENASICA)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Logística & Comercio Exterior</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Contratación de agente aduanal y clasificación arancelaria (fracción HS)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Certificado de origen T-MEC/USMCA para aprovechar aranceles preferenciales</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Operador logístico internacional (DHL Express, FedEx Trade Networks)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Seguro de carga y gestión de Incoterms (FOB, CIF, DAP)</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Inteligencia de Mercado & Expansión</p>
+                                    <ul class="space-y-2 text-sm text-slate-600">
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Análisis de mercados objetivo con visualizador de fracciones arancelarias (INNSIGHTS)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Identificación de compradores B2B en el extranjero (Kompass, Bosanet)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Participación en ferias internacionales (Fancy Food NY, Anuga Cologne, SIAL París)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Financiamiento a la exportación (Bancomext, garantías NAFIN)</li>
+                                        <li class="flex gap-2"><span class="text-blue-500 mt-0.5 shrink-0">→</span>Estrategia de precios para mercados internacionales y márgenes de distribución</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                    <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
+                                    <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Estado inicial: ningún paso seleccionado -->
+                <div id="ruta-placeholder" class="text-center py-12 text-slate-400">
+                    <div class="text-4xl mb-3">☝️</div>
+                    <p class="text-sm font-medium">Selecciona un paso para ver el detalle</p>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="section-mercado" class="hidden min-h-screen pt-32 px-6 md:px-12 max-w-6xl mx-auto pb-16">
+            <div class="mb-10">
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight leading-none">Expande tu <span class="text-blue-600">Mercado</span></h1>
+                <p class="text-sm text-slate-500 mt-3 font-medium max-w-2xl leading-relaxed">Encuentra nuevos canales de comercialización y herramientas de inteligencia comercial de primer nivel para expandir tu negocio agroindustrial.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <!-- Tribu Consciente -->
+                <div class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between hover:shadow-lg hover:scale-[1.01] transition duration-300">
+                    <div>
+                        <div class="h-16 flex items-center mb-2">
+                            <img src="tribu.png" alt="Tribu Consciente" class="max-h-16 object-contain">
+                        </div>
+                        <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Tribu Consciente</h2>
+                        <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Una plataforma digital donde puedes vender directamente tus productos agropecuarios y agroindustriales dentro y fuera de Chihuahua sin depender de intermediarios.</p>
+                    </div>
+                    <div class="mt-4 border-t border-slate-50 pt-4">
+                        <a href="https://aut.tribuco.mx/realms/Tribu/protocol/openid-connect/auth?client_id=mementos&redirect_uri=https%3A%2F%2Fsuenos.tribuco.mx%2Flogin%2Fkeycloak%2Fcallback&scope=openid&response_type=code&state=YyHA4A6AvUQfPBoHLHz7b604UZJ9FAxuFc4f15MP" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Visitar Plataforma ➔</a>
+                    </div>
+                </div>
+
+                <!-- Chihuahua Market -->
+                <div class="bg-white rounded-2xl shadow-md border-2 border-blue-500/20 p-6 flex flex-col justify-between hover:shadow-lg hover:scale-[1.01] transition duration-300">
+                    <div>
+                        <div class="h-16 flex items-center mb-2">
+                            <img src="ChihuahuaMarket.png" alt="Chihuahua Market" class="max-h-16 object-contain">
+                        </div>
+                        <div class="flex items-center justify-between mb-3 gap-2">
+                            <h2 class="text-2xl font-black text-blue-600 tracking-tight shrink-0">Chihuahua Market</h2>
+                            <div class="flex items-center space-x-2 bg-slate-100/80 px-2 py-1 rounded-xl border border-slate-200/50 shrink-0">
+                                <img src="mercado-libre-logo.png" alt="Mercado Libre" class="h-5 object-contain" style="max-width:60px">
+                                <span class="text-slate-300 text-xs">|</span>
+                                <img src="dhl-worldwide-express-png-logo-1.png" alt="DHL Express" class="h-4 object-contain" style="max-width:44px">
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Obtén tu distintivo y regístrate para poder vender en <strong class="text-slate-900">Mercado Libre</strong> a través de la tienda de Chihuahua Market. Además obtén precios preferenciales para envíos corporativos con <strong class="text-slate-900">DHL Express</strong>.</p>
+                    </div>
+                    <div class="mt-4 border-t border-slate-100 pt-4">
+                        <a href="https://chihuahuamarket.mx/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Registrar mi Negocio ➔</a>
+                    </div>
+                </div>
+
+                <!-- Bosanet -->
+                <div class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between hover:shadow-lg hover:scale-[1.01] transition duration-300">
+                    <div>
+                        <div class="h-16 flex items-center mb-2">
+                            <img src="logo_slogan.png" alt="Bosanet" class="max-h-12 object-contain">
+                        </div>
+                        <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Bosanet</h2>
+                        <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Bosanet funciona como un aliado operativo y logístico para las empresas que quieren vender en el mercado estadounidense sin las complicaciones tradicionales de la exportación internacional.</p>
+                    </div>
+                    <div class="mt-4 border-t border-slate-50 pt-4">
+                        <a href="https://es.bosanet.com/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Explorar Alianza ➔</a>
+                    </div>
+                </div>
+
+                <!-- Kompass -->
+                <div class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between hover:shadow-lg hover:scale-[1.01] transition duration-300">
+                    <div>
+                        <div class="h-16 flex items-center mb-2">
+                            <img src="Logo_Kompass_International_HD.png" alt="Kompass International" class="max-h-10 object-contain">
+                        </div>
+                        <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Kompass</h2>
+                        <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Kompass es una plataforma líder de Data Marketing e inteligencia comercial diseñada estructuralmente para encontrar clientes corporativos (B2B) en más de 70 países.</p>
+                    </div>
+                    <div class="mt-4 border-t border-slate-50 pt-4">
+                        <a href="https://mx.kompass.com/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Buscar Clientes B2B ➔</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="section-noticias" class="hidden min-h-screen pt-32 px-6 md:px-12 max-w-6xl mx-auto pb-16">
+            <div id="blog-lista">
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight leading-none">Blog</h1>
+                <p class="text-sm text-slate-500 mt-2 mb-8 font-medium">Artículos, guías y análisis del ecosistema CV²A.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Artículo: Cómo sacarle provecho a la sección Inteligencia -->
+                    <article onclick="openArticle('inteligencia-guide')" class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md hover:scale-[1.01] transition duration-300 cursor-pointer">
+                        <div class="bg-gradient-to-br from-blue-600 to-blue-800 h-32 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-14 h-14 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5V21h4.5v-7.5H3zM9.75 9V21h4.5V9h-4.5zM16.5 3.75V21H21V3.75h-4.5z" />
+                            </svg>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-[9px] font-bold uppercase tracking-widest bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">Guía</span>
+                                <span class="text-[9px] text-slate-400">19 de junio, 2026</span>
+                            </div>
+                            <h2 class="text-sm font-black text-slate-900 leading-tight mb-2">Cómo sacarle provecho a la sección de Inteligencia</h2>
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-3">Kanna, INNsights e Inteligencia Sectorial: tres herramientas diseñadas para transformar datos en decisiones estratégicas para tu negocio agroindustrial.</p>
+                            <div class="mt-3 flex items-center justify-between">
+                                <span class="text-[9px] font-bold text-slate-600">Por Gabriel Ochoa</span>
+                                <span class="text-[9px] text-blue-600 font-bold">Leer artículo →</span>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <!-- Vista expandida del artículo -->
+            <div id="article-inteligencia-guide" class="hidden max-w-3xl mx-auto">
+                <button onclick="closeArticle()" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 mb-6 cursor-pointer">← Volver al Blog</button>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 md:p-10">
+                    <div class="mb-6 pb-6 border-b border-slate-100">
+                        <span class="text-[9px] font-bold uppercase tracking-widest bg-blue-50 text-blue-600 px-3 py-1 rounded-full">Guía de Usuario</span>
+                        <h1 class="text-2xl font-black text-slate-900 tracking-tight mt-3 leading-tight">Cómo sacarle el máximo provecho a la sección de Inteligencia del CV²A</h1>
+                        <div class="flex flex-wrap items-center gap-3 mt-3 text-xs text-slate-500">
+                            <span>Por <strong class="text-slate-700">Gabriel Ochoa</strong></span>
+                            <span>•</span><span>19 de junio de 2026</span>
+                            <span>•</span><span>5 min de lectura</span>
+                        </div>
+                    </div>
+                    <div class="text-sm text-slate-600 space-y-5 leading-relaxed">
+                        <p>La sección de <strong class="text-slate-900">Inteligencia</strong> del CV²A es una de las más potentes del ecosistema. Está compuesta por tres herramientas complementarias que, bien utilizadas en conjunto, te permiten tomar decisiones estratégicas con base en datos: <strong>Kanna</strong>, <strong>INNsights</strong> e <strong>Inteligencia Sectorial y Estadística</strong>.</p>
+
+                        <h2 class="text-base font-black text-slate-900 mt-6">1. Kanna: Vigilancia Tecnológica y Patentes</h2>
+                        <p>Kanna es tu aliado para la investigación de innovación. Con ella puedes hacer búsquedas especializadas de patentes relacionadas con tu producto o proceso agroindustrial.</p>
+                        <ul class="list-disc pl-5 space-y-1 text-xs">
+                            <li>Busca patentes relacionadas con el procesamiento de tu producto (nuez, vid, carne, leche) para identificar tecnologías emergentes.</li>
+                            <li>Descubre quiénes son los principales innovadores en tu cadena de valor a nivel mundial.</li>
+                            <li>Identifica oportunidades de licenciamiento o colaboración con centros de investigación.</li>
+                            <li>Úsala antes de iniciar un proyecto de I+D para verificar que la tecnología no está ya patentada.</li>
+                        </ul>
+
+                        <h2 class="text-base font-black text-slate-900 mt-6">2. INNsights: Inteligencia Comercial de Cadenas de Valor</h2>
+                        <p>INNsights es un visualizador interactivo de fracciones arancelarias que te muestra dónde está el mercado global para tu producto.</p>
+                        <ul class="list-disc pl-5 space-y-1 text-xs">
+                            <li>Consulta los principales países importadores y las tendencias de demanda en los últimos años.</li>
+                            <li>Identifica los mercados donde Chihuahua tiene ventaja competitiva por tratados de libre comercio (T-MEC, TLCUE).</li>
+                            <li>Visualiza volúmenes de producción nacional e internacional para calibrar tu estrategia de precio.</li>
+                            <li>Complementa tu plan de exportación con datos duros antes de participar en ferias internacionales.</li>
+                        </ul>
+
+                        <h2 class="text-base font-black text-slate-900 mt-6">3. Inteligencia Sectorial y Estadística: Tu Repositorio Estratégico</h2>
+                        <p>Esta herramienta centraliza estudios, planes rectores y estadísticas sectoriales que normalmente se pierden en archivos PDF dispersos.</p>
+                        <ul class="list-disc pl-5 space-y-1 text-xs">
+                            <li>Filtra por cadena de valor (Nuez, Vid, Carne o Leche) para ver únicamente los datos relevantes a tu sector.</li>
+                            <li>Consulta el dashboard interactivo para tener una foto rápida: unidades productivas, superficie y volumen de producción.</li>
+                            <li>Descarga estudios completos de la SDR y Fundación Produce para fundamentar proyectos de inversión o solicitudes de apoyo gubernamental.</li>
+                            <li>Usa los datos del Plan Rector de Vid para justificar inversiones en enoturismo o infraestructura ante instituciones financieras.</li>
+                        </ul>
+
+                        <h2 class="text-base font-black text-slate-900 mt-6">El flujo recomendado</h2>
+                        <p>Para máxima efectividad, usa las tres herramientas en este orden: primero <strong>INNsights</strong> para entender el mercado global, luego <strong>Inteligencia Sectorial</strong> para dimensionar el mercado local y el estado de tu cadena, y finalmente <strong>Kanna</strong> para identificar las tecnologías con que diferenciarte.</p>
+
+                        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mt-4">
+                            <p class="text-xs font-bold text-blue-700 mb-1">¿Tienes un estudio que quieras compartir?</p>
+                            <p class="text-xs text-slate-600">Si cuentas con investigaciones, diagnósticos o estadísticas sectoriales para incluir en el repositorio del CV²A, contáctanos en <a href="mailto:gabriel.chfutura@gmail.com" class="text-blue-600 hover:underline">gabriel.chfutura@gmail.com</a>.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AVISO DE PRIVACIDAD -->
+        <div id="section-privacidad" class="hidden min-h-screen pt-28 pb-20 bg-slate-50">
+            <div class="max-w-5xl mx-auto px-6 md:px-8 flex gap-8">
+                <!-- Navegación lateral -->
+                <aside class="hidden lg:block w-56 shrink-0">
+                    <div class="sticky top-28 bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Contenido</p>
+                        <nav class="space-y-1 text-xs font-medium text-slate-500">
+                            <a href="#priv-1" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">1. Introducción</a>
+                            <a href="#priv-2" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">2. Información que recopilamos</a>
+                            <a href="#priv-3" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">3. Finalidades</a>
+                            <a href="#priv-4" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">4. Publicación y acceso</a>
+                            <a href="#priv-5" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">5. Compartición de datos</a>
+                            <a href="#priv-6" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">6. Seguridad</a>
+                            <a href="#priv-7" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">7. Conservación</a>
+                            <a href="#priv-8" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">8. Derechos ARCO</a>
+                            <a href="#priv-9" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">9. Cambios al aviso</a>
+                            <a href="#priv-10" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">10. Contacto</a>
+                        </nav>
+                    </div>
+                </aside>
+                <!-- Contenido principal -->
+                <div class="flex-1 min-w-0">
+                    <button onclick="switchSection(event,'nosotros'); history.back();" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center space-x-1 mb-4 transition cursor-pointer" onclick="switchSection(null,'ecosistema')">← Volver al inicio</button>
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 md:p-10">
+                        <div class="mb-8 pb-6 border-b border-slate-100">
+                            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">Documento legal</span>
+                            <h1 class="text-3xl font-black text-slate-900 tracking-tight mt-3">Aviso de Privacidad</h1>
+                            <p class="text-sm font-bold text-slate-600 mt-1">Centro Virtual de Valor Agregado (CV²A)</p>
+                            <div class="flex flex-wrap gap-4 mt-3 text-xs text-slate-500">
+                                <span><strong class="text-slate-700">Responsable:</strong> DESEC, A.C.</span>
+                                <span><strong class="text-slate-700">Vigencia:</strong> Julio, 2026</span>
+                            </div>
+                        </div>
+                        <div class="prose prose-sm max-w-none text-slate-600 space-y-8">
+                            <section id="priv-1">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">1</span>Introducción</h2>
+                                <p class="text-sm leading-relaxed">DESEC, A.C., en su calidad de responsable del tratamiento de datos personales, pone a su disposición este Aviso de Privacidad conforme a lo establecido en la Ley Federal de Protección de Datos Personales en Posesión de Particulares (LFPDPPP).</p>
+                                <p class="text-sm leading-relaxed mt-2">El presente aviso aplica a todos los usuarios de la plataforma Centro Virtual de Valor Agregado (CV²A), independientemente del perfil de registro (Investigador, Profesor, Estudiante, Productor, Empresario, Facilitador e Inversionista).</p>
+                            </section>
+                            <section id="priv-2">
+                                <h2 class="text-base font-black text-slate-900 mb-3 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">2</span>Información que recopilamos</h2>
+                                <p class="text-sm leading-relaxed mb-3">Al registrarse en CV²A, solicitamos información personal que varía según su perfil de usuario.</p>
+                                <div class="bg-slate-50 rounded-xl p-4 mb-3">
+                                    <p class="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Información común a todos los perfiles</p>
+                                    <ul class="text-sm space-y-1 list-disc list-inside text-slate-600">
+                                        <li>Nombre completo</li><li>Año de nacimiento</li><li>Tipo de perfil seleccionado</li>
+                                        <li>Institución/Negocio (mediante lista desplegable)</li>
+                                        <li>Etiqueta de cultivo relacionado (nuez, carne, leche, manzana, vid, algodón, etc.)</li>
+                                        <li>Comentarios adicionales</li>
+                                    </ul>
+                                </div>
+                                <p class="text-xs font-bold text-slate-700 mb-3 uppercase tracking-wide">Información adicional por perfil</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3"><p class="text-xs font-bold text-blue-700 mb-1">Investigador</p><ul class="text-xs text-slate-600 space-y-0.5 list-disc list-inside"><li>Años de experiencia laboral</li><li>Área de estudio</li><li>Línea(s) de investigación activas</li><li>Patentes registradas y en proceso</li><li>Breve descripción de lo que busca</li></ul></div>
+                                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3"><p class="text-xs font-bold text-blue-700 mb-1">Profesor</p><ul class="text-xs text-slate-600 space-y-0.5 list-disc list-inside"><li>Carrera profesional</li><li>Materias que imparte</li></ul></div>
+                                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3"><p class="text-xs font-bold text-blue-700 mb-1">Estudiante</p><ul class="text-xs text-slate-600 space-y-0.5 list-disc list-inside"><li>Carrera que estudia</li><li>Área de especialidad/interés</li></ul></div>
+                                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3"><p class="text-xs font-bold text-blue-700 mb-1">Productor</p><ul class="text-xs text-slate-600 space-y-0.5 list-disc list-inside"><li>Código postal de residencia</li><li>Nombre del emprendimiento</li><li>Propuesta de valor y tiempo de desarrollo</li></ul></div>
+                                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3"><p class="text-xs font-bold text-blue-700 mb-1">Empresario</p><ul class="text-xs text-slate-600 space-y-0.5 list-disc list-inside"><li>Ubicación / código postal</li><li>Descripción de actividad económica</li><li>Disponibilidad de maquinaria y subproductos</li></ul></div>
+                                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3"><p class="text-xs font-bold text-blue-700 mb-1">Facilitador</p><ul class="text-xs text-slate-600 space-y-0.5 list-disc list-inside"><li>Área de expertiz</li><li>Descripción de servicios</li></ul></div>
+                                    <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3"><p class="text-xs font-bold text-blue-700 mb-1">Inversionista</p><ul class="text-xs text-slate-600 space-y-0.5 list-disc list-inside"><li>Institución/Negocio (si aplica)</li><li>Descripción de lo que busca</li><li>Nivel de TRL de interés</li></ul></div>
+                                </div>
+                            </section>
+                            <section id="priv-3">
+                                <h2 class="text-base font-black text-slate-900 mb-3 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">3</span>Finalidades del tratamiento de datos</h2>
+                                <ol class="text-sm space-y-2 text-slate-600">
+                                    <li class="flex gap-2"><span class="font-bold text-blue-600 shrink-0">1.</span><span><strong class="text-slate-700">Identificación y registro:</strong> Crear y mantener su perfil en la plataforma CV²A.</span></li>
+                                    <li class="flex gap-2"><span class="font-bold text-blue-600 shrink-0">2.</span><span><strong class="text-slate-700">Conectividad:</strong> Facilitar la conexión entre actores del ecosistema de innovación y valor agregado en Chihuahua.</span></li>
+                                    <li class="flex gap-2"><span class="font-bold text-blue-600 shrink-0">3.</span><span><strong class="text-slate-700">Visibilidad en la plataforma:</strong> Publicar su información de perfil para que otros usuarios de CV²A puedan identificarlo.</span></li>
+                                    <li class="flex gap-2"><span class="font-bold text-blue-600 shrink-0">4.</span><span><strong class="text-slate-700">Mejora de la plataforma:</strong> Entender el funcionamiento de CV²A y mejorar su experiencia de usuario.</span></li>
+                                    <li class="flex gap-2"><span class="font-bold text-blue-600 shrink-0">5.</span><span><strong class="text-slate-700">Comunicaciones:</strong> Notificaciones sobre actualizaciones de perfil, nuevas conexiones o eventos de interés.</span></li>
+                                </ol>
+                            </section>
+                            <section id="priv-4">
+                                <h2 class="text-base font-black text-slate-900 mb-3 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">4</span>Publicación y acceso a la información</h2>
+                                <p class="text-sm leading-relaxed mb-3">Su información será visible públicamente dentro de la plataforma CV²A a cualquier usuario que tenga acceso a ella. Esto incluye: nombre completo, año de nacimiento, perfil y especialidad, institución/negocio, descripción de experiencia, líneas de investigación, etiquetas de cultivo y comentarios adicionales.</p>
+                                <div class="bg-amber-50 border border-amber-100 rounded-xl p-3"><p class="text-xs font-bold text-amber-700 mb-1">Información no publicada</p><p class="text-xs text-slate-600">El código postal (productores y empresarios) se utiliza únicamente para análisis interno y no se mostrará en la plataforma. Tampoco se publican comentarios que el usuario marque como privados.</p></div>
+                            </section>
+                            <section id="priv-5">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">5</span>Compartición de datos</h2>
+                                <p class="text-sm leading-relaxed">Sus datos personales no serán compartidos con terceros externos sin su consentimiento, con excepción de instituciones aliadas para colaboraciones autorizadas por usted, y cuando la ley lo requiera.</p>
+                            </section>
+                            <section id="priv-6">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">6</span>Seguridad de la información</h2>
+                                <p class="text-sm leading-relaxed">DESEC, A.C. implementa medidas técnicas y administrativas para proteger sus datos personales contra acceso no autorizado, alteración, pérdida o divulgación. Sin embargo, ningún sistema de seguridad es 100% inviolable, por lo que le recomendamos mantener la confidencialidad de sus credenciales de acceso.</p>
+                            </section>
+                            <section id="priv-7">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">7</span>Conservación de los datos</h2>
+                                <p class="text-sm leading-relaxed">Sus datos personales serán conservados mientras su cuenta en CV²A permanezca activa e indefinidamente hasta que usted solicite expresamente su eliminación, conforme a lo establecido en la sección de Derechos ARCO.</p>
+                            </section>
+                            <section id="priv-8">
+                                <h2 class="text-base font-black text-slate-900 mb-3 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">8</span>Derechos ARCO</h2>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center"><p class="text-sm font-black text-blue-600">A</p><p class="text-xs font-bold text-slate-700">Acceso</p><p class="text-[10px] text-slate-500 mt-1">Conocer sus datos registrados</p></div>
+                                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center"><p class="text-sm font-black text-blue-600">R</p><p class="text-xs font-bold text-slate-700">Rectificación</p><p class="text-[10px] text-slate-500 mt-1">Corregir datos inexactos</p></div>
+                                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center"><p class="text-sm font-black text-blue-600">C</p><p class="text-xs font-bold text-slate-700">Cancelación</p><p class="text-[10px] text-slate-500 mt-1">Solicitar eliminación de datos</p></div>
+                                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 text-center"><p class="text-sm font-black text-blue-600">O</p><p class="text-xs font-bold text-slate-700">Oposición</p><p class="text-[10px] text-slate-500 mt-1">Oponerse a finalidades específicas</p></div>
+                                </div>
+                                <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                                    <p class="text-xs font-bold text-blue-700 mb-2">Procedimiento para ejercer sus derechos ARCO</p>
+                                    <p class="text-xs text-slate-600 mb-2">Envíe su solicitud a <strong>gabriel.chfutura@gmail.com</strong> incluyendo: nombre completo, correo o usuario de CV²A, derecho ARCO a ejercer, descripción de su solicitud y copia de identificación oficial.</p>
+                                    <p class="text-xs text-slate-500">Plazo de respuesta: máximo <strong>20 días hábiles</strong>.</p>
+                                </div>
+                            </section>
+                            <section id="priv-9">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">9</span>Cambios a este Aviso de Privacidad</h2>
+                                <p class="text-sm leading-relaxed">DESEC, A.C. se reserva el derecho de actualizar este Aviso de Privacidad en cualquier momento. Los cambios serán publicados en la plataforma CV²A. El uso continuado de la plataforma después de la publicación de cambios constituye su aceptación de las nuevas políticas.</p>
+                            </section>
+                            <section id="priv-10">
+                                <h2 class="text-base font-black text-slate-900 mb-3 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">10</span>Contacto</h2>
+                                <div class="bg-slate-50 border border-slate-100 rounded-xl p-4 space-y-1 text-sm text-slate-600">
+                                    <p><strong class="text-slate-800">Ing. Gabriel Ochoa Urtusuastigue</strong></p>
+                                    <p>Director del CV²A — Chihuahua Futura / DESEC, A.C.</p>
+                                    <p>📧 <a href="mailto:gabriel.chfutura@gmail.com" class="text-blue-600 hover:underline">gabriel.chfutura@gmail.com</a></p>
+                                    <p>📞 <a href="tel:+526141332547" class="text-blue-600 hover:underline">+52 (614) 133 2547</a></p>
+                                    <p>📍 Prol. Lomas de Majalca 11201, Lomas Altas, 31207, Chihuahua, Chih.</p>
+                                </div>
+                            </section>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-slate-100 bg-blue-50/50 rounded-xl p-4">
+                            <p class="text-xs text-slate-500 italic">Al registrarse en CV²A, usted reconoce haber leído y aceptado los términos de este Aviso de Privacidad. <strong class="text-slate-700">Última actualización: Julio, 2026.</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TÉRMINOS Y CONDICIONES -->
+        <div id="section-terminos" class="hidden min-h-screen pt-28 pb-20 bg-slate-50">
+            <div class="max-w-5xl mx-auto px-6 md:px-8 flex gap-8">
+                <aside class="hidden lg:block w-56 shrink-0">
+                    <div class="sticky top-28 bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Contenido</p>
+                        <nav class="space-y-1 text-xs font-medium text-slate-500">
+                            <a href="#tac-1" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">1. Aceptación</a>
+                            <a href="#tac-2" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">2. Descripción</a>
+                            <a href="#tac-3" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">3. Elegibilidad</a>
+                            <a href="#tac-4" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">4. Derechos y responsabilidades</a>
+                            <a href="#tac-5" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">5. Contenido del usuario</a>
+                            <a href="#tac-6" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">6. Privacidad</a>
+                            <a href="#tac-7" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">7. Limitación de responsabilidad</a>
+                            <a href="#tac-8" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">8. Suspensión y terminación</a>
+                            <a href="#tac-9" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">9. Enlaces a terceros</a>
+                            <a href="#tac-10" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">10. Propiedad intelectual</a>
+                            <a href="#tac-11" class="block py-1.5 px-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition">11–15. Disposiciones finales</a>
+                        </nav>
+                    </div>
+                </aside>
+                <div class="flex-1 min-w-0">
+                    <button onclick="switchSection(null,'ecosistema')" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center space-x-1 mb-4 transition cursor-pointer">← Volver al inicio</button>
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 md:p-10">
+                        <div class="mb-8 pb-6 border-b border-slate-100">
+                            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">Documento legal</span>
+                            <h1 class="text-3xl font-black text-slate-900 tracking-tight mt-3">Términos y Condiciones</h1>
+                            <p class="text-sm font-bold text-slate-600 mt-1">Centro Virtual de Valor Agregado (CV²A)</p>
+                            <div class="flex flex-wrap gap-4 mt-3 text-xs text-slate-500">
+                                <span><strong class="text-slate-700">Responsable:</strong> DESEC, A.C.</span>
+                                <span><strong class="text-slate-700">Vigencia:</strong> Julio, 2026</span>
+                            </div>
+                        </div>
+                        <div class="space-y-8 text-slate-600">
+                            <section id="tac-1">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">1</span>Aceptación de términos</h2>
+                                <p class="text-sm leading-relaxed">Al acceder y utilizar la plataforma CV²A, usted acepta estar sujeto a estos Términos y Condiciones. DESEC, A.C. se reserva el derecho de modificarlos en cualquier momento. El uso continuado de CV²A constituye su aceptación de los cambios.</p>
+                            </section>
+                            <section id="tac-2">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">2</span>Descripción de la plataforma</h2>
+                                <p class="text-sm leading-relaxed mb-2">CV²A es una plataforma digital diseñada para facilitar la conexión entre investigadores, docentes, estudiantes, productores, empresarios, facilitadores e inversionistas del ecosistema de innovación y valor agregado en Chihuahua. Permite crear perfiles profesionales, acceder a la comunidad, identificar oportunidades de colaboración y participar en eventos del sector.</p>
+                            </section>
+                            <section id="tac-3">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">3</span>Elegibilidad y registro</h2>
+                                <p class="text-sm leading-relaxed mb-2">Para registrarse, usted debe ser mayor de 18 años, proporcionar información veraz y completa, aceptar este aviso de privacidad y estos términos, y mantener la confidencialidad de sus credenciales. DESEC, A.C. puede rechazar, suspender o cancelar registros que incumplan estos requisitos.</p>
+                            </section>
+                            <section id="tac-4">
+                                <h2 class="text-base font-black text-slate-900 mb-3 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">4</span>Derechos y responsabilidades del usuario</h2>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3"><p class="font-bold text-slate-700 mb-1">Cumplimiento legal</p><p class="text-slate-500">Usar la plataforma para fines lícitos y conforme a las leyes aplicables en México.</p></div>
+                                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3"><p class="font-bold text-slate-700 mb-1">Respeto y comunidad</p><p class="text-slate-500">Tratar a todos los usuarios con respeto; prohibido el acoso, amenazas o discriminación.</p></div>
+                                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3"><p class="font-bold text-slate-700 mb-1">Información veraz</p><p class="text-slate-500">Garantizar que su perfil sea verídico y actualizado; prohibido crear perfiles falsos.</p></div>
+                                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3"><p class="font-bold text-slate-700 mb-1">Propiedad intelectual</p><p class="text-slate-500">Respetar derechos de otros usuarios; no copiar ni distribuir contenido sin autorización.</p></div>
+                                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3"><p class="font-bold text-slate-700 mb-1">Seguridad</p><p class="text-slate-500">Mantener sus credenciales confidenciales y notificar accesos no autorizados.</p></div>
+                                    <div class="bg-amber-50 border border-amber-100 rounded-xl p-3"><p class="font-bold text-amber-700 mb-1">Prohibiciones</p><p class="text-slate-500">No spam, bots, venta de cuentas, hacking ni scraping no autorizado.</p></div>
+                                </div>
+                            </section>
+                            <section id="tac-5">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">5</span>Contenido del usuario</h2>
+                                <p class="text-sm leading-relaxed">Usted retiene la propiedad de su contenido. Al publicarlo, otorga a DESEC, A.C. licencia no exclusiva para su uso dentro de la plataforma. DESEC, A.C. puede moderar o eliminar contenido que incumpla estos términos, viole leyes o dañe a terceros.</p>
+                            </section>
+                            <section id="tac-6">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">6</span>Privacidad y datos personales</h2>
+                                <p class="text-sm leading-relaxed">El tratamiento de sus datos se rige por el Aviso de Privacidad de CV²A. Su perfil será visible para otros usuarios de la plataforma. DESEC, A.C. puede usar datos agregados y anonimizados para mejorarla.</p>
+                            </section>
+                            <section id="tac-7">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">7</span>Limitación de responsabilidad</h2>
+                                <p class="text-sm leading-relaxed">CV²A se proporciona "tal cual". DESEC, A.C. no garantiza la exactitud de perfiles de terceros ni el funcionamiento ininterrumpido. No será responsable por daños derivados de colaboraciones entre usuarios, interrupciones del servicio ni conducta de terceros.</p>
+                            </section>
+                            <section id="tac-8">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">8</span>Suspensión y terminación de cuenta</h2>
+                                <p class="text-sm leading-relaxed">Puede solicitar eliminar su cuenta en cualquier momento. DESEC, A.C. puede suspenderla de inmediato por incumplimiento de estos términos, actividades ilegales, información falsa o comprometer la seguridad de la plataforma.</p>
+                            </section>
+                            <section id="tac-9">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">9</span>Enlaces a terceros</h2>
+                                <p class="text-sm leading-relaxed">CV²A puede contener enlaces a sitios externos. DESEC, A.C. no respalda ni controla su contenido y no asume responsabilidad por daños derivados de su uso.</p>
+                            </section>
+                            <section id="tac-10">
+                                <h2 class="text-base font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">10</span>Propiedad intelectual</h2>
+                                <p class="text-sm leading-relaxed">Todos los derechos sobre CV²A — diseño, código, logotipos, nombres y marca — pertenecen a DESEC, A.C. o sus licenciantes. Está prohibido reproducir, distribuir o modificar la plataforma sin autorización.</p>
+                            </section>
+                            <section id="tac-11">
+                                <h2 class="text-base font-black text-slate-900 mb-3 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">11–15</span>Indemnización, controversias y disposiciones finales</h2>
+                                <p class="text-sm leading-relaxed mb-3">Usted acepta indemnizar a DESEC, A.C. por reclamaciones derivadas de su incumplimiento de estos términos. Cualquier controversia se resolverá conforme a las leyes de los Estados Unidos Mexicanos, con jurisdicción en el estado de Chihuahua, mediante comunicación directa previa y, de ser necesario, arbitraje.</p>
+                                <p class="text-sm leading-relaxed">Estos Términos, junto con el Aviso de Privacidad, constituyen el acuerdo completo entre usted y DESEC, A.C. Si alguna cláusula es inválida, las demás permanecerán en vigor.</p>
+                            </section>
+                        </div>
+                        <div class="mt-8 pt-6 border-t border-slate-100 bg-blue-50/50 rounded-xl p-4">
+                            <p class="text-xs text-slate-500 italic">Al registrarse y utilizar CV²A, usted reconoce haber leído, entendido y aceptado todos estos Términos y Condiciones. <strong class="text-slate-700">Última actualización: Julio, 2026.</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTACTO -->
+        <div id="section-contacto" class="hidden min-h-screen pt-28 pb-20 bg-slate-50">
+            <div class="max-w-3xl mx-auto px-6 md:px-8">
+                <button onclick="switchSection(null,'ecosistema')" class="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center space-x-1 mb-4 transition cursor-pointer">← Volver al inicio</button>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 md:p-10">
+                    <div class="mb-8 pb-6 border-b border-slate-100">
+                        <span class="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">CV²A</span>
+                        <h1 class="text-3xl font-black text-slate-900 tracking-tight mt-3">Contacto</h1>
+                        <p class="text-sm text-slate-500 mt-1 font-medium">Centro Virtual de Valor Agregado — DESEC, A.C.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition">
+                            <div class="bg-blue-100 text-blue-600 rounded-xl w-10 h-10 flex items-center justify-center text-lg shrink-0">📧</div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Correo electrónico</p>
+                                <a href="mailto:gabriel.chfutura@gmail.com" class="text-sm font-bold text-blue-600 hover:underline">gabriel.chfutura@gmail.com</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition">
+                            <div class="bg-blue-100 text-blue-600 rounded-xl w-10 h-10 flex items-center justify-center text-lg shrink-0">📞</div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Teléfono</p>
+                                <a href="tel:+526141332547" class="text-sm font-bold text-blue-600 hover:underline">+52 (614) 133 2547</a>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 transition">
+                            <div class="bg-blue-100 text-blue-600 rounded-xl w-10 h-10 flex items-center justify-center text-lg shrink-0">📍</div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Domicilio</p>
+                                <p class="text-sm font-medium text-slate-700">Prol. Lomas de Majalca 11201, Lomas Altas, 31207, Chihuahua, Chih.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <div class="bg-blue-100 text-blue-600 rounded-xl w-10 h-10 flex items-center justify-center text-lg shrink-0">👤</div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Responsable</p>
+                                <p class="text-sm font-bold text-slate-800">Ing. Gabriel Ochoa Urtusuastigue</p>
+                                <p class="text-xs text-slate-500">Director del CV²A — Chihuahua Futura / DESEC, A.C.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="userPanel" class="smooth-ui fixed top-24 right-6 bottom-20 w-85 bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl z-50 transform translate-x-[115%] p-5 overflow-y-auto border border-slate-100 flex flex-col justify-between">
+        <div>
+            <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
+                <h3 class="text-sm font-bold text-slate-900">Sesión Activa</h3>
+                <button onclick="toggleUserPanel()" class="text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full w-5 h-5 flex items-center justify-center text-[10px] cursor-pointer">✕</button>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center space-x-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+                    <div class="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xs shadow-xs">
+                        BIO
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-900">Coordinador de Estrategia</p>
+                        <p class="text-[10px] text-slate-500 font-medium">Chihuahua BIO</p>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2 text-[11px]">
+                    <p class="text-slate-500"><strong class="text-slate-700">Iniciativa:</strong> Chihuahua Futura</p>
+                    <p class="text-slate-500"><strong class="text-slate-700">Organización:</strong> DESEC A.C.</p>
+                    <p class="text-slate-500"><strong class="text-slate-700">Región:</strong> Chihuahua, México</p>
+                </div>
+            </div>
+        </div>
+        <div class="pt-3 border-t border-slate-100 flex justify-end">
+            <button class="bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 text-[10px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">
+                Salir de la cuenta
+            </button>
+        </div>
+    </div>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 px-6 md:px-8 border-t border-slate-800 relative z-40">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
+            <div class="space-y-2">
+                <div class="flex items-center justify-center md:justify-start space-x-3">
+                    <img src="CV2A.blanco.png" alt="CV2A" class="h-8 object-contain">
+                    <span class="text-xs border-l border-slate-700 pl-3 text-slate-500 font-medium">Centro Virtual de Valor Agregado</span>
+                </div>
+                <p class="text-[11px] text-slate-500 leading-normal max-w-xl">
+                    &copy; 2026 Centro Virtual de Valor Agregado. Todos los derechos reservados. Marca Registrada. Diseñado en sinergia con la estrategia de Chihuahua BIO y coordinado bajo la estructura institucional de Chihuahua Futura y DESEC A.C.
+                </p>
+            </div>
+            <div class="flex flex-wrap justify-center gap-6 text-xs font-bold text-slate-400">
+                <a href="#" onclick="switchSection(event,'privacidad')" class="hover:text-white transition duration-200">Aviso de Privacidad</a>
+                <span class="text-slate-700 hidden sm:inline">•</span>
+                <a href="#" onclick="switchSection(event,'terminos')" class="hover:text-white transition duration-200">Términos y Condiciones</a>
+                <span class="text-slate-700 hidden sm:inline">•</span>
+                <a href="#" onclick="switchSection(event,'contacto')" class="hover:text-white transition duration-200">Contacto</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ── Menú móvil ──
+        function toggleMobileMenu() {
+            const menu = document.getElementById('nav-container');
+            const open = menu.classList.toggle('mobile-open');
+            // Animación hamburger → X
+            document.getElementById('hb-1').style.transform = open ? 'translateY(8px) rotate(45deg)' : '';
+            document.getElementById('hb-2').style.opacity  = open ? '0' : '1';
+            document.getElementById('hb-3').style.transform = open ? 'translateY(-8px) rotate(-45deg)' : '';
+        }
+        function closeMobileMenu() {
+            document.getElementById('nav-container').classList.remove('mobile-open');
+            document.getElementById('hb-1').style.transform = '';
+            document.getElementById('hb-2').style.opacity  = '1';
+            document.getElementById('hb-3').style.transform = '';
+        }
+
+        function switchSection(event, sectionId) {
+            if (event) event.preventDefault();
+            closeMobileMenu();
+            const sections = ['ecosistema', 'nosotros', 'inteligencia', 'ruta', 'mercado', 'noticias', 'privacidad', 'terminos', 'contacto'];
+            
+            sections.forEach(id => {
+                const el = document.getElementById(`section-${id}`);
+                if (el) el.classList.add('hidden');
+            });
+            
+            const activeSection = document.getElementById(`section-${sectionId}`);
+            if (activeSection) activeSection.classList.remove('hidden');
+            
+            const navLinks = document.querySelectorAll('#nav-container a');
+            navLinks.forEach(link => {
+                link.className = "hover:text-blue-600 transition pb-1 text-slate-600 font-semibold text-sm";
+            });
+            
+            if (event && event.currentTarget) {
+                event.currentTarget.className = "text-blue-600 border-b-2 border-blue-600 pb-1 font-bold text-sm";
+            }
+            
+            if (sectionId === 'ecosistema') {
+                setTimeout(() => { map.invalidateSize(); }, 100);
+            }
+
+            if (sectionId === 'inteligencia') {
+                document.getElementById('inteligencia-tableau').classList.add('hidden');
+                document.getElementById('inteligencia-sectorial').classList.add('hidden');
+                document.getElementById('inteligencia-selector').classList.remove('hidden');
+                if (typeof estudioChartInstances !== 'undefined' && estudioChartInstances.length) {
+                    estudioChartInstances.forEach(c => c.destroy());
+                    estudioChartInstances = [];
+                }
+            }
+
+            window.scrollTo({ top: 0 });
+        }
+
+        // Sub-Navegación Interna de Inteligencia
+        function showTableauDashboard() {
+            document.getElementById('inteligencia-selector').classList.add('hidden');
+            document.getElementById('inteligencia-tableau').classList.remove('hidden');
+        }
+
+        function hideTableauDashboard() {
+            document.getElementById('inteligencia-tableau').classList.add('hidden');
+            document.getElementById('inteligencia-selector').classList.remove('hidden');
+        }
+
+        const map = L.map('map', { 
+            zoomControl: true, 
+            scrollWheelZoom: true 
+        }).setView([28.6329, -106.0691], 12);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© DESEC A.C.' }).addTo(map);
+
+        let clusterMarkers = L.markerClusterGroup({
+            iconCreateFunction: function(cluster) {
+                return new L.DivIcon({ 
+                    html: '<div>' + cluster.getChildCount() + '</div>', 
+                    className: 'custom-cluster', 
+                    iconSize: L.point(30, 30) 
+                });
+            }
+        }).addTo(map);
+
+        const unifedDB = [
+            // ICT
+            { id: 1, type: 'ict', sub: 'Universidad', crop: 'Carne', name: 'Tec de Monterrey Campus Chih.', inst: 'Av. Heroico Colegio Militar', contact: '6141234567', desc: 'Laboratorios avanzados de Biotecnología y valor cárnico.', lat: 28.6740, lng: -106.0775 },
+            { id: 2, type: 'ict', sub: 'Centro de Investigación', crop: 'Nuez', name: 'CIATEJ Subsede Chihuahua', inst: 'Parque Tecnológico PIT2', contact: '6149876543', desc: 'Análisis de inocuidad y valor agregado en nuez pecanera.', lat: 28.7020, lng: -106.1410 },
+            { id: 3, type: 'ict', sub: 'Centro de Investigación', crop: 'Vid', name: 'CIMAV Principal', inst: 'Complejo Industrial Chihuahua', contact: '6145558888', desc: 'Estudios de nanotecnología aplicados a empaques agroindustriales.', lat: 28.7110, lng: -106.1340 },
+            { id: 4, type: 'ict', sub: 'Estudiante', crop: 'Nuez', name: 'Campus de Agronomía UACH (Estudiantes)', inst: 'Campus Universitario II', contact: 'Membresía Estudiantil', desc: 'Grupo de 15 estudiantes en estancias sobre fitopatología de la nuez.', lat: 28.6910, lng: -106.1280 },
+            { id: 5, type: 'ict', sub: 'Maestro', crop: 'Leche', name: 'Laboratorio de Lácteos UACH', inst: 'Campus Universitario II', contact: 'Catedráticos FCQ', desc: 'Investigación en enzimas digestivas aplicadas a derivados lácteos.', lat: 28.6915, lng: -106.1285 },
+            { id: 6, type: 'ict', sub: 'Investigador', crop: 'Carne', name: 'Dr. Ochoa - Biocontrol Cárnico', inst: 'Facultad de Ciencias Químicas', contact: 'Enlace Interno', desc: 'Especialista en recubrimientos biológicos activos para proteínas.', lat: 28.6908, lng: -106.1275 },
+            { id: 7, type: 'ict', sub: 'Universidad', crop: 'Leche', name: 'Instituto Tecnológico de Chihuahua II', inst: 'Av. Homero', contact: '6144421000', desc: 'Ingeniería Industrial aplicada a automatización de establos.', lat: 28.7080, lng: -106.1110 },
+            { id: 8, type: 'ict', sub: 'Estudiante', crop: 'Vid', name: 'Célula de Innovación UTCH', inst: 'UTCH Cantera', contact: '6142143000', desc: 'Alumnos desarrollando software de trazabilidad para viñedos locales.', lat: 28.6430, lng: -106.1480 },
+            { id: 9, type: 'ict', sub: 'Centro de Investigación', crop: 'Carne', name: 'INIFAP Oficina Regional', inst: 'Col. Zarco', contact: '6144152030', desc: 'Mejoramiento de pastizales y rendimiento de ganado bovino.', lat: 28.6250, lng: -106.0950 },
+
+            // SPT
+            { id: 10, type: 'spt', sub: 'Empresa', crop: 'Carne', name: 'Innovak Global', inst: 'Zona Industrial', contact: '6141614120', desc: 'Desarrollo de bio-estimulantes radiculares orgánicos.', lat: 28.6751, lng: -106.0845 },
+            { id: 11, type: 'spt', sub: 'Empresa', crop: 'Carne', name: 'Agri-Estrella, S. de R.L.', inst: 'Complejo Industrial', contact: '6484658405', desc: 'Formulación y distribución de insumos y agroquímicos.', lat: 28.7158, lng: -106.1175 },
+            { id: 12, type: 'spt', sub: 'Empresa', crop: 'Carne', name: 'American Beef S.A.', inst: 'Sector Avalos', contact: '6142239289', desc: 'Procesamiento de alimentos cárnicos listos para el consumo.', lat: 28.5910, lng: -105.9450 },
+            { id: 13, type: 'spt', sub: 'Productor', crop: 'Nuez', name: 'Procesadora de Nuez El Sauz', inst: 'Norte de la Mancha Urbana', contact: '6144246200', desc: 'Planta seleccionadora y descascaradora de nuez pecanera.', lat: 28.7450, lng: -106.1200 },
+            { id: 14, type: 'spt', sub: 'Empresario', crop: 'Vid', name: 'Bodegas Viñedo Encinillas', inst: 'Oficinas Corporativas Chih.', contact: '6144132040', desc: 'Producción de vino premium con tecnología de agricultura de precisión.', lat: 28.6510, lng: -106.0650 },
+            { id: 15, type: 'spt', sub: 'Productor', crop: 'Leche', name: 'Lechería Zaragoza Distribución', inst: 'Col. Industrial', contact: '6144390100', desc: 'Pasteurizadora e infraestructura de acopio lácteo regional.', lat: 28.6580, lng: -106.0890 },
+            { id: 16, type: 'spt', sub: 'Empresario', crop: 'Carne', name: 'Snack Machín - Oficina Central', inst: 'Plaza Distrito Uno', contact: 'Enlace Directo', desc: 'Línea de carne seca funcional adicionada con enzimas.', lat: 28.6410, lng: -106.1130 },
+            { id: 17, type: 'spt', sub: 'Empresa', crop: 'Nuez', name: 'Nutrinut Pecans', inst: 'Vialidad Los Nogales', contact: '6141805560', desc: 'Exportadora de nuez en mitades con certificación de calidad.', lat: 28.7120, lng: -106.0680 },
+            { id: 18, type: 'spt', sub: 'Productor', crop: 'Vid', name: 'Vitivinícola Pasado Meridiano', inst: 'Zootecnia', contact: '6142851020', desc: 'Micro-viñedo experimental urbano y escuela de viticultura.', lat: 28.5880, lng: -106.1150 },
+
+            // RAA
+            { id: 19, type: 'raa', sub: 'Dependencia', crop: 'Carne', name: 'DESEC A.C. / Chihuahua Futura', inst: 'Av. Zarco', contact: '6144142011', desc: 'Articulación de las iniciativas Chihuahua BIO y valor agregado.', lat: 28.6310, lng: -106.0720 },
+            { id: 20, type: 'raa', sub: 'Facilitador', crop: 'Vid', name: 'Spark Chihuahua - Hub de Innovación', inst: 'Centro Histórico', contact: 'Gobierno Estatal', desc: 'Espacio de aceleración para startups de agrotecnología y bioeconomía.', lat: 28.6380, lng: -106.0640 },
+            { id: 21, type: 'raa', sub: 'Dependencia', crop: 'Leche', name: 'Secretaría de Desarrollo Rural', inst: 'Col. Obrera', contact: '6144293300', desc: 'Políticas públicas de apoyo al equipamiento de pozos y riego.', lat: 28.6420, lng: -106.0790 },
+            { id: 22, type: 'raa', sub: 'Facilitador', crop: 'Carne', name: 'Unión Ganadera Regional (UGRCH)', inst: 'Km 8.5 Carr. a Cuauhtémoc', contact: '6144340150', desc: 'Certificación de bonos de carbono y ganadería regenerativa Praderas Vivas.', lat: 28.5990, lng: -106.1430 },
+            { id: 23, type: 'raa', sub: 'Facilitador', crop: 'Nuez', name: 'Sistema Producto Nuez Chihuahua', inst: 'Distrito Uno', contact: 'Consejo Estatal', desc: 'Organismo de sanidad e integración comercial de productores de nuez.', lat: 28.6415, lng: -106.1135 },
+            { id: 24, type: 'raa', sub: 'Facilitador', crop: 'Nuez', name: 'FIRA Agencia Chihuahua', inst: 'Perif. de la Juventud', contact: '6144321515', desc: 'Financiamiento y garantías de crédito para proyectos agroindustriales.', lat: 28.6650, lng: -106.1220 },
+            { id: 25, type: 'raa', sub: 'Dependencia', crop: 'Carne', name: 'Clúster Agroindustrial de Chihuahua', inst: 'Complejo Industrial', contact: 'Membresía Clúster', desc: 'Vinculación comercial y fomento a exportaciones agroalimentarias.', lat: 28.7130, lng: -106.1210 }
+        ];
+
+        window.addEventListener('scroll', () => {
+            if(document.getElementById('section-ecosistema').classList.contains('hidden')) return;
+
+            const scroll = window.scrollY;
+            const masterPanel = document.getElementById('masterPanel');
+            const mapWrapper = document.getElementById('map-wrapper');
+            const heroHeader = document.getElementById('heroHeader');
+            const cropNodes = document.getElementById('cropNodes');
+            
+            const p1 = document.getElementById('perf1'), p2 = document.getElementById('perf2'), p3 = document.getElementById('perf3');
+            const p4 = document.getElementById('perf4'), p5 = document.getElementById('perf5'), p6 = document.getElementById('perf6');
+
+            const isMobile = window.innerWidth < 768;
+
+            if (scroll > 50) {
+                masterPanel.classList.add('scrolled');
+                mapWrapper.classList.add('map-active');
+                heroHeader.classList.add('opacity-0', 'pointer-events-none');
+                cropNodes.classList.remove('opacity-0');
+                cropNodes.classList.add('opacity-100');
+
+                const classes = "bg-white/95 px-3 py-1.5 rounded-full shadow-lg border border-slate-200 text-[10px] pointer-events-auto transform hover:-translate-y-1 cursor-pointer";
+                p1.className = p2.className = p3.className = p4.className = p5.className = p6.className = classes + " smooth-ui fixed bottom-6";
+
+                if (isMobile) {
+                    // MAPA ABIERTO — 2 filas × 3 columnas en la parte inferior
+                    // Fila superior (row 1)
+                    p1.style = "left: 3%;  bottom: 50px; top: auto; right: auto; z-index: 50;";
+                    p2.style = "left: 36%; bottom: 50px; top: auto; right: auto; z-index: 50;";
+                    p3.style = "left: 67%; bottom: 50px; top: auto; right: auto; z-index: 50;";
+                    // Fila inferior (row 2)
+                    p4.style = "left: 3%;  bottom: 6px; top: auto; right: auto; z-index: 50;";
+                    p5.style = "left: 36%; bottom: 6px; top: auto; right: auto; z-index: 50;";
+                    p6.style = "left: 67%; bottom: 6px; top: auto; right: auto; z-index: 50;";
+                } else {
+                    p1.style = "left: 6%; top: auto; right: auto; z-index: 50;";
+                    p2.style = "left: 20%; top: auto; right: auto; z-index: 50;";
+                    p3.style = "left: 34%; top: auto; right: auto; z-index: 50;";
+                    p4.style = "left: 48%; top: auto; right: auto; z-index: 50;";
+                    p5.style = "left: 62%; top: auto; right: auto; z-index: 50;";
+                    p6.style = "left: 76%; top: auto; right: auto; z-index: 50;";
+                }
+            } else {
+                masterPanel.classList.remove('scrolled');
+                mapWrapper.classList.remove('map-active');
+                heroHeader.classList.remove('opacity-0', 'pointer-events-none');
+                cropNodes.classList.add('opacity-0');
+                cropNodes.classList.remove('opacity-100');
+
+                p1.className = p2.className = p3.className = p4.className = p5.className = p6.className = "smooth-ui absolute bg-white/95 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer";
+
+                if (isMobile) {
+                    // SIN MAPA — botones DEBAJO del círculo: 2 columnas × 3 filas
+                    // Columna izquierda
+                    p1.style = "left: 8%;  top: 55%; right: auto;";
+                    p2.style = "left: 8%;  top: 65%; right: auto;";
+                    p3.style = "left: 8%;  top: 75%; right: auto;";
+                    // Columna derecha
+                    p4.style = "left: 54%; top: 55%; right: auto;";
+                    p5.style = "left: 54%; top: 65%; right: auto;";
+                    p6.style = "left: 54%; top: 75%; right: auto;";
+                } else {
+                    p1.style = "left: 6rem; top: 40%;"; p2.style = "left: 4rem; top: 53%;"; p3.style = "left: 6rem; top: 66%;";
+                    p4.style = "right: 6rem; top: 40%;"; p5.style = "right: 4rem; top: 53%;"; p6.style = "right: 6rem; top: 66%;";
+                }
+            }
+        });
+
+        function handlePerfilClick(subType) {
+            if (window.scrollY <= 50) {
+                window.scrollTo({ top: 120, behavior: 'smooth' });
+                setTimeout(() => { filterPerfil(subType); }, 500);
+            } else {
+                filterPerfil(subType);
+            }
+        }
+
+        function handleBolaClick(category) {
+            if (window.scrollY <= 50) {
+                window.scrollTo({ top: 120, behavior: 'smooth' });
+                setTimeout(() => { filterMainCategory(category); }, 500);
+            } else {
+                filterMainCategory(category);
+            }
+        }
+
+        function resetToAllPoints() {
+            closeSidebar();
+            clusterMarkers.clearLayers();
+            const colors = { 'spt': '#f59e0b', 'ict': '#2563eb', 'raa': '#10b981' };
+
+            unifedDB.forEach(item => {
+                const marker = L.circleMarker([item.lat, item.lng], {
+                    radius: 11, fillColor: colors[item.type], color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95
+                });
+                marker.on('click', () => openSidebar(item));
+                clusterMarkers.addLayer(marker);
+            });
+        }
+
+        function filterMainCategory(category) {
+            closeSidebar();
+            clusterMarkers.clearLayers();
+            const items = unifedDB.filter(d => d.type === category);
+            const colors = { 'spt': '#f59e0b', 'ict': '#2563eb', 'raa': '#10b981' };
+
+            items.forEach(item => {
+                const marker = L.circleMarker([item.lat, item.lng], {
+                    radius: 11, fillColor: colors[category], color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95
+                });
+                marker.on('click', () => openSidebar(item));
+                clusterMarkers.addLayer(marker);
+            });
+        }
+
+        function filterPerfil(subType) {
+            closeSidebar();
+            clusterMarkers.clearLayers();
+            const items = unifedDB.filter(d => d.sub === subType);
+
+            items.forEach(item => {
+                const marker = L.circleMarker([item.lat, item.lng], {
+                    radius: 11, fillColor: '#6366f1', color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95
+                });
+                marker.on('click', () => openSidebar(item));
+                clusterMarkers.addLayer(marker);
+            });
+        }
+
+        function filterByCrop(cropName) {
+            closeSidebar();
+            clusterMarkers.clearLayers();
+            const items = unifedDB.filter(d => d.crop === cropName);
+            const colors = { 'spt': '#f59e0b', 'ict': '#2563eb', 'raa': '#10b981' };
+
+            items.forEach(item => {
+                const marker = L.circleMarker([item.lat, item.lng], {
+                    radius: 11, fillColor: colors[item.type], color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95
+                });
+                marker.on('click', () => openSidebar(item));
+                clusterMarkers.addLayer(marker);
+            });
+        }
+
+        function openSidebar(item) {
+            document.getElementById('userPanel').classList.add('translate-x-[115%]');
+            document.getElementById('sideTitle').innerText = item.name;
+            const badge = document.getElementById('sideBadge');
+            badge.innerText = item.sub + ' | Cadena: ' + item.crop;
+            
+            if(item.type === 'ict') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-blue-100 text-blue-800";
+            if(item.type === 'spt') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-amber-100 text-amber-800";
+            if(item.type === 'raa') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-emerald-100 text-emerald-800";
+
+            document.getElementById('sideContent').innerHTML = `
+                <p><strong>Ubicación / Campus:</strong> ${item.inst}</p>
+                <p class="mt-1"><strong>Contacto Directo:</strong> ${item.contact}</p>
+                <p class="mt-1 text-slate-500 italic">"${item.desc}"</p>
+                <p class="text-[9px] text-slate-400 mt-2">Georreferencia: ${item.lat}, ${item.lng}</p>
+            `;
+            document.getElementById('sidebar').classList.remove('-translate-x-[115%]');
+        }
+
+        function closeSidebar() { document.getElementById('sidebar').classList.add('-translate-x-[115%]'); }
+
+        function toggleUserPanel() {
+            closeSidebar();
+            const userPanel = document.getElementById('userPanel');
+            userPanel.classList.toggle('translate-x-[115%]');
+        }
+
+        function scrollToTables() {
+            const tableSection = document.getElementById('tableSection');
+            const topOffset = tableSection.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({
+                top: topOffset,
+                behavior: 'smooth'
+            });
+        }
+
+        let currentTab = 'ict';
+        function populateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            const filteredData = unifedDB.filter(d => d.type === currentTab);
+
+            filteredData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-semibold text-slate-900">#${row.id}</td>
+                    <td class="px-4 py-3 font-medium text-slate-800">${row.name}</td>
+                    <td class="px-4 py-3 text-slate-500">${row.inst}</td>
+                    <td class="px-4 py-3 text-blue-600 font-mono">${row.contact || 'No disponible'}</td>
+                    <td class="px-4 py-3 max-w-xs truncate" title="${row.desc}">${row.desc}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function switchTableTab(tabType) {
+            currentTab = tabType;
+            ['ict', 'spt', 'raa'].forEach(t => {
+                const btn = document.getElementById(`tabBtn-${t}`);
+                if(t === tabType) {
+                    btn.className = "px-5 py-2.5 border-b-2 border-blue-600 text-blue-600 font-bold cursor-pointer whitespace-nowrap";
+                } else {
+                    btn.className = "px-5 py-2.5 text-slate-500 border-b-2 border-transparent hover:text-slate-800 cursor-pointer whitespace-nowrap";
+                }
+            });
+            populateTable();
+        }
+
+        resetToAllPoints();
+        populateTable();
+
+        // ══ BLOG ══
+        function openArticle(id) {
+            document.getElementById('blog-lista').classList.add('hidden');
+            document.getElementById('article-' + id).classList.remove('hidden');
+            window.scrollTo({ top: 0 });
+        }
+        function closeArticle() {
+            document.querySelectorAll('[id^="article-"]').forEach(el => el.classList.add('hidden'));
+            document.getElementById('blog-lista').classList.remove('hidden');
+            window.scrollTo({ top: 0 });
+        }
+
+        // ══ INTELIGENCIA SECTORIAL ══
+        let sChart1 = null, sChart2 = null;
+
+        const sectorialDB = {
+            todos: {
+                kpis: [
+                    { icon: '🌰', value: '91,000 t', label: 'Producción Nuez' },
+                    { icon: '🍇', value: '427 ha', label: 'Superficie Vid' },
+                    { icon: '🥩', value: '50,000 t', label: 'Producción Carne' },
+                    { icon: '🥛', value: '2,050 ML', label: 'Producción Leche' },
+                ],
+                barLabels: ['2019','2020','2021','2022','2023','2024'],
+                barDatasets: [
+                    { label: 'Nuez (miles ton)', data: [85,78,92,88,95,91], color: '#f59e0b' },
+                    { label: 'Carne (miles ton)', data: [42,44,46,45,48,50], color: '#ef4444' },
+                ],
+                donutLabels: ['Nuez','Vid','Carne','Leche'],
+                donutData: [45,12,28,15],
+                donutColors: ['#f59e0b','#7c3aed','#ef4444','#3b82f6'],
+            },
+            nuez: {
+                kpis: [
+                    { icon: '🌰', value: '1,200+', label: 'Productores' },
+                    { icon: '🌿', value: '72,000 ha', label: 'Sup. cultivada' },
+                    { icon: '📦', value: '91,000 t', label: 'Producción 2024' },
+                    { icon: '✈️', value: '85%', label: 'Exportación' },
+                ],
+                barLabels: ['2019','2020','2021','2022','2023','2024'],
+                barDatasets: [{ label: 'Nuez en cáscara (ton)', data: [85000,78000,92000,88000,95000,91000], color: '#f59e0b' }],
+                donutLabels: ['Western','Wichita','Cheyenne','Otras'],
+                donutData: [55,25,12,8],
+                donutColors: ['#f59e0b','#fbbf24','#fcd34d','#fde68a'],
+            },
+            vid: {
+                kpis: [
+                    { icon: '🍇', value: '53', label: 'Viñedos' },
+                    { icon: '🏭', value: '25', label: 'Bodegas' },
+                    { icon: '🌿', value: '427 ha', label: 'Sup. plantada' },
+                    { icon: '📊', value: '336 ha', label: 'En producción' },
+                ],
+                barLabels: ['2019','2020','2021','2022','2023','2024'],
+                barDatasets: [{ label: 'Uva cosechada (ton)', data: [2800,3100,2900,3400,3200,3600], color: '#7c3aed' }],
+                donutLabels: ['Cabernet Sauvignon','Merlot','Syrah','Malbec','Otras'],
+                donutData: [30,22,18,15,15],
+                donutColors: ['#7c3aed','#a855f7','#c084fc','#d8b4fe','#e9d5ff'],
+            },
+            carne: {
+                kpis: [
+                    { icon: '🐄', value: '1.5 M', label: 'Cabezas bovino' },
+                    { icon: '🏭', value: '8', label: 'Rastros TIF' },
+                    { icon: '📦', value: '50,000 t', label: 'Producción 2024' },
+                    { icon: '✈️', value: '35%', label: 'Exportación' },
+                ],
+                barLabels: ['2019','2020','2021','2022','2023','2024'],
+                barDatasets: [{ label: 'Carne bovina (ton)', data: [42000,44000,46000,45000,48000,50000], color: '#ef4444' }],
+                donutLabels: ['Angus','Hereford','Simmental','Cruzas'],
+                donutData: [35,28,22,15],
+                donutColors: ['#ef4444','#f87171','#fca5a5','#fecaca'],
+            },
+            leche: {
+                kpis: [
+                    { icon: '🏡', value: '320', label: 'Establos' },
+                    { icon: '🐄', value: '85,000', label: 'Vacas lecheras' },
+                    { icon: '📦', value: '2,050 ML', label: 'Producción 2024' },
+                    { icon: '🏭', value: '12', label: 'Procesadoras' },
+                ],
+                barLabels: ['2019','2020','2021','2022','2023','2024'],
+                barDatasets: [{ label: 'Leche (megalitros)', data: [1800,1900,1850,2000,2100,2050], color: '#3b82f6' }],
+                donutLabels: ['Holstein','Jersey','Brown Swiss','Otras'],
+                donutData: [60,22,12,6],
+                donutColors: ['#3b82f6','#60a5fa','#93c5fd','#bfdbfe'],
+            },
+        };
+
+        const estudiosDB = [
+            {
+                id: 'vid-plan-rector-2026',
+                title: 'Plan Rector Sistema Producto Vid: 2026–2028',
+                fuente: 'SDR', año: '2026', sector: 'vid',
+                url: 'https://drive.google.com/file/d/1zOcjByCeo1mwKlPNeAJCFk17n1Qv8vrG/view?usp=sharing',
+                resumen: 'Diagnóstico integral del sector vitivinícola con 53 viñedos, 25 bodegas, 427 ha plantadas y 336 ha en producción. Estrategia para vinos boutique, enoturismo y Viticultura 4.0.',
+                detalle: `<div class="space-y-6 text-sm text-slate-600 leading-relaxed">
+                    <p>Este documento detalla el <strong class="text-slate-900">Plan Rector 2026–2028 del Sistema Producto Vid (SPV) en Chihuahua</strong>, estableciendo las directrices para el desarrollo competitivo, tecnológico y comercial del sector vitivinícola en el estado.</p>
+                    <div>
+                        <h3 class="font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">1</span>Diagnóstico y Capacidad Productiva</h3>
+                        <ul class="list-disc pl-5 space-y-1.5">
+                            <li>El sector está integrado por <strong class="text-slate-800">53 viñedos</strong> y <strong class="text-slate-800">25 bodegas</strong> en 18 municipios.</li>
+                            <li><strong class="text-slate-800">427 hectáreas plantadas</strong>, de las cuales 336 están en etapa de producción.</li>
+                            <li>Capacidad instalada de vinificación: ~900,000 litros, con proyección de sumar 700,000 L adicionales para 2028.</li>
+                            <li>El 90% de la producción se enfoca en variedades tintas: Cabernet Sauvignon, Merlot, Syrah y Malbec.</li>
+                            <li>Rendimientos actuales: <strong class="text-slate-800">4.25 t/ha</strong>; objetivo: <strong class="text-slate-800">7.11 t/ha</strong> mediante tecnificación y mejora agronómica.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">2</span>Posicionamiento y Estrategia Comercial</h3>
+                        <ul class="list-disc pl-5 space-y-1.5">
+                            <li>Estrategia de <strong class="text-slate-800">vinos boutique y premium</strong> (no de volumen) por los costos y escala de producción.</li>
+                            <li>El 66% del consumo nacional de vino es importado. Oportunidad de sustitución en segmentos de precio medio y alto.</li>
+                            <li>El <strong class="text-slate-800">enoturismo</strong> es el principal eje: rutas, catas, gastronomía, venta directa y fidelización de mercado local.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">3</span>Retos Estructurales</h3>
+                        <ul class="list-disc pl-5 space-y-1.5">
+                            <li><strong class="text-slate-800">Vulnerabilidad climática:</strong> clima semiárido extremo, granizadas y heladas tardías. Solo el 2% de los viñedos tiene riego automatizado.</li>
+                            <li>Fuerte competencia frente a vinos importados de menor precio y baja presencia en canales de distribución formales nacionales.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-slate-900 mb-2 flex items-center gap-2"><span class="bg-blue-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">4</span>Ejes del Plan de Acción</h3>
+                        <ul class="list-disc pl-5 space-y-1.5">
+                            <li><strong class="text-slate-800">Marca Colectiva "Vino Chihuahua":</strong> programa de "Culturización del Vino" para construir identidad territorial.</li>
+                            <li><strong class="text-slate-800">Viticultura 4.0 y Sustentabilidad:</strong> prácticas regenerativas y tecnologías IoT para eficiencia hídrica.</li>
+                            <li><strong class="text-slate-800">Economía Circular:</strong> vinagres balsámicos, destilados de orujo, cosméticos naturales y jugos como productos secundarios.</li>
+                            <li><strong class="text-slate-800">Articulación de la Cadena:</strong> bodegas comunitarias, financiamientos y profesionalización de eslabones productivos.</li>
+                        </ul>
+                    </div>
+                </div>`
+            },
+            { id: 'nuez-cadena-2023', title: 'Análisis de la Cadena de Valor de la Nuez Pecanera', fuente: 'Fundación Produce', año: '2023', sector: 'nuez', url: '#', resumen: 'Estudio de producción, transformación y comercialización de nuez en Chihuahua. Principales mercados de exportación y tendencias de precio internacional.', detalle: '<p class="text-sm text-slate-500 italic">Documento en proceso de integración al repositorio. Próximamente disponible para descarga.</p>' },
+            { id: 'leche-estadisticas-2023', title: 'Estadísticas de Producción Láctea en la Región Norte', fuente: 'SIAP-SAGARPA', año: '2023', sector: 'leche', url: '#', resumen: 'Indicadores de eficiencia productiva, volúmenes de acopio y rendimiento por litro de los principales establos chihuahuenses.', detalle: '<p class="text-sm text-slate-500 italic">Documento en proceso de integración al repositorio. Próximamente disponible para descarga.</p>' },
+            { id: 'carne-mercado-2024', title: 'Mercado de Carne Bovina: Tendencias de Exportación', fuente: 'ASERCA', año: '2024', sector: 'carne', url: '#', resumen: 'Análisis de los flujos de exportación hacia EUA, cortes de alto valor y estrategias de certificación para mercados premium.', detalle: '<p class="text-sm text-slate-500 italic">Documento en proceso de integración al repositorio. Próximamente disponible para descarga.</p>' },
+            { id: 'perspectivas-2024', title: 'Perspectivas Agroindustriales Chihuahua 2024–2030', fuente: 'SDR', año: '2024', sector: 'todos', url: '#', resumen: 'Proyecciones de inversión, oportunidades de valor agregado y brechas tecnológicas en las cuatro cadenas prioritarias del estado.', detalle: '<p class="text-sm text-slate-500 italic">Documento en proceso de integración al repositorio. Próximamente disponible para descarga.</p>' },
+            { id: 'diagnostico-2022', title: 'Diagnóstico de Capacidades de Transformación Agroindustrial', fuente: 'Fundación Produce', año: '2022', sector: 'todos', url: '#', resumen: 'Inventario de infraestructura de procesamiento, plantas empacadoras y brechas de capacidad instalada por municipio.', detalle: '<p class="text-sm text-slate-500 italic">Documento en proceso de integración al repositorio. Próximamente disponible para descarga.</p>' },
+        ];
+
+        const sectorTag = {
+            vid:   'bg-purple-100 text-purple-700',
+            nuez:  'bg-amber-100 text-amber-700',
+            carne: 'bg-red-100 text-red-700',
+            leche: 'bg-blue-100 text-blue-700',
+            todos: 'bg-slate-100 text-slate-600',
+        };
+
+        let estudioChartInstances = [];
+
+        function openEstudio(id) {
+            const e = estudiosDB.find(x => x.id === id);
+            if (!e) return;
+
+            const tagColors = { vid: 'bg-purple-100 text-purple-700', nuez: 'bg-amber-100 text-amber-700', carne: 'bg-red-100 text-red-700', leche: 'bg-blue-100 text-blue-700', todos: 'bg-slate-100 text-slate-600' };
+            const tag = tagColors[e.sector] || tagColors['todos'];
+
+            document.getElementById('estudio-header').innerHTML = `
+                <div class="flex items-start justify-between gap-4 mb-3">
+                    <h2 class="text-xl font-black text-slate-900 leading-tight">${e.title}</h2>
+                    <span class="shrink-0 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${tag}">${e.sector === 'todos' ? 'General' : e.sector}</span>
+                </div>
+                <div class="flex flex-wrap gap-4 text-xs text-slate-500">
+                    <span><strong class="text-slate-700">Fuente:</strong> ${e.fuente}</span>
+                    <span><strong class="text-slate-700">Año:</strong> ${e.año}</span>
+                </div>`;
+
+            document.getElementById('estudio-resumen').innerHTML = e.detalle;
+
+            const btn = document.getElementById('estudio-download-btn');
+            btn.href = e.url || '#';
+            if (!e.url || e.url === '#') {
+                btn.className = 'inline-flex items-center gap-2 bg-slate-200 text-slate-400 text-sm font-bold px-6 py-3 rounded-full cursor-not-allowed';
+                btn.innerHTML = 'Próximamente disponible';
+                btn.removeAttribute('target');
+            } else {
+                btn.className = 'inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-3 rounded-full transition';
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Descargar documento`;
+                btn.setAttribute('target', '_blank');
+            }
+
+            // Destruir gráficas anteriores
+            estudioChartInstances.forEach(c => c.destroy());
+            estudioChartInstances = [];
+
+            const chartsCol = document.getElementById('estudio-charts-col');
+
+            if (e.id === 'vid-plan-rector-2026') {
+                chartsCol.classList.remove('hidden');
+
+                // Chart 1: Distribución varietal (donut)
+                estudioChartInstances.push(new Chart(document.getElementById('chart-vid-varietales').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Cabernet Sauvignon', 'Merlot', 'Syrah', 'Malbec', 'Otras'],
+                        datasets: [{ data: [30, 22, 18, 20, 10], backgroundColor: ['#7c3aed','#a855f7','#c084fc','#d8b4fe','#e9d5ff'], borderWidth: 2, borderColor: '#f8fafc' }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.4,
+                        plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 8, padding: 5 } } } }
+                }));
+
+                // Chart 2: Superficie (barras horizontales)
+                estudioChartInstances.push(new Chart(document.getElementById('chart-vid-superficie').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Plantadas', 'En producción'],
+                        datasets: [{ data: [427, 336], backgroundColor: ['#7c3aedCC','#a855f7CC'], borderColor: ['#7c3aed','#a855f7'], borderWidth: 2, borderRadius: 6 }]
+                    },
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, aspectRatio: 1.8,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { beginAtZero: true, ticks: { font: { size: 9 } }, grid: { color: '#f1f5f9' } }, y: { ticks: { font: { size: 9 } }, grid: { display: false } } } }
+                }));
+
+                // Chart 3: Rendimiento t/ha actual vs objetivo
+                estudioChartInstances.push(new Chart(document.getElementById('chart-vid-rendimiento').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Actual', 'Objetivo'],
+                        datasets: [{ data: [4.25, 7.11], backgroundColor: ['#7c3aedCC','#10b981CC'], borderColor: ['#7c3aed','#10b981'], borderWidth: 2, borderRadius: 6 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.8,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, ticks: { font: { size: 9 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } }, grid: { display: false } } } }
+                }));
+
+                // Chart 4: Mercado nacional — importado vs nacional
+                estudioChartInstances.push(new Chart(document.getElementById('chart-vid-mercado').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Importado', 'Producción nacional'],
+                        datasets: [{ data: [66, 34], backgroundColor: ['#ef4444CC','#7c3aedCC'], borderWidth: 2, borderColor: '#f8fafc' }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.4,
+                        plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 8, padding: 5 } } } }
+                }));
+
+            } else {
+                chartsCol.classList.add('hidden');
+            }
+
+            ['sectorial-filtros','sectorial-kpis','sectorial-charts','sectorial-estudios-section'].forEach(id => document.getElementById(id).classList.add('hidden'));
+            document.getElementById('sectorial-detalle').classList.remove('hidden');
+            document.getElementById('inteligencia-sectorial').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function closeEstudio() {
+            estudioChartInstances.forEach(c => c.destroy());
+            estudioChartInstances = [];
+            document.getElementById('sectorial-detalle').classList.add('hidden');
+            document.getElementById('estudio-charts-col').classList.add('hidden');
+            ['sectorial-filtros','sectorial-kpis','sectorial-charts','sectorial-estudios-section'].forEach(id => document.getElementById(id).classList.remove('hidden'));
+        }
+
+        function showSectorialDashboard() {
+            document.getElementById('inteligencia-selector').classList.add('hidden');
+            document.getElementById('inteligencia-sectorial').classList.remove('hidden');
+            filterSectorial('todos');
+        }
+
+        function hideSectorialDashboard() {
+            document.getElementById('inteligencia-sectorial').classList.add('hidden');
+            document.getElementById('inteligencia-selector').classList.remove('hidden');
+            if (sChart1) { sChart1.destroy(); sChart1 = null; }
+            if (sChart2) { sChart2.destroy(); sChart2 = null; }
+        }
+
+        function filterSectorial(sector) {
+            ['todos','nuez','vid','carne','leche'].forEach(s => {
+                const btn = document.getElementById('sf-' + s);
+                if (!btn) return;
+                btn.className = s === sector
+                    ? 'px-4 py-2.5 border-b-2 border-blue-600 text-blue-600 font-bold text-sm cursor-pointer whitespace-nowrap -mb-px'
+                    : 'px-4 py-2.5 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer whitespace-nowrap -mb-px';
+            });
+
+            const d = sectorialDB[sector] || sectorialDB['todos'];
+
+            // KPIs
+            document.getElementById('sectorial-kpis').innerHTML = d.kpis.map(k => `
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex flex-col gap-1">
+                    <span class="text-2xl">${k.icon}</span>
+                    <span class="text-xl font-black text-slate-900">${k.value}</span>
+                    <span class="text-xs font-bold text-slate-500">${k.label}</span>
+                </div>`).join('');
+
+            // Charts
+            if (sChart1) sChart1.destroy();
+            if (sChart2) sChart2.destroy();
+
+            sChart1 = new Chart(document.getElementById('chart-produccion').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: d.barLabels,
+                    datasets: d.barDatasets.map(ds => ({
+                        label: ds.label,
+                        data: ds.data,
+                        backgroundColor: ds.color + 'BB',
+                        borderColor: ds.color,
+                        borderWidth: 2,
+                        borderRadius: 6,
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2.5,
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 8 } } },
+                    scales: { y: { beginAtZero: false, ticks: { font: { size: 9 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } }, grid: { display: false } } }
+                }
+            });
+
+            sChart2 = new Chart(document.getElementById('chart-variedades').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: d.donutLabels,
+                    datasets: [{ data: d.donutData, backgroundColor: d.donutColors, borderWidth: 2, borderColor: '#fff' }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 6 } } }
+                }
+            });
+
+            // Estudios
+            const filtered = sector === 'todos'
+                ? estudiosDB
+                : estudiosDB.filter(e => e.sector === sector || e.sector === 'todos');
+
+            document.getElementById('sectorial-estudios').innerHTML = filtered.map(e => `
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <h4 class="text-xs font-black text-slate-900 leading-tight">${e.title}</h4>
+                        <span class="shrink-0 text-[9px] font-bold uppercase px-2 py-0.5 rounded-full ${sectorTag[e.sector]}">${e.sector === 'todos' ? 'General' : e.sector}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 leading-relaxed">${e.resumen}</p>
+                    <div class="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
+                        <span class="text-[9px] text-slate-400"><strong class="text-slate-600">${e.fuente}</strong> · ${e.año}</span>
+                        <button onclick="openEstudio('${e.id}')" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full transition cursor-pointer">Aprender más →</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        // ── Ruta de Profesionalización ──
+        let activeStep = null;
+        const progressWidths = { 1: '0%', 2: '25%', 3: '50%', 4: '75%', 5: '100%' };
+
+        function selectStep(n) {
+            // Si ya está activo, lo cierra (toggle)
+            if (activeStep === n) {
+                closeStep();
+                return;
+            }
+            activeStep = n;
+
+            // Oculta placeholder, muestra panel
+            document.getElementById('ruta-placeholder').classList.add('hidden');
+            document.getElementById('ruta-panel').classList.remove('hidden');
+
+            // Muestra el contenido correcto
+            document.querySelectorAll('.ruta-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('ruta-content-' + n).classList.remove('hidden');
+
+            // Actualiza botones
+            document.querySelectorAll('.ruta-step-btn').forEach((btn, i) => {
+                const circle = btn.querySelector('.ruta-circle');
+                const isActive = (i + 1) === n;
+                const isPast  = (i + 1) < n;
+                circle.className = 'ruta-circle w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs font-black transition-all duration-300 ' +
+                    (isActive ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200 scale-110' :
+                     isPast   ? 'bg-blue-100 border-blue-300 text-blue-500' :
+                                'border-slate-300 bg-white text-slate-400');
+                const label = btn.querySelector('span');
+                label.classList.toggle('text-blue-600', isActive || isPast);
+                label.classList.toggle('font-black', isActive);
+                label.classList.toggle('text-slate-400', !isActive && !isPast);
+            });
+
+            // Barra de progreso
+            document.getElementById('ruta-progress-line').style.width = progressWidths[n];
+
+            // Scroll suave al panel
+            setTimeout(() => {
+                document.getElementById('ruta-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 50);
+        }
+
+        function closeStep() {
+            activeStep = null;
+            document.querySelectorAll('.ruta-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('ruta-panel').classList.add('hidden');
+            document.getElementById('ruta-placeholder').classList.remove('hidden');
+            document.querySelectorAll('.ruta-step-btn').forEach(btn => {
+                const circle = btn.querySelector('.ruta-circle');
+                circle.className = 'ruta-circle w-10 h-10 rounded-full border-2 border-slate-300 bg-white flex items-center justify-center text-xs font-black text-slate-400 transition-all duration-300';
+                const label = btn.querySelector('span');
+                label.className = 'text-[10px] font-bold text-slate-400 text-center leading-tight transition-colors group-hover:text-blue-600';
+            });
+            document.getElementById('ruta-progress-line').style.width = '0%';
+        }
+    </script>
+</body>
+</html>
