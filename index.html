@@ -120,57 +120,70 @@
 
         @media (max-width: 767px) {
 
-            /* ── Ecosistema: panel inicial ──
-               Círculo más pequeño y en la parte superior de la pantalla,
-               dejando espacio abajo para los botones de perfil */
+            /* ──────────────────────────────────────────
+               ECOSISTEMA — ESTADO INICIAL (sin mapa)
+               Círculo 20% más grande y bajado para no
+               empalmarse con el texto del hero.
+            ────────────────────────────────────────── */
             .panel-master {
-                width: 220px !important;
-                height: 220px !important;
-                top: 34% !important;           /* sube el círculo al tercio superior */
+                width: 264px !important;
+                height: 264px !important;
+                top: 38% !important;
             }
 
-            /* ── Ecosistema: panel CON MAPA ABIERTO (scrolled) ──
-               Migra a esquina superior-izquierda, compacto */
+            /* ──────────────────────────────────────────
+               ECOSISTEMA — ESTADO CON MAPA ABIERTO
+               El panel completo migra a la esquina
+               superior DERECHA. Sin scale para que sea
+               "el doble de tamaño" vs versión comprimida.
+            ────────────────────────────────────────── */
             .panel-master.scrolled {
-                left: 12px !important;
-                top: 74px !important;
-                transform: translate(0, 0) scale(0.58) !important;
-                transform-origin: top left !important;
+                right: 8px !important;
+                left: auto !important;
+                top: 72px !important;
+                transform: translate(0, 0) scale(1) !important;
+                transform-origin: top right !important;
             }
 
-            /* Bolas ICT/RAA/SPT: tamaño reducido y posiciones
-               para que no se empalmen entre sí ni con el logo central
-               dentro del panel de 220px escalado a 0.58 */
+            /* Bolas: tamaño explícito (60px) y posiciones
+               en manecillas del reloj respecto al CV2A central.
+               Panel 264px → center (132, 132), radio 120px:
+               • ICT  8:30 (255°) → (16, 163)
+               • RAA  7:30 (225°) → (47, 217)
+               • SPT  6:30 (195°) → (101, 248)
+            */
             .scrolled .bola-ict {
-                width: 48px !important; height: 48px !important;
-                top: 6px !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
+                width: 60px !important; height: 60px !important;
+                top: 133px !important;
+                left: -14px !important;
+                transform: none !important;
             }
             .scrolled .bola-raa {
-                width: 48px !important; height: 48px !important;
-                top: 50% !important;
-                left: -22px !important;
-                transform: translateY(-50%) !important;
+                width: 60px !important; height: 60px !important;
+                top: 187px !important;
+                left: 17px !important;
+                transform: none !important;
             }
             .scrolled .bola-spt {
-                width: 48px !important; height: 48px !important;
-                bottom: 6px !important;
-                left: 50% !important;
-                transform: translateX(-50%) !important;
+                width: 60px !important; height: 60px !important;
+                top: 218px !important;
+                left: 71px !important;
+                transform: none !important;
             }
 
-            /* Logo central más pequeño para no tapar las bolas */
+            /* Logo CV2A central más grande */
             .scrolled .centro-logo {
-                width: 68px !important;
-                height: 68px !important;
+                width: 80px !important;
+                height: 80px !important;
             }
 
-            /* Iconos de cadena (Nuez/Vid/Carne/Leche): ocultar en mobile
-               para evitar empalmes en el panel compacto */
-            #cropNodes { display: none !important; }
+            /* Iconos de cultivo: restaurados (visibles en estado scrolled
+               como en el diseño original — opacity controlado por JS) */
 
-            /* Sidebar y panel de usuario: full-width */
+            /* Botón tabla (📋): sube para no empalmar con botones de perfil */
+            #tabla-btn { bottom: 110px !important; }
+
+            /* Sidebar y panel de usuario: ancho completo en móvil */
             #sidebar {
                 width: calc(100vw - 24px) !important;
                 left: 12px !important;
@@ -297,7 +310,7 @@
                     </div>
                 </div>
 
-                <button onclick="scrollToTables()" class="fixed bottom-6 right-6 bg-blue-600 text-white p-3.5 rounded-full shadow-xl hover:bg-blue-700 transition-transform active:scale-95 z-50 flex items-center justify-center cursor-pointer" title="Ver tablas de datos">
+                <button id="tabla-btn" onclick="scrollToTables()" class="fixed bottom-6 right-6 bg-blue-600 text-white p-3.5 rounded-full shadow-xl hover:bg-blue-700 transition-transform active:scale-95 z-50 flex items-center justify-center cursor-pointer" title="Ver tablas de datos">
                     <span class="text-lg">📋</span>
                 </button>
             </div>
@@ -1624,14 +1637,14 @@
 
                 if (isMobile) {
                     // MAPA ABIERTO — 2 filas × 3 columnas en la parte inferior
-                    // Fila superior (row 1)
-                    p1.style = "left: 3%;  bottom: 50px; top: auto; right: auto; z-index: 50;";
-                    p2.style = "left: 36%; bottom: 50px; top: auto; right: auto; z-index: 50;";
-                    p3.style = "left: 67%; bottom: 50px; top: auto; right: auto; z-index: 50;";
+                    // Fila superior (row 1) — separada del botón 📋 que está a bottom:110px
+                    p1.style = "left: 3%;  bottom: 152px; top: auto; right: auto; z-index: 50;";
+                    p2.style = "left: 36%; bottom: 152px; top: auto; right: auto; z-index: 50;";
+                    p3.style = "left: 67%; bottom: 152px; top: auto; right: auto; z-index: 50;";
                     // Fila inferior (row 2)
-                    p4.style = "left: 3%;  bottom: 6px; top: auto; right: auto; z-index: 50;";
-                    p5.style = "left: 36%; bottom: 6px; top: auto; right: auto; z-index: 50;";
-                    p6.style = "left: 67%; bottom: 6px; top: auto; right: auto; z-index: 50;";
+                    p4.style = "left: 3%;  bottom: 108px; top: auto; right: auto; z-index: 50;";
+                    p5.style = "left: 36%; bottom: 108px; top: auto; right: auto; z-index: 50;";
+                    p6.style = "left: 67%; bottom: 108px; top: auto; right: auto; z-index: 50;";
                 } else {
                     p1.style = "left: 6%; top: auto; right: auto; z-index: 50;";
                     p2.style = "left: 20%; top: auto; right: auto; z-index: 50;";
@@ -1651,14 +1664,15 @@
 
                 if (isMobile) {
                     // SIN MAPA — botones DEBAJO del círculo: 2 columnas × 3 filas
+                    // Panel a top:38% con 264px → borde inferior ≈ 38% + 264px
                     // Columna izquierda
-                    p1.style = "left: 8%;  top: 55%; right: auto;";
-                    p2.style = "left: 8%;  top: 65%; right: auto;";
-                    p3.style = "left: 8%;  top: 75%; right: auto;";
+                    p1.style = "left: 8%;  top: 80%; right: auto;";
+                    p2.style = "left: 8%;  top: 87%; right: auto;";
+                    p3.style = "left: 8%;  top: 94%; right: auto;";
                     // Columna derecha
-                    p4.style = "left: 54%; top: 55%; right: auto;";
-                    p5.style = "left: 54%; top: 65%; right: auto;";
-                    p6.style = "left: 54%; top: 75%; right: auto;";
+                    p4.style = "left: 54%; top: 80%; right: auto;";
+                    p5.style = "left: 54%; top: 87%; right: auto;";
+                    p6.style = "left: 54%; top: 94%; right: auto;";
                 } else {
                     p1.style = "left: 6rem; top: 40%;"; p2.style = "left: 4rem; top: 53%;"; p3.style = "left: 6rem; top: 66%;";
                     p4.style = "right: 6rem; top: 40%;"; p5.style = "right: 4rem; top: 53%;"; p6.style = "right: 6rem; top: 66%;";
