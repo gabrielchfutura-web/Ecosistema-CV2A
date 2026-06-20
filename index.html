@@ -145,28 +145,30 @@
                 transform-origin: top right !important;
             }
 
-            /* Bolas: tamaño 60px y posiciones por manecillas del reloj.
-               Panel 264px → center (132, 132), radio 110px:
-               • ICT  10:30 (315°) → upper-left  → top:24,  left:24
-               • RAA   7:30 (225°) → lower-left  → top:180, left:24
-               • SPT   5:00 (150°) → lower-right → top:197, left:157
+            /* Bolas: posicionadas al lado DERECHO del panel (left>155)
+               para quedar agrupadas en la esquina superior-derecha
+               y no empalmarse con los crop-nodes (left<128).
+               Panel 264px, CVA logo en center (132,132):
+               • ICT  → top:10,  left:160  (arriba del CVA)
+               • RAA  → top:95,  left:180  (derecha del CVA, +clearance)
+               • SPT  → top:185, left:175  (abajo-derecha del CVA)
             */
             .scrolled .bola-ict {
                 width: 60px !important; height: 60px !important;
-                top: 24px !important;
-                left: 24px !important;
+                top: 10px !important;
+                left: 160px !important;
                 transform: none !important;
             }
             .scrolled .bola-raa {
                 width: 60px !important; height: 60px !important;
-                top: 180px !important;
-                left: 24px !important;
+                top: 95px !important;
+                left: 180px !important;
                 transform: none !important;
             }
             .scrolled .bola-spt {
                 width: 60px !important; height: 60px !important;
-                top: 197px !important;
-                left: 157px !important;
+                top: 185px !important;
+                left: 175px !important;
                 transform: none !important;
             }
 
@@ -180,7 +182,7 @@
                como en el diseño original — opacity controlado por JS) */
 
             /* Botón tabla (📋): sube para no empalmar con botones de perfil */
-            #tabla-btn { bottom: 110px !important; }
+            #tabla-btn { bottom: 96px !important; right: 12px !important; }
 
             /* Sidebar y panel de usuario: ancho completo en móvil */
             #sidebar {
@@ -1637,13 +1639,14 @@
                 if (isMobile) {
                     // MAPA ABIERTO — 2 filas × 3 columnas en la parte inferior
                     // Fila superior (row 1) — separada del botón 📋 que está a bottom:110px
-                    p1.style = "left: 3%;  bottom: 152px; top: auto; right: auto; z-index: 50;";
-                    p2.style = "left: 36%; bottom: 152px; top: auto; right: auto; z-index: 50;";
-                    p3.style = "left: 67%; bottom: 152px; top: auto; right: auto; z-index: 50;";
-                    // Fila inferior (row 2)
-                    p4.style = "left: 3%;  bottom: 108px; top: auto; right: auto; z-index: 50;";
-                    p5.style = "left: 36%; bottom: 108px; top: auto; right: auto; z-index: 50;";
-                    p6.style = "left: 67%; bottom: 108px; top: auto; right: auto; z-index: 50;";
+                    // Fila superior — pegada al fondo, encima de fila 2
+                    p1.style = "left: 3%;  bottom: 42px; top: auto; right: auto; z-index: 50;";
+                    p2.style = "left: 36%; bottom: 42px; top: auto; right: auto; z-index: 50;";
+                    p3.style = "left: 67%; bottom: 42px; top: auto; right: auto; z-index: 50;";
+                    // Fila inferior — pegada al borde del viewport
+                    p4.style = "left: 3%;  bottom: 6px;  top: auto; right: auto; z-index: 50;";
+                    p5.style = "left: 36%; bottom: 6px;  top: auto; right: auto; z-index: 50;";
+                    p6.style = "left: 67%; bottom: 6px;  top: auto; right: auto; z-index: 50;";
                 } else {
                     p1.style = "left: 6%; top: auto; right: auto; z-index: 50;";
                     p2.style = "left: 20%; top: auto; right: auto; z-index: 50;";
