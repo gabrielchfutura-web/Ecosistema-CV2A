@@ -145,29 +145,28 @@
                 transform-origin: top right !important;
             }
 
-            /* Bolas: tamaño explícito (60px) y posiciones
-               en manecillas del reloj respecto al CV2A central.
-               Panel 264px → center (132, 132), radio 120px:
-               • ICT  8:30 (255°) → (16, 163)
-               • RAA  7:30 (225°) → (47, 217)
-               • SPT  6:30 (195°) → (101, 248)
+            /* Bolas: tamaño 60px y posiciones por manecillas del reloj.
+               Panel 264px → center (132, 132), radio 110px:
+               • ICT  10:30 (315°) → upper-left  → top:24,  left:24
+               • RAA   7:30 (225°) → lower-left  → top:180, left:24
+               • SPT   5:00 (150°) → lower-right → top:197, left:157
             */
             .scrolled .bola-ict {
                 width: 60px !important; height: 60px !important;
-                top: 133px !important;
-                left: -14px !important;
+                top: 24px !important;
+                left: 24px !important;
                 transform: none !important;
             }
             .scrolled .bola-raa {
                 width: 60px !important; height: 60px !important;
-                top: 187px !important;
-                left: 17px !important;
+                top: 180px !important;
+                left: 24px !important;
                 transform: none !important;
             }
             .scrolled .bola-spt {
                 width: 60px !important; height: 60px !important;
-                top: 218px !important;
-                left: 71px !important;
+                top: 197px !important;
+                left: 157px !important;
                 transform: none !important;
             }
 
