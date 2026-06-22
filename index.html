@@ -812,6 +812,13 @@
                                     <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
                                     <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
                                 </div>
+                                <div class="md:col-span-2 mt-2 bg-teal-50 border border-teal-200 rounded-xl p-4 flex gap-3 items-start">
+                                    <span class="text-teal-500 text-lg leading-none mt-0.5 shrink-0">✓</span>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-teal-600 uppercase tracking-widest mb-1">Graduás de esta etapa cuando:</p>
+                                        <p class="text-sm text-teal-900 font-semibold leading-relaxed">Estás formalizado (RFC + constitución) y concretaste tu primera venta con factura.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -858,6 +865,13 @@
                                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
                                     <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
                                     <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
+                                </div>
+                                <div class="md:col-span-2 mt-2 bg-teal-50 border border-teal-200 rounded-xl p-4 flex gap-3 items-start">
+                                    <span class="text-teal-500 text-lg leading-none mt-0.5 shrink-0">✓</span>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-teal-600 uppercase tracking-widest mb-1">Graduás de esta etapa cuando:</p>
+                                        <p class="text-sm text-teal-900 font-semibold leading-relaxed">Vendes con regularidad y tienes tus Procedimientos Operativos Estándar (POEs) documentados.</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -907,6 +921,13 @@
                                     <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
                                     <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
                                 </div>
+                                <div class="md:col-span-2 mt-2 bg-teal-50 border border-teal-200 rounded-xl p-4 flex gap-3 items-start">
+                                    <span class="text-teal-500 text-lg leading-none mt-0.5 shrink-0">✓</span>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-teal-600 uppercase tracking-widest mb-1">Graduás de esta etapa cuando:</p>
+                                        <p class="text-sm text-teal-900 font-semibold leading-relaxed">Tienes tu marca registrada ante IMPI y vendes fuera de tu canal de venta original.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -954,6 +975,13 @@
                                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
                                     <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
                                     <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
+                                </div>
+                                <div class="md:col-span-2 mt-2 bg-teal-50 border border-teal-200 rounded-xl p-4 flex gap-3 items-start">
+                                    <span class="text-teal-500 text-lg leading-none mt-0.5 shrink-0">✓</span>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-teal-600 uppercase tracking-widest mb-1">Graduás de esta etapa cuando:</p>
+                                        <p class="text-sm text-teal-900 font-semibold leading-relaxed">Entraste a una cadena comercial nacional o tienes certificación de inocuidad (ISO 22000/FSSC).</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1004,16 +1032,60 @@
                                     <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">🔗 Próximamente</p>
                                     <p class="text-xs text-slate-500 leading-relaxed">En esta sección podrás conectar con actores del CV²A (facilitadores, dependencias, instituciones) que te apoyen en cada uno de estos pasos.</p>
                                 </div>
+                                <div class="md:col-span-2 mt-2 bg-teal-50 border border-teal-200 rounded-xl p-4 flex gap-3 items-start">
+                                    <span class="text-teal-500 text-lg leading-none mt-0.5 shrink-0">✓</span>
+                                    <div>
+                                        <p class="text-[10px] font-bold text-teal-600 uppercase tracking-widest mb-1">Graduás de esta etapa cuando:</p>
+                                        <p class="text-sm text-teal-900 font-semibold leading-relaxed">Concretaste tu primera exportación formal con certificado de origen.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                 </div>
 
-                <!-- Estado inicial: ningún paso seleccionado -->
-                <div id="ruta-placeholder" class="text-center py-12 text-slate-400">
-                    <div class="text-4xl mb-3">☝️</div>
-                    <p class="text-sm font-medium">Selecciona un paso para ver el detalle</p>
+                <!-- Banner de resultado del diagnóstico -->
+                <div id="diag-result-banner" class="hidden mb-6 bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start justify-between gap-4">
+                    <div class="flex gap-3 items-start">
+                        <span class="text-blue-500 text-lg shrink-0">🎯</span>
+                        <p id="diag-result-banner-text" class="text-sm text-slate-700 leading-relaxed font-medium"></p>
+                    </div>
+                    <button onclick="resetDiagnostico()" class="shrink-0 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors whitespace-nowrap">↺ Rehacer</button>
+                </div>
+
+                <!-- Estado inicial / Diagnóstico -->
+                <div id="ruta-placeholder">
+                    <!-- CTA inicial -->
+                    <div id="diag-cta" class="text-center py-12 text-slate-400">
+                        <div class="text-4xl mb-3">☝️</div>
+                        <p class="text-sm font-medium mb-5">Selecciona un paso para ver el detalle</p>
+                        <button onclick="startDiagnostico()" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2.5 rounded-full transition-all duration-200 shadow-sm hover:shadow-md">
+                            ¿No sabes en qué etapa estás? Haz el diagnóstico →
+                        </button>
+                    </div>
+
+                    <!-- Panel de diagnóstico -->
+                    <div id="diag-panel" class="hidden max-w-lg mx-auto">
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                            <div class="flex items-center justify-between mb-6">
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mini-diagnóstico</p>
+                                    <h3 class="text-xl font-black text-slate-800">¿En qué etapa estás?</h3>
+                                </div>
+                                <button onclick="resetDiagnostico()" class="text-xs text-slate-400 hover:text-slate-600 transition-colors">✕ Cerrar</button>
+                            </div>
+                            <!-- Pregunta activa -->
+                            <div id="diag-question-area">
+                                <p id="diag-q-counter" class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2">Pregunta 1 de 5</p>
+                                <p id="diag-q-text" class="text-sm font-medium text-slate-700 leading-relaxed mb-6"></p>
+                                <div class="flex gap-3">
+                                    <button onclick="answerDiag(true)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2.5 rounded-xl transition-all duration-200">Sí</button>
+                                    <button onclick="answerDiag(false)" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold py-2.5 rounded-xl transition-all duration-200">No</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -2228,6 +2300,91 @@
                 label.className = 'text-[10px] font-bold text-slate-400 text-center leading-tight transition-colors group-hover:text-blue-600';
             });
             document.getElementById('ruta-progress-line').style.width = '0%';
+        }
+
+        // ── Diagnóstico de autoevaluación ──
+        const diagPreguntas = [
+            '¿Estás formalizado (tienes RFC y empresa constituida) y ya facturaste al menos una venta?',
+            '¿Vendes con regularidad y tienes tus procesos de producción documentados (POEs)?',
+            '¿Tienes tu marca registrada ante IMPI y vendes fuera de tu canal original (ej. tiendas, otras ciudades)?',
+            '¿Estás en una cadena comercial nacional o tienes certificación de inocuidad (ISO 22000 / FSSC)?',
+            '¿Ya exportas formalmente?'
+        ];
+        const diagHitos = [
+            'Estás formalizado (RFC + constitución) y concretaste tu primera venta con factura.',
+            'Vendes con regularidad y tienes tus Procedimientos Operativos Estándar (POEs) documentados.',
+            'Tienes tu marca registrada ante IMPI y vendes fuera de tu canal de venta original.',
+            'Entraste a una cadena comercial nacional o tienes certificación de inocuidad (ISO 22000/FSSC).',
+            'Concretaste tu primera exportación formal con certificado de origen.'
+        ];
+        const diagEtapas = [
+            'Inicio & Formalización',
+            'Control Operativo',
+            'Diferenciación & Mercado',
+            'Industrialización & Retail',
+            'Exportación & Global'
+        ];
+        let diagCurrentQ = 0;
+        let diagAnswers = [];
+
+        function startDiagnostico() {
+            diagCurrentQ = 0;
+            diagAnswers = [];
+            document.getElementById('diag-cta').classList.add('hidden');
+            document.getElementById('diag-panel').classList.remove('hidden');
+            showDiagQuestion();
+        }
+
+        function showDiagQuestion() {
+            document.getElementById('diag-q-counter').textContent = 'Pregunta ' + (diagCurrentQ + 1) + ' de 5';
+            document.getElementById('diag-q-text').textContent = diagPreguntas[diagCurrentQ];
+        }
+
+        function answerDiag(answer) {
+            diagAnswers.push(answer);
+            if (!answer || diagCurrentQ === 4) {
+                computeDiagResult();
+                return;
+            }
+            diagCurrentQ++;
+            showDiagQuestion();
+        }
+
+        function computeDiagResult() {
+            const allYes = diagAnswers.length === 5 && diagAnswers.every(a => a);
+            let etapa;
+            if (!diagAnswers[0])      etapa = 1;
+            else if (!diagAnswers[1]) etapa = 2;
+            else if (!diagAnswers[2]) etapa = 3;
+            else if (!diagAnswers[3]) etapa = 4;
+            else                      etapa = 5;
+
+            // Ocultar panel de diagnóstico y mostrar banner de resultado
+            document.getElementById('diag-panel').classList.add('hidden');
+            document.getElementById('diag-cta').classList.remove('hidden');
+
+            const banner = document.getElementById('diag-result-banner');
+            const bannerText = document.getElementById('diag-result-banner-text');
+            banner.classList.remove('hidden');
+
+            if (allYes) {
+                banner.className = 'mb-6 bg-teal-50 border border-teal-200 rounded-2xl p-4 flex items-start justify-between gap-4';
+                bannerText.textContent = '🎉 ¡Felicidades! Ya recorriste toda la ruta. Tu siguiente reto es consolidar y diversificar tus mercados internacionales.';
+                selectStep(5);
+            } else {
+                banner.className = 'mb-6 bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start justify-between gap-4';
+                bannerText.textContent = 'Estás en la Etapa ' + etapa + ': ' + diagEtapas[etapa - 1] + '. Tu siguiente meta es: ' + diagHitos[etapa - 1];
+                selectStep(etapa);
+            }
+        }
+
+        function resetDiagnostico() {
+            diagCurrentQ = 0;
+            diagAnswers = [];
+            document.getElementById('diag-result-banner').classList.add('hidden');
+            document.getElementById('diag-panel').classList.add('hidden');
+            document.getElementById('diag-cta').classList.remove('hidden');
+            closeStep();
         }
     </script>
 </body>
