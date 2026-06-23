@@ -678,13 +678,13 @@
                     <div id="sectorial-charts" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
                             <p class="text-xs font-black text-slate-900 mb-3 uppercase tracking-wide">Volumen histórico de producción</p>
-                            <div class="max-h-40 flex items-center justify-center">
+                            <div style="position:relative;height:160px;">
                                 <canvas id="chart-produccion"></canvas>
                             </div>
                         </div>
                         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4">
                             <p class="text-xs font-black text-slate-900 mb-3 uppercase tracking-wide">Distribución por variedad / subsector</p>
-                            <div class="max-h-40 flex items-center justify-center">
+                            <div style="position:relative;height:160px;">
                                 <canvas id="chart-variedades"></canvas>
                             </div>
                         </div>
@@ -718,22 +718,30 @@
                                     <!-- Gráfica 1: Distribución varietal -->
                                     <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
                                         <p class="text-[10px] font-black text-slate-700 uppercase tracking-wide mb-3">Distribución varietal</p>
-                                        <canvas id="chart-vid-varietales"></canvas>
+                                        <div style="position:relative;height:180px;">
+                                            <canvas id="chart-vid-varietales"></canvas>
+                                        </div>
                                     </div>
                                     <!-- Gráfica 2: Superficie -->
                                     <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
                                         <p class="text-[10px] font-black text-slate-700 uppercase tracking-wide mb-3">Superficie (hectáreas)</p>
-                                        <canvas id="chart-vid-superficie"></canvas>
+                                        <div style="position:relative;height:120px;">
+                                            <canvas id="chart-vid-superficie"></canvas>
+                                        </div>
                                     </div>
                                     <!-- Gráfica 3: Rendimiento t/ha -->
                                     <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
                                         <p class="text-[10px] font-black text-slate-700 uppercase tracking-wide mb-3">Rendimiento t/ha</p>
-                                        <canvas id="chart-vid-rendimiento"></canvas>
+                                        <div style="position:relative;height:120px;">
+                                            <canvas id="chart-vid-rendimiento"></canvas>
+                                        </div>
                                     </div>
                                     <!-- Gráfica 4: Mercado nacional -->
                                     <div class="bg-slate-50 rounded-xl border border-slate-100 p-4">
                                         <p class="text-[10px] font-black text-slate-700 uppercase tracking-wide mb-3">Vino en mercado nacional</p>
-                                        <canvas id="chart-vid-mercado"></canvas>
+                                        <div style="position:relative;height:180px;">
+                                            <canvas id="chart-vid-mercado"></canvas>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -2236,7 +2244,7 @@
                         labels: ['Cabernet Sauvignon', 'Merlot', 'Syrah', 'Malbec', 'Otras'],
                         datasets: [{ data: [30, 22, 18, 20, 10], backgroundColor: ['#7c3aed','#a855f7','#c084fc','#d8b4fe','#e9d5ff'], borderWidth: 2, borderColor: '#f8fafc' }]
                     },
-                    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.4,
+                    options: { responsive: true, maintainAspectRatio: false,
                         plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 8, padding: 5 } } } }
                 }));
 
@@ -2247,7 +2255,7 @@
                         labels: ['Plantadas', 'En producción'],
                         datasets: [{ data: [427, 336], backgroundColor: ['#7c3aedCC','#a855f7CC'], borderColor: ['#7c3aed','#a855f7'], borderWidth: 2, borderRadius: 6 }]
                     },
-                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: true, aspectRatio: 1.8,
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: { x: { beginAtZero: true, ticks: { font: { size: 9 } }, grid: { color: '#f1f5f9' } }, y: { ticks: { font: { size: 9 } }, grid: { display: false } } } }
                 }));
@@ -2259,7 +2267,7 @@
                         labels: ['Actual', 'Objetivo'],
                         datasets: [{ data: [4.25, 7.11], backgroundColor: ['#7c3aedCC','#10b981CC'], borderColor: ['#7c3aed','#10b981'], borderWidth: 2, borderRadius: 6 }]
                     },
-                    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.8,
+                    options: { responsive: true, maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: { y: { beginAtZero: true, ticks: { font: { size: 9 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } }, grid: { display: false } } } }
                 }));
@@ -2271,7 +2279,7 @@
                         labels: ['Importado', 'Producción nacional'],
                         datasets: [{ data: [66, 34], backgroundColor: ['#ef4444CC','#7c3aedCC'], borderWidth: 2, borderColor: '#f8fafc' }]
                     },
-                    options: { responsive: true, maintainAspectRatio: true, aspectRatio: 1.4,
+                    options: { responsive: true, maintainAspectRatio: false,
                         plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 8, padding: 5 } } } }
                 }));
 
@@ -2344,8 +2352,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
-                    aspectRatio: 2.5,
+                    maintainAspectRatio: false,
                     plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 8 } } },
                     scales: { y: { beginAtZero: false, ticks: { font: { size: 9 } }, grid: { color: '#f1f5f9' } }, x: { ticks: { font: { size: 9 } }, grid: { display: false } } }
                 }
@@ -2359,8 +2366,7 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
-                    aspectRatio: 2,
+                    maintainAspectRatio: false,
                     plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10, padding: 6 } } }
                 }
             });
