@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         .smooth-ui { transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -230,7 +231,10 @@
             <a href="#" onclick="switchSection(event, 'ruta'); closeMobileMenu()" class="hover:text-blue-600 transition pb-1">Ruta</a>
             <a href="#" onclick="switchSection(event, 'mercado'); closeMobileMenu()" class="hover:text-blue-600 transition pb-1">Mercado</a>
             <a href="#" onclick="switchSection(event, 'noticias'); closeMobileMenu()" class="hover:text-blue-600 transition pb-1">Blog</a>
-            <button onclick="toggleUserPanel()" class="bg-blue-600 text-white px-5 py-2 rounded-full font-bold text-xs hover:bg-blue-700 transition cursor-pointer">Panel de usuario</button>
+            <button id="nav-auth-btn" onclick="handleAuthButton()" class="bg-blue-600 text-white px-5 py-2 rounded-full font-bold text-xs hover:bg-blue-700 transition cursor-pointer flex items-center gap-2">
+                <span id="nav-auth-avatar" class="hidden w-5 h-5 rounded-full bg-white/30 flex items-center justify-center text-[9px] font-black"></span>
+                <span id="nav-auth-label">Iniciar Sesión</span>
+            </button>
         </div>
     </nav>
 
@@ -364,8 +368,12 @@
                         El tema del valor agregado se ha discutido por años en los distintos ambientes empresariales y de gobierno. Sin embargo, había sido complicado ordenar todas estas ideas. Es por eso que optamos, en esta primera etapa, en establecer un mecanismo virtual para conectar la red. <em>Antes de construir un edificio, necesitamos tener funcional la red.</em>
                     </p>
                     <div class="flex flex-wrap items-center justify-center gap-8">
-                        <img src="SDR.png" alt="Secretaría de Desarrollo Rural" class="h-16 object-contain">
-                        <img src="SIDE.png" alt="Secretaría de Innovación y Desarrollo Económico" class="h-16 object-contain">
+                        <a href="https://www.chihuahua.gob.mx/sdr" target="_blank" rel="noopener" class="transition hover:opacity-75 hover:scale-105 duration-200">
+                            <img src="SDR.png" alt="Secretaría de Desarrollo Rural" class="h-16 object-contain">
+                        </a>
+                        <a href="https://www.chihuahua.com.mx/" target="_blank" rel="noopener" class="transition hover:opacity-75 hover:scale-105 duration-200">
+                            <img src="SIDE.png" alt="Secretaría de Innovación y Desarrollo Económico" class="h-16 object-contain">
+                        </a>
                     </div>
                 </div>
 
@@ -380,7 +388,9 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Clusters Agro</p>
                         <div class="flex flex-wrap justify-center gap-4">
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="agrocluster.png" alt="AgroCluster" class="h-16 object-contain">
+                                <a href="https://canacintrachihuahua.org.mx/cluster-agroindustrial/" target="_blank" rel="noopener" class="transition hover:opacity-75 hover:scale-105 duration-200">
+                                    <img src="agrocluster.png" alt="AgroCluster" class="h-16 object-contain">
+                                </a>
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">AgroCluster</figcaption>
                             </figure>
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
@@ -445,7 +455,9 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Instituciones de Ciencia y Tecnología</p>
                         <div class="flex flex-wrap justify-center gap-4">
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="uach.png" alt="UACH" class="h-16 object-contain">
+                                <a href="https://uach.mx/" target="_blank" rel="noopener" class="transition hover:opacity-75 hover:scale-105 duration-200">
+                                    <img src="uach.png" alt="UACH" class="h-16 object-contain">
+                                </a>
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">UACH</figcaption>
                             </figure>
                         </div>
@@ -471,7 +483,9 @@
                                     <p class="text-sm text-slate-300 leading-relaxed"><strong class="text-white">Desarrollo Económico del Estado de Chihuahua A.C.</strong> es una organización privada con +50 años impulsando el desarrollo económico de Chihuahua. Se compone de <strong class="text-white">8 vicepresidencias</strong>.</p>
                                 </div>
                                 <div class="md:w-1/2 flex items-center justify-center p-6 min-h-56" style="background:#eeeeee">
-                                    <img src="vice.desec.png" alt="DESEC vicepresidencias" class="w-full max-h-64 object-contain">
+                                    <a href="https://desec.mx/" target="_blank" rel="noopener" class="transition hover:opacity-80 duration-200 w-full">
+                                        <img src="vice.desec.png" alt="DESEC vicepresidencias" class="w-full max-h-64 object-contain">
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -497,7 +511,9 @@
                                     </ul>
                                 </div>
                                 <div class="md:w-1/2 flex items-center justify-center p-6 min-h-48" style="background:#eeeeee">
-                                    <img src="ch.futura.png" alt="Chihuahua Futura" class="w-full max-h-52 object-contain">
+                                    <a href="https://chihuahuafutura.org/" target="_blank" rel="noopener" class="transition hover:opacity-80 duration-200 w-full">
+                                        <img src="ch.futura.png" alt="Chihuahua Futura" class="w-full max-h-52 object-contain">
+                                    </a>
                                 </div>
                             </div>
                         </div>
@@ -1516,32 +1532,108 @@
         </div>
     </main>
 
+    <!-- ── Modal de Autenticación ── -->
+    <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-4" onclick="handleModalBackdropClick(event)">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8" onclick="event.stopPropagation()">
+            <!-- Logo + título -->
+            <div class="text-center mb-6">
+                <img src="Logo CV2A-05 (1).png" alt="CV2A" class="h-10 mx-auto mb-3 object-contain">
+                <h2 class="text-xl font-black text-slate-900">Acceso al Ecosistema</h2>
+                <p class="text-xs text-slate-500 mt-1 font-medium">Inicia sesión o crea tu cuenta para continuar</p>
+            </div>
+            <!-- Tabs -->
+            <div class="flex bg-slate-100 rounded-xl p-1 mb-6">
+                <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm">Iniciar Sesión</button>
+                <button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500">Registrarse</button>
+            </div>
+            <!-- Formulario: Login -->
+            <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Correo electrónico</label>
+                    <input type="email" id="login-email" required placeholder="tu@correo.com"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Contraseña</label>
+                    <input type="password" id="login-password" required placeholder="••••••••"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                </div>
+                <div id="login-error" class="hidden text-xs text-red-600 font-medium bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
+                <button type="submit" id="login-btn" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-3 rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2">
+                    <span id="login-btn-text">Iniciar Sesión</span>
+                    <span id="login-spinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full" style="animation:spin .7s linear infinite"></span>
+                </button>
+            </form>
+            <!-- Formulario: Registro -->
+            <form id="form-register" onsubmit="handleRegister(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Nombre completo</label>
+                    <input type="text" id="register-name" required placeholder="Tu Nombre Completo"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Correo electrónico</label>
+                    <input type="email" id="register-email" required placeholder="tu@correo.com"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Contraseña <span class="normal-case text-slate-400 font-medium">(mín. 6 caracteres)</span></label>
+                    <input type="password" id="register-password" required placeholder="••••••••" minlength="6"
+                        class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                </div>
+                <div id="register-error" class="hidden text-xs text-red-600 font-medium bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
+                <div id="register-success" class="hidden text-xs text-teal-700 font-semibold bg-teal-50 border border-teal-200 rounded-lg px-3 py-2"></div>
+                <button type="submit" id="register-btn" class="w-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold py-3 rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2">
+                    <span id="register-btn-text">Crear Cuenta</span>
+                    <span id="register-spinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full" style="animation:spin .7s linear infinite"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
     <div id="userPanel" class="smooth-ui fixed top-24 right-6 bottom-20 w-85 bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl z-50 transform translate-x-[115%] p-5 overflow-y-auto border border-slate-100 flex flex-col justify-between">
         <div>
             <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-2">
-                <h3 class="text-sm font-bold text-slate-900">Sesión Activa</h3>
+                <h3 class="text-sm font-bold text-slate-900">Mi Perfil</h3>
                 <button onclick="toggleUserPanel()" class="text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full w-5 h-5 flex items-center justify-center text-[10px] cursor-pointer">✕</button>
             </div>
             <div class="space-y-4">
+                <!-- Avatar + nombre dinámico -->
                 <div class="flex items-center space-x-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-                    <div class="bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xs shadow-xs">
-                        BIO
+                    <div id="panel-avatar" class="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-black text-sm shadow-sm shrink-0 overflow-hidden">
+                        <span id="panel-avatar-initials">?</span>
+                        <img id="panel-avatar-img" src="" alt="" class="hidden w-full h-full object-cover">
                     </div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-900">Coordinador de Estrategia</p>
-                        <p class="text-[10px] text-slate-500 font-medium">Chihuahua BIO</p>
+                    <div class="min-w-0">
+                        <p id="panel-username" class="text-sm font-bold text-slate-900 truncate">—</p>
+                        <p id="panel-email" class="text-[10px] text-slate-500 font-medium truncate">—</p>
                     </div>
                 </div>
+                <!-- Info de cuenta -->
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2 text-[11px]">
-                    <p class="text-slate-500"><strong class="text-slate-700">Iniciativa:</strong> Chihuahua Futura</p>
-                    <p class="text-slate-500"><strong class="text-slate-700">Organización:</strong> DESEC A.C.</p>
-                    <p class="text-slate-500"><strong class="text-slate-700">Región:</strong> Chihuahua, México</p>
+                    <p class="text-slate-500"><strong class="text-slate-700">Estado:</strong> <span class="text-teal-600 font-bold">✓ Verificado</span></p>
+                    <p id="panel-member-since" class="text-slate-500"><strong class="text-slate-700">Miembro desde:</strong> —</p>
+                    <p class="text-slate-500"><strong class="text-slate-700">Plataforma:</strong> CV²A Ecosistema</p>
+                </div>
+                <!-- Accesos rápidos -->
+                <div class="space-y-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accesos directos</p>
+                    <button onclick="toggleUserPanel(); switchSection(null,'ruta')" class="w-full text-left flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 transition text-xs font-semibold text-slate-600">
+                        <span class="text-base">🗺️</span> Ruta de Profesionalización
+                    </button>
+                    <button onclick="toggleUserPanel(); switchSection(null,'inteligencia')" class="w-full text-left flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 transition text-xs font-semibold text-slate-600">
+                        <span class="text-base">📊</span> Inteligencia de Mercado
+                    </button>
+                    <button onclick="toggleUserPanel(); switchSection(null,'ecosistema')" class="w-full text-left flex items-center gap-3 p-2.5 rounded-xl hover:bg-blue-50 border border-transparent hover:border-blue-100 transition text-xs font-semibold text-slate-600">
+                        <span class="text-base">🗺️</span> Mapa del Ecosistema
+                    </button>
                 </div>
             </div>
         </div>
         <div class="pt-3 border-t border-slate-100 flex justify-end">
-            <button class="bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 text-[10px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">
-                Salir de la cuenta
+            <button onclick="handleSignOut()" class="bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 text-[10px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5">
+                <span>↩</span> Cerrar sesión
             </button>
         </div>
     </div>
@@ -1584,9 +1676,16 @@
             document.getElementById('hb-3').style.transform = '';
         }
 
+        const PRIVATE_SECTIONS = ['ruta', 'inteligencia', 'mercado'];
+
         function switchSection(event, sectionId) {
             if (event) event.preventDefault();
             closeMobileMenu();
+
+            if (PRIVATE_SECTIONS.includes(sectionId) && !currentUser) {
+                openAuthModal();
+                return;
+            }
             const sections = ['ecosistema', 'nosotros', 'inteligencia', 'ruta', 'mercado', 'noticias', 'privacidad', 'terminos', 'contacto'];
             
             sections.forEach(id => {
@@ -1755,6 +1854,7 @@
         });
 
         function handlePerfilClick(subType) {
+            if (!currentUser) { openAuthModal(); return; }
             if (window.scrollY <= 50) {
                 window.scrollTo({ top: 120, behavior: 'smooth' });
                 setTimeout(() => { filterPerfil(subType); }, 500);
@@ -1764,6 +1864,7 @@
         }
 
         function handleBolaClick(category) {
+            if (!currentUser) { openAuthModal(); return; }
             if (window.scrollY <= 50) {
                 window.scrollTo({ top: 120, behavior: 'smooth' });
                 setTimeout(() => { filterMainCategory(category); }, 500);
@@ -1831,6 +1932,7 @@
         }
 
         function openSidebar(item) {
+            if (!currentUser) { openAuthModal(); return; }
             document.getElementById('userPanel').classList.add('translate-x-[115%]');
             document.getElementById('sideTitle').innerText = item.name;
             const badge = document.getElementById('sideBadge');
@@ -2386,6 +2488,210 @@
             document.getElementById('diag-cta').classList.remove('hidden');
             closeStep();
         }
+
+        // ════════════════════════════════════════════
+        // ── SUPABASE AUTH ──
+        // ════════════════════════════════════════════
+        const SUPABASE_URL  = 'https://micvrzdwtktqvckhexsz.supabase.co';
+        const SUPABASE_KEY  = 'sb_publishable_qoD6l-O8PDqxEGXacb-ifA_6PYQuPWn';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+        // Sección a la que el usuario quería ir antes de que se le pidiera login
+        let pendingSection = null;
+
+        // ── Inicialización: recupera sesión persistida ──
+        async function initAuth() {
+            const { data: { session } } = await sb.auth.getSession();
+            currentUser = session?.user ?? null;
+            updateUIForAuthState(currentUser);
+
+            sb.auth.onAuthStateChange((_event, session) => {
+                currentUser = session?.user ?? null;
+                updateUIForAuthState(currentUser);
+            });
+        }
+
+        // ── Actualiza toda la UI según si hay sesión o no ──
+        function updateUIForAuthState(user) {
+            const navBtn    = document.getElementById('nav-auth-btn');
+            const navLabel  = document.getElementById('nav-auth-label');
+            const navAvatar = document.getElementById('nav-auth-avatar');
+
+            if (user) {
+                // Nombre para mostrar: username del perfil, o parte del email
+                const displayName = user.user_metadata?.username
+                    || user.user_metadata?.full_name
+                    || user.email.split('@')[0];
+                const initials = displayName.substring(0, 2).toUpperCase();
+
+                // Nav button
+                navLabel.textContent  = displayName;
+                navAvatar.textContent = initials;
+                navAvatar.classList.remove('hidden');
+
+                // Panel lateral
+                document.getElementById('panel-username').textContent    = displayName;
+                document.getElementById('panel-email').textContent       = user.email;
+                document.getElementById('panel-avatar-initials').textContent = initials;
+
+                const since = new Date(user.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long' });
+                document.getElementById('panel-member-since').innerHTML =
+                    `<strong class="text-slate-700">Miembro desde:</strong> ${since}`;
+
+                // Avatar imagen (si existe en metadata)
+                const avatarUrl = user.user_metadata?.avatar_url;
+                if (avatarUrl) {
+                    const img = document.getElementById('panel-avatar-img');
+                    img.src = avatarUrl;
+                    img.classList.remove('hidden');
+                    document.getElementById('panel-avatar-initials').classList.add('hidden');
+                }
+            } else {
+                navLabel.textContent = 'Iniciar Sesión';
+                navAvatar.classList.add('hidden');
+            }
+        }
+
+        // ── Botón de nav: abre modal si no hay sesión, panel si sí ──
+        function handleAuthButton() {
+            if (currentUser) {
+                toggleUserPanel();
+            } else {
+                openAuthModal();
+            }
+        }
+
+        // ── Modal helpers ──
+        function openAuthModal() {
+            switchAuthTab('login');
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('flex');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('flex');
+            clearAuthErrors();
+        }
+
+        function handleModalBackdropClick(e) {
+            if (e.target === document.getElementById('auth-modal')) closeAuthModal();
+        }
+
+        function switchAuthTab(tab) {
+            const isLogin = tab === 'login';
+            document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+            document.getElementById('form-register').classList.toggle('hidden', isLogin);
+            document.getElementById('tab-login').className    = isLogin
+                ? 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm'
+                : 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500';
+            document.getElementById('tab-register').className = isLogin
+                ? 'flex-1 py-2 rounded-lg text-xs font-bold transition-all text-slate-500'
+                : 'flex-1 py-2 rounded-lg text-xs font-bold transition-all bg-white text-slate-900 shadow-sm';
+            clearAuthErrors();
+        }
+
+        function clearAuthErrors() {
+            ['login-error','register-error','register-success'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.add('hidden');
+                el.textContent = '';
+            });
+        }
+
+        function setLoading(type, loading) {
+            document.getElementById(`${type}-btn`).disabled = loading;
+            document.getElementById(`${type}-btn-text`).textContent = loading
+                ? (type === 'login' ? 'Iniciando...' : 'Creando cuenta...')
+                : (type === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta');
+            document.getElementById(`${type}-spinner`).classList.toggle('hidden', !loading);
+        }
+
+        // ── Login ──
+        async function handleLogin(event) {
+            event.preventDefault();
+            const email    = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const errEl    = document.getElementById('login-error');
+
+            if (!email || !password) {
+                errEl.textContent = 'Por favor completa todos los campos.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            setLoading('login', true);
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+            setLoading('login', false);
+
+            if (error) {
+                const msg = error.message.includes('Invalid login')
+                    ? 'Correo o contraseña incorrectos.'
+                    : error.message;
+                errEl.textContent = msg;
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            closeAuthModal();
+            if (pendingSection) {
+                switchSection(null, pendingSection);
+                pendingSection = null;
+            }
+        }
+
+        // ── Registro ──
+        async function handleRegister(event) {
+            event.preventDefault();
+            const name     = document.getElementById('register-name').value.trim();
+            const email    = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            const errEl    = document.getElementById('register-error');
+            const okEl     = document.getElementById('register-success');
+
+            if (!name || !email || !password) {
+                errEl.textContent = 'Por favor completa todos los campos.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            if (password.length < 6) {
+                errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            setLoading('register', true);
+            const { error } = await sb.auth.signUp({
+                email,
+                password,
+                options: { data: { username: name, full_name: name } }
+            });
+            setLoading('register', false);
+
+            if (error) {
+                errEl.textContent = error.message;
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            okEl.textContent = '¡Cuenta creada! Revisa tu correo para confirmar tu registro y luego inicia sesión.';
+            okEl.classList.remove('hidden');
+            document.getElementById('form-register').querySelector('button[type=submit]').disabled = true;
+        }
+
+        // ── Cerrar sesión ──
+        async function handleSignOut() {
+            await sb.auth.signOut();
+            toggleUserPanel();
+            // Si estaba en una sección privada, regresa al inicio
+            if (PRIVATE_SECTIONS.includes(document.querySelector('[id^="section-"]:not(.hidden)')?.id?.replace('section-',''))) {
+                switchSection(null, 'ecosistema');
+            }
+        }
+
+        // ── Arranque ──
+        initAuth();
     </script>
 </body>
 </html>
