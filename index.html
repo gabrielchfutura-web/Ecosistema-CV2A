@@ -606,7 +606,7 @@
                         </button>
 
                         <!-- Tarjeta 3: Inteligencia en Patentes (Kanna) -->
-                        <a href="https://kannasolutions.com/auth/login" target="_blank" class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col items-center justify-between hover:shadow-xl hover:scale-[1.02] transition duration-300 group cursor-pointer text-center">
+                        <button onclick="handleKannaClick()" class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col items-center justify-between hover:shadow-xl hover:scale-[1.02] transition duration-300 group cursor-pointer text-center w-full">
                             <div class="h-20 flex items-center justify-center mb-4">
                                 <img src="kanna.png" alt="Kanna" class="max-h-16 object-contain group-hover:scale-105 transition duration-300">
                             </div>
@@ -617,7 +617,7 @@
                             <div class="mt-5 bg-slate-50 group-hover:bg-blue-600 group-hover:text-white text-slate-600 text-xs font-bold px-5 py-2 rounded-full transition duration-300">
                                 Ingresar a la plataforma ➔
                             </div>
-                        </a>
+                        </button>
                     </div>
                 </div>
 
@@ -1116,21 +1116,30 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 
                 <!-- Tribu Consciente -->
-                <div class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between hover:shadow-lg hover:scale-[1.01] transition duration-300">
-                    <div>
-                        <div class="h-16 flex items-center mb-2">
-                            <img src="tribu.png" alt="Tribu Consciente" class="max-h-16 object-contain">
+                <div class="relative">
+                    <div class="mercado-card bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between transition duration-300">
+                        <div>
+                            <div class="h-16 flex items-center mb-2">
+                                <img src="tribu.png" alt="Tribu Consciente" class="max-h-16 object-contain">
+                            </div>
+                            <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Tribu Consciente</h2>
+                            <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Una plataforma digital donde puedes vender directamente tus productos agropecuarios y agroindustriales dentro y fuera de Chihuahua sin depender de intermediarios.</p>
                         </div>
-                        <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Tribu Consciente</h2>
-                        <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Una plataforma digital donde puedes vender directamente tus productos agropecuarios y agroindustriales dentro y fuera de Chihuahua sin depender de intermediarios.</p>
+                        <div class="mt-4 border-t border-slate-50 pt-4">
+                            <a href="https://aut.tribuco.mx/realms/Tribu/protocol/openid-connect/auth?client_id=mementos&redirect_uri=https%3A%2F%2Fsuenos.tribuco.mx%2Flogin%2Fkeycloak%2Fcallback&scope=openid&response_type=code&state=YyHA4A6AvUQfPBoHLHz7b604UZJ9FAxuFc4f15MP" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Visitar Plataforma ➔</a>
+                        </div>
                     </div>
-                    <div class="mt-4 border-t border-slate-50 pt-4">
-                        <a href="https://aut.tribuco.mx/realms/Tribu/protocol/openid-connect/auth?client_id=mementos&redirect_uri=https%3A%2F%2Fsuenos.tribuco.mx%2Flogin%2Fkeycloak%2Fcallback&scope=openid&response_type=code&state=YyHA4A6AvUQfPBoHLHz7b604UZJ9FAxuFc4f15MP" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Visitar Plataforma ➔</a>
+                    <div class="mercado-overlay absolute inset-0 rounded-2xl cursor-pointer z-10 flex items-center justify-center bg-white/10" onclick="openAuthModal()">
+                        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-5 py-3 border border-slate-100 text-center">
+                            <p class="text-sm font-black text-slate-800">🔒 Acceso restringido</p>
+                            <p class="text-xs text-slate-500 mt-1">Inicia sesión para ver este recurso</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Chihuahua Market -->
-                <div class="bg-white rounded-2xl shadow-md border-2 border-blue-500/20 p-6 flex flex-col justify-between hover:shadow-lg hover:scale-[1.01] transition duration-300">
+                <div class="relative">
+                    <div class="mercado-card bg-white rounded-2xl shadow-md border-2 border-blue-500/20 p-6 flex flex-col justify-between transition duration-300">
                     <div>
                         <div class="h-16 flex items-center mb-2">
                             <img src="ChihuahuaMarket.png" alt="Chihuahua Market" class="max-h-16 object-contain">
@@ -1148,33 +1157,56 @@
                     <div class="mt-4 border-t border-slate-100 pt-4">
                         <a href="https://chihuahuamarket.mx/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Registrar mi Negocio ➔</a>
                     </div>
+                    </div>
+                    <div class="mercado-overlay absolute inset-0 rounded-2xl cursor-pointer z-10 flex items-center justify-center bg-white/10" onclick="openAuthModal()">
+                        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-5 py-3 border border-slate-100 text-center">
+                            <p class="text-sm font-black text-slate-800">🔒 Acceso restringido</p>
+                            <p class="text-xs text-slate-500 mt-1">Inicia sesión para ver este recurso</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Bosanet -->
-                <div class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between hover:shadow-lg hover:scale-[1.01] transition duration-300">
-                    <div>
-                        <div class="h-16 flex items-center mb-2">
-                            <img src="logo_slogan.png" alt="Bosanet" class="max-h-12 object-contain">
+                <div class="relative">
+                    <div class="mercado-card bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between transition duration-300">
+                        <div>
+                            <div class="h-16 flex items-center mb-2">
+                                <img src="logo_slogan.png" alt="Bosanet" class="max-h-12 object-contain">
+                            </div>
+                            <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Bosanet</h2>
+                            <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Bosanet funciona como un aliado operativo y logístico para las empresas que quieren vender en el mercado estadounidense sin las complicaciones tradicionales de la exportación internacional.</p>
                         </div>
-                        <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Bosanet</h2>
-                        <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Bosanet funciona como un aliado operativo y logístico para las empresas que quieren vender en el mercado estadounidense sin las complicaciones tradicionales de la exportación internacional.</p>
+                        <div class="mt-4 border-t border-slate-50 pt-4">
+                            <a href="https://es.bosanet.com/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Explorar Alianza ➔</a>
+                        </div>
                     </div>
-                    <div class="mt-4 border-t border-slate-50 pt-4">
-                        <a href="https://es.bosanet.com/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Explorar Alianza ➔</a>
+                    <div class="mercado-overlay absolute inset-0 rounded-2xl cursor-pointer z-10 flex items-center justify-center bg-white/10" onclick="openAuthModal()">
+                        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-5 py-3 border border-slate-100 text-center">
+                            <p class="text-sm font-black text-slate-800">🔒 Acceso restringido</p>
+                            <p class="text-xs text-slate-500 mt-1">Inicia sesión para ver este recurso</p>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Kompass -->
-                <div class="bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between hover:shadow-lg hover:scale-[1.01] transition duration-300">
-                    <div>
-                        <div class="h-16 flex items-center mb-2">
-                            <img src="Logo_Kompass_International_HD.png" alt="Kompass International" class="max-h-10 object-contain">
+                <div class="relative">
+                    <div class="mercado-card bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between transition duration-300">
+                        <div>
+                            <div class="h-16 flex items-center mb-2">
+                                <img src="Logo_Kompass_International_HD.png" alt="Kompass International" class="max-h-10 object-contain">
+                            </div>
+                            <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Kompass</h2>
+                            <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Kompass es una plataforma líder de Data Marketing e inteligencia comercial diseñada estructuralmente para encontrar clientes corporativos (B2B) en más de 70 países.</p>
                         </div>
-                        <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Kompass</h2>
-                        <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Kompass es una plataforma líder de Data Marketing e inteligencia comercial diseñada estructuralmente para encontrar clientes corporativos (B2B) en más de 70 países.</p>
+                        <div class="mt-4 border-t border-slate-50 pt-4">
+                            <a href="https://mx.kompass.com/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Buscar Clientes B2B ➔</a>
+                        </div>
                     </div>
-                    <div class="mt-4 border-t border-slate-50 pt-4">
-                        <a href="https://mx.kompass.com/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Buscar Clientes B2B ➔</a>
+                    <div class="mercado-overlay absolute inset-0 rounded-2xl cursor-pointer z-10 flex items-center justify-center bg-white/10" onclick="openAuthModal()">
+                        <div class="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg px-5 py-3 border border-slate-100 text-center">
+                            <p class="text-sm font-black text-slate-800">🔒 Acceso restringido</p>
+                            <p class="text-xs text-slate-500 mt-1">Inicia sesión para ver este recurso</p>
+                        </div>
                     </div>
                 </div>
 
@@ -1590,7 +1622,10 @@
             </form>
         </div>
     </div>
-    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    <style>
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .mercado-blur { filter: blur(6px); pointer-events: none; user-select: none; transition: filter 0.3s ease; }
+    </style>
 
     <div id="userPanel" class="smooth-ui fixed top-24 right-6 bottom-20 w-85 bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl z-50 transform translate-x-[115%] p-5 overflow-y-auto border border-slate-100 flex flex-col justify-between">
         <div>
@@ -1676,7 +1711,7 @@
             document.getElementById('hb-3').style.transform = '';
         }
 
-        const PRIVATE_SECTIONS = ['ruta', 'inteligencia', 'mercado'];
+        const PRIVATE_SECTIONS = [];
 
         function switchSection(event, sectionId) {
             if (event) event.preventDefault();
@@ -1724,6 +1759,7 @@
 
         // Sub-Navegación Interna de Inteligencia
         function showTableauDashboard() {
+            if (!currentUser) { openAuthModal(); return; }
             document.getElementById('inteligencia-selector').classList.add('hidden');
             document.getElementById('inteligencia-tableau').classList.remove('hidden');
         }
@@ -1960,6 +1996,7 @@
         }
 
         function scrollToTables() {
+            if (!currentUser) { openAuthModal(); return; }
             const tableSection = document.getElementById('tableSection');
             const topOffset = tableSection.getBoundingClientRect().top + window.scrollY;
             window.scrollTo({
@@ -2256,6 +2293,7 @@
         }
 
         function showSectorialDashboard() {
+            if (!currentUser) { openAuthModal(); return; }
             document.getElementById('inteligencia-selector').classList.add('hidden');
             document.getElementById('inteligencia-sectorial').classList.remove('hidden');
             filterSectorial('todos');
@@ -2351,6 +2389,7 @@
         const progressWidths = { 1: '0%', 2: '25%', 3: '50%', 4: '75%', 5: '100%' };
 
         function selectStep(n) {
+            if (!currentUser) { openAuthModal(); return; }
             // Si ya está activo, lo cierra (toggle)
             if (activeStep === n) {
                 closeStep();
@@ -2430,6 +2469,7 @@
         let diagAnswers = [];
 
         function startDiagnostico() {
+            if (!currentUser) { openAuthModal(); return; }
             diagCurrentQ = 0;
             diagAnswers = [];
             document.getElementById('diag-cta').classList.add('hidden');
@@ -2514,6 +2554,7 @@
 
         // ── Actualiza toda la UI según si hay sesión o no ──
         function updateUIForAuthState(user) {
+            updateMercadoGate(user);
             const navBtn    = document.getElementById('nav-auth-btn');
             const navLabel  = document.getElementById('nav-auth-label');
             const navAvatar = document.getElementById('nav-auth-avatar');
@@ -2688,6 +2729,22 @@
             if (PRIVATE_SECTIONS.includes(document.querySelector('[id^="section-"]:not(.hidden)')?.id?.replace('section-',''))) {
                 switchSection(null, 'ecosistema');
             }
+        }
+
+        // ── Kanna: guard antes de abrir enlace externo ──
+        function handleKannaClick() {
+            if (!currentUser) { openAuthModal(); return; }
+            window.open('https://kannasolutions.com/auth/login', '_blank');
+        }
+
+        // ── Mercado: blur/desblur las tarjetas según sesión ──
+        function updateMercadoGate(user) {
+            document.querySelectorAll('.mercado-card').forEach(card => {
+                card.classList.toggle('mercado-blur', !user);
+            });
+            document.querySelectorAll('.mercado-overlay').forEach(overlay => {
+                overlay.classList.toggle('hidden', !!user);
+            });
         }
 
         // ── Arranque ──
