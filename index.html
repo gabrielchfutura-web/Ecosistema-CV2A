@@ -2559,9 +2559,10 @@
             currentUser = session?.user ?? null;
             updateUIForAuthState(currentUser);
 
-            sb.auth.onAuthStateChange((_event, session) => {
+            sb.auth.onAuthStateChange((event, session) => {
                 currentUser = session?.user ?? null;
                 updateUIForAuthState(currentUser);
+                if (event === 'SIGNED_IN') closeAuthModal();
             });
         }
 
@@ -2666,7 +2667,7 @@
         async function handleGoogleLogin() {
             const { error } = await sb.auth.signInWithOAuth({
                 provider: 'google',
-                options: { redirectTo: window.location.href }
+                options: { redirectTo: window.location.origin + window.location.pathname }
             });
             if (error) {
                 const errEl = document.getElementById('login-error');
