@@ -1682,7 +1682,7 @@
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2 text-[11px]">
                     <p class="text-slate-500"><strong class="text-slate-700">Estado:</strong> <span class="text-teal-600 font-bold">✓ Verificado</span></p>
                     <p id="panel-member-since" class="text-slate-500"><strong class="text-slate-700">Miembro desde:</strong> —</p>
-                    <p class="text-slate-500"><strong class="text-slate-700">Plataforma:</strong> CV²A Ecosistema</p>
+                    <p class="text-slate-500"><strong class="text-slate-700">Perfil:</strong> <span id="panel-perfil-tipo">Pendiente</span></p>
                 </div>
                 <!-- Accesos rápidos -->
                 <div class="space-y-2">
@@ -3239,6 +3239,9 @@
             const masterBadge = document.getElementById('panel-master-badge');
             if (isMaster() && masterBadge) masterBadge.classList.remove('hidden');
             else if (masterBadge) masterBadge.classList.add('hidden');
+
+            const tipoEl = document.getElementById('panel-perfil-tipo');
+            if (tipoEl) tipoEl.textContent = currentProfile?.perfil_tipo || 'Pendiente';
         }
 
         // ── Render sección completa Mi Perfil ──
