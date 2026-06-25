@@ -15,7 +15,7 @@
 
     <style>
         .smooth-ui { transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
-        
+
         /* Contenedor del Panel de Control */
         .panel-master {
             position: fixed;
@@ -25,6 +25,10 @@
             top: 55%;
             transform: translate(-50%, -50%) scale(1);
             z-index: 40;
+            transition: left 1.1s cubic-bezier(0.4, 0, 0.2, 1),
+                        top 1.1s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 1.1s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.8s ease;
         }
         .panel-master.scrolled {
             left: 100% !important;
@@ -133,6 +137,9 @@
         .eco-step-dot.active { background:#2563eb !important; color:#fff !important; }
         .eco-step-dot.done { background:#10b981 !important; color:#fff !important; }
         .master-badge { background:linear-gradient(135deg,#7c3aed,#2563eb); color:#fff; font-size:9px; font-weight:800; padding:2px 7px; border-radius:999px; letter-spacing:.05em; text-transform:uppercase; }
+        .map-picker-wrap { border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; position:relative; }
+        .map-picker-wrap .leaflet-container { border-radius:12px; }
+        .map-picker-hint { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.6); color:#fff; font-size:10px; font-weight:600; padding:4px 10px; border-radius:999px; pointer-events:none; white-space:nowrap; z-index:500; }
         select.multi-select { min-height:80px; }
 
         @media (max-width: 767px) {
@@ -2046,8 +2053,18 @@
                   <input type="text" id="ni-nombre" required placeholder="Nombre de la institución/negocio" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                 </div>
                 <div>
-                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Dirección o código postal *</label>
-                  <input type="text" id="ni-ubicacion" required placeholder="Dirección, ciudad o código postal" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Dirección o referencia</label>
+                  <input type="text" id="ni-ubicacion" placeholder="Colonia, calle, CP…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Ubicación en el mapa * <span class="normal-case text-slate-400 font-medium">(arrastra el pin)</span></label>
+                  <div class="map-picker-wrap" style="height:200px;">
+                    <div id="ni-map-picker" style="height:200px;"></div>
+                    <div class="map-picker-hint">📍 Arrastra el pin a tu ubicación exacta</div>
+                  </div>
+                  <input type="hidden" id="ni-lat">
+                  <input type="hidden" id="ni-lng">
+                  <p id="ni-coords-display" class="text-[10px] text-slate-400 mt-1 font-mono"></p>
                 </div>
                 <div>
                   <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Página web</label>
@@ -2213,38 +2230,34 @@
             }
         }).addTo(map);
 
-        const unifedDB = [
-            // ICT
-            { id: 1, type: 'ict', sub: 'Universidad', crop: 'Carne', name: 'Tec de Monterrey Campus Chih.', inst: 'Av. Heroico Colegio Militar', contact: '6141234567', desc: 'Laboratorios avanzados de Biotecnología y valor cárnico.', lat: 28.6740, lng: -106.0775 },
-            { id: 2, type: 'ict', sub: 'Centro de Investigación', crop: 'Nuez', name: 'CIATEJ Subsede Chihuahua', inst: 'Parque Tecnológico PIT2', contact: '6149876543', desc: 'Análisis de inocuidad y valor agregado en nuez pecanera.', lat: 28.7020, lng: -106.1410 },
-            { id: 3, type: 'ict', sub: 'Centro de Investigación', crop: 'Vid', name: 'CIMAV Principal', inst: 'Complejo Industrial Chihuahua', contact: '6145558888', desc: 'Estudios de nanotecnología aplicados a empaques agroindustriales.', lat: 28.7110, lng: -106.1340 },
-            { id: 4, type: 'ict', sub: 'Estudiante', crop: 'Nuez', name: 'Campus de Agronomía UACH (Estudiantes)', inst: 'Campus Universitario II', contact: 'Membresía Estudiantil', desc: 'Grupo de 15 estudiantes en estancias sobre fitopatología de la nuez.', lat: 28.6910, lng: -106.1280 },
-            { id: 5, type: 'ict', sub: 'Maestro', crop: 'Leche', name: 'Laboratorio de Lácteos UACH', inst: 'Campus Universitario II', contact: 'Catedráticos FCQ', desc: 'Investigación en enzimas digestivas aplicadas a derivados lácteos.', lat: 28.6915, lng: -106.1285 },
-            { id: 6, type: 'ict', sub: 'Investigador', crop: 'Carne', name: 'Dr. Ochoa - Biocontrol Cárnico', inst: 'Facultad de Ciencias Químicas', contact: 'Enlace Interno', desc: 'Especialista en recubrimientos biológicos activos para proteínas.', lat: 28.6908, lng: -106.1275 },
-            { id: 7, type: 'ict', sub: 'Universidad', crop: 'Leche', name: 'Instituto Tecnológico de Chihuahua II', inst: 'Av. Homero', contact: '6144421000', desc: 'Ingeniería Industrial aplicada a automatización de establos.', lat: 28.7080, lng: -106.1110 },
-            { id: 8, type: 'ict', sub: 'Estudiante', crop: 'Vid', name: 'Célula de Innovación UTCH', inst: 'UTCH Cantera', contact: '6142143000', desc: 'Alumnos desarrollando software de trazabilidad para viñedos locales.', lat: 28.6430, lng: -106.1480 },
-            { id: 9, type: 'ict', sub: 'Centro de Investigación', crop: 'Carne', name: 'INIFAP Oficina Regional', inst: 'Col. Zarco', contact: '6144152030', desc: 'Mejoramiento de pastizales y rendimiento de ganado bovino.', lat: 28.6250, lng: -106.0950 },
+        let unifedDB = [];
 
-            // SPT
-            { id: 10, type: 'spt', sub: 'Empresa', crop: 'Carne', name: 'Innovak Global', inst: 'Zona Industrial', contact: '6141614120', desc: 'Desarrollo de bio-estimulantes radiculares orgánicos.', lat: 28.6751, lng: -106.0845 },
-            { id: 11, type: 'spt', sub: 'Empresa', crop: 'Carne', name: 'Agri-Estrella, S. de R.L.', inst: 'Complejo Industrial', contact: '6484658405', desc: 'Formulación y distribución de insumos y agroquímicos.', lat: 28.7158, lng: -106.1175 },
-            { id: 12, type: 'spt', sub: 'Empresa', crop: 'Carne', name: 'American Beef S.A.', inst: 'Sector Avalos', contact: '6142239289', desc: 'Procesamiento de alimentos cárnicos listos para el consumo.', lat: 28.5910, lng: -105.9450 },
-            { id: 13, type: 'spt', sub: 'Productor', crop: 'Nuez', name: 'Procesadora de Nuez El Sauz', inst: 'Norte de la Mancha Urbana', contact: '6144246200', desc: 'Planta seleccionadora y descascaradora de nuez pecanera.', lat: 28.7450, lng: -106.1200 },
-            { id: 14, type: 'spt', sub: 'Empresario', crop: 'Vid', name: 'Bodegas Viñedo Encinillas', inst: 'Oficinas Corporativas Chih.', contact: '6144132040', desc: 'Producción de vino premium con tecnología de agricultura de precisión.', lat: 28.6510, lng: -106.0650 },
-            { id: 15, type: 'spt', sub: 'Productor', crop: 'Leche', name: 'Lechería Zaragoza Distribución', inst: 'Col. Industrial', contact: '6144390100', desc: 'Pasteurizadora e infraestructura de acopio lácteo regional.', lat: 28.6580, lng: -106.0890 },
-            { id: 16, type: 'spt', sub: 'Empresario', crop: 'Carne', name: 'Snack Machín - Oficina Central', inst: 'Plaza Distrito Uno', contact: 'Enlace Directo', desc: 'Línea de carne seca funcional adicionada con enzimas.', lat: 28.6410, lng: -106.1130 },
-            { id: 17, type: 'spt', sub: 'Empresa', crop: 'Nuez', name: 'Nutrinut Pecans', inst: 'Vialidad Los Nogales', contact: '6141805560', desc: 'Exportadora de nuez en mitades con certificación de calidad.', lat: 28.7120, lng: -106.0680 },
-            { id: 18, type: 'spt', sub: 'Productor', crop: 'Vid', name: 'Vitivinícola Pasado Meridiano', inst: 'Zootecnia', contact: '6142851020', desc: 'Micro-viñedo experimental urbano y escuela de viticultura.', lat: 28.5880, lng: -106.1150 },
+        const CATEGORIA_TYPE = {
+            'Instituciones de Ciencia y Tecnología': 'ict',
+            'Sector Productivo Transformador': 'spt',
+            'Red de Aliados y Asesoría': 'raa'
+        };
 
-            // RAA
-            { id: 19, type: 'raa', sub: 'Dependencia', crop: 'Carne', name: 'DESEC A.C. / Chihuahua Futura', inst: 'Av. Zarco', contact: '6144142011', desc: 'Articulación de las iniciativas Chihuahua BIO y valor agregado.', lat: 28.6310, lng: -106.0720 },
-            { id: 20, type: 'raa', sub: 'Facilitador', crop: 'Vid', name: 'Spark Chihuahua - Hub de Innovación', inst: 'Centro Histórico', contact: 'Gobierno Estatal', desc: 'Espacio de aceleración para startups de agrotecnología y bioeconomía.', lat: 28.6380, lng: -106.0640 },
-            { id: 21, type: 'raa', sub: 'Dependencia', crop: 'Leche', name: 'Secretaría de Desarrollo Rural', inst: 'Col. Obrera', contact: '6144293300', desc: 'Políticas públicas de apoyo al equipamiento de pozos y riego.', lat: 28.6420, lng: -106.0790 },
-            { id: 22, type: 'raa', sub: 'Facilitador', crop: 'Carne', name: 'Unión Ganadera Regional (UGRCH)', inst: 'Km 8.5 Carr. a Cuauhtémoc', contact: '6144340150', desc: 'Certificación de bonos de carbono y ganadería regenerativa Praderas Vivas.', lat: 28.5990, lng: -106.1430 },
-            { id: 23, type: 'raa', sub: 'Facilitador', crop: 'Nuez', name: 'Sistema Producto Nuez Chihuahua', inst: 'Distrito Uno', contact: 'Consejo Estatal', desc: 'Organismo de sanidad e integración comercial de productores de nuez.', lat: 28.6415, lng: -106.1135 },
-            { id: 24, type: 'raa', sub: 'Facilitador', crop: 'Nuez', name: 'FIRA Agencia Chihuahua', inst: 'Perif. de la Juventud', contact: '6144321515', desc: 'Financiamiento y garantías de crédito para proyectos agroindustriales.', lat: 28.6650, lng: -106.1220 },
-            { id: 25, type: 'raa', sub: 'Dependencia', crop: 'Carne', name: 'Clúster Agroindustrial de Chihuahua', inst: 'Complejo Industrial', contact: 'Membresía Clúster', desc: 'Vinculación comercial y fomento a exportaciones agroalimentarias.', lat: 28.7130, lng: -106.1210 }
-        ];
+        async function loadInstitucionesFromDB() {
+            const { data, error } = await sb.from('instituciones').select('*');
+            if (error || !data) return;
+            unifedDB = data
+                .filter(i => i.ubicacion_lat && i.ubicacion_lng)
+                .map(i => ({
+                    id: i.id,
+                    type: CATEGORIA_TYPE[i.categoria] || 'raa',
+                    sub: i.subcategoria || '',
+                    crop: (i.sector || []).join(', ') || 'General',
+                    name: i.nombre,
+                    inst: i.ubicacion_texto || '',
+                    contact: i.datos_especificos?.contacto || i.web || '',
+                    desc: i.comentarios || '',
+                    lat: i.ubicacion_lat,
+                    lng: i.ubicacion_lng
+                }));
+            resetToAllPoints();
+            populateTable();
+        }
 
         window.addEventListener('scroll', () => {
             if(document.getElementById('section-ecosistema').classList.contains('hidden')) return;
@@ -2338,82 +2351,134 @@
             }
         }
 
+        // ── Colores y formas ──
+        const INST_COLORS = { 'spt': '#f59e0b', 'ict': '#2563eb', 'raa': '#10b981' };
+        const PERSON_COLOR = '#6366f1';
+
+        function triangleIcon(color) {
+            return L.divIcon({
+                className: '',
+                html: `<svg width="26" height="26" viewBox="0 0 26 26" xmlns="http://www.w3.org/2000/svg">
+                    <polygon points="13,2 25,24 1,24" fill="${color}" stroke="white" stroke-width="2.5" stroke-linejoin="round"/>
+                </svg>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 24],
+                popupAnchor: [0, -24]
+            });
+        }
+
+        function addInstMarker(item) {
+            const marker = L.marker([item.lat, item.lng], {
+                icon: triangleIcon(INST_COLORS[item.type] || '#94a3b8')
+            });
+            marker.on('click', () => openSidebar(item));
+            clusterMarkers.addLayer(marker);
+        }
+
+        function addPersonMarker(item) {
+            const marker = L.circleMarker([item.lat, item.lng], {
+                radius: 9, fillColor: PERSON_COLOR, color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95
+            });
+            marker.on('click', () => openSidebar(item));
+            clusterMarkers.addLayer(marker);
+        }
+
+        // ── Base de datos de personas para el mapa ──
+        let usersMapDB = [];
+
+        async function loadUsersFromDB() {
+            const { data } = await sb
+                .from('afiliaciones')
+                .select('perfiles_usuario!user_id(id, nombre_completo, perfil_tipo, contacto_preferido, sector), instituciones!institucion_id(id, nombre, categoria, ubicacion_lat, ubicacion_lng)');
+
+            usersMapDB = (data || [])
+                .filter(a =>
+                    a.perfiles_usuario?.perfil_tipo &&
+                    a.perfiles_usuario.perfil_tipo !== 'Inversionista' &&
+                    a.instituciones?.ubicacion_lat
+                )
+                .map(a => ({
+                    markerType: 'person',
+                    id: a.perfiles_usuario.id,
+                    type: CATEGORIA_TYPE[a.instituciones.categoria] || 'raa',
+                    sub: a.perfiles_usuario.perfil_tipo,
+                    sectors: a.perfiles_usuario.sector || [],
+                    crop: (a.perfiles_usuario.sector || []).join(', '),
+                    name: a.perfiles_usuario.nombre_completo || '—',
+                    inst: a.instituciones.nombre,
+                    contact: a.perfiles_usuario.contacto_preferido || '',
+                    desc: '',
+                    lat: a.instituciones.ubicacion_lat,
+                    lng: a.instituciones.ubicacion_lng
+                }));
+        }
+
+        // ── Funciones de filtrado ──
+
+        // Sin filtro: solo instituciones (triángulos)
         function resetToAllPoints() {
             closeSidebar();
             clusterMarkers.clearLayers();
-            const colors = { 'spt': '#f59e0b', 'ict': '#2563eb', 'raa': '#10b981' };
-
-            unifedDB.forEach(item => {
-                const marker = L.circleMarker([item.lat, item.lng], {
-                    radius: 11, fillColor: colors[item.type], color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95
-                });
-                marker.on('click', () => openSidebar(item));
-                clusterMarkers.addLayer(marker);
-            });
+            unifedDB.forEach(item => addInstMarker(item));
         }
 
+        // Filtros ICT / SPT / RAA: solo instituciones (triángulos)
         function filterMainCategory(category) {
             closeSidebar();
             clusterMarkers.clearLayers();
-            const items = unifedDB.filter(d => d.type === category);
-            const colors = { 'spt': '#f59e0b', 'ict': '#2563eb', 'raa': '#10b981' };
-
-            items.forEach(item => {
-                const marker = L.circleMarker([item.lat, item.lng], {
-                    radius: 11, fillColor: colors[category], color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95
-                });
-                marker.on('click', () => openSidebar(item));
-                clusterMarkers.addLayer(marker);
-            });
+            unifedDB.filter(d => d.type === category).forEach(item => addInstMarker(item));
         }
 
-        function filterPerfil(subType) {
+        // Filtros de perfil: solo personas (círculos)
+        async function filterPerfil(subType) {
             closeSidebar();
             clusterMarkers.clearLayers();
-            const items = unifedDB.filter(d => d.sub === subType);
-
-            items.forEach(item => {
-                const marker = L.circleMarker([item.lat, item.lng], {
-                    radius: 11, fillColor: '#6366f1', color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95
-                });
-                marker.on('click', () => openSidebar(item));
-                clusterMarkers.addLayer(marker);
-            });
+            if (!usersMapDB.length) await loadUsersFromDB();
+            usersMapDB.filter(u => u.sub === subType).forEach(item => addPersonMarker(item));
         }
 
-        function filterByCrop(cropName) {
+        // Filtros de cultivo/sector: personas (círculos) + instituciones (triángulos)
+        async function filterByCrop(cropName) {
             closeSidebar();
             clusterMarkers.clearLayers();
-            const items = unifedDB.filter(d => d.crop === cropName);
-            const colors = { 'spt': '#f59e0b', 'ict': '#2563eb', 'raa': '#10b981' };
-
-            items.forEach(item => {
-                const marker = L.circleMarker([item.lat, item.lng], {
-                    radius: 11, fillColor: colors[item.type], color: '#ffffff', weight: 2.5, opacity: 1, fillOpacity: 0.95
-                });
-                marker.on('click', () => openSidebar(item));
-                clusterMarkers.addLayer(marker);
-            });
+            if (!usersMapDB.length) await loadUsersFromDB();
+            const cn = cropName.toLowerCase();
+            unifedDB
+                .filter(d => d.crop.toLowerCase().includes(cn))
+                .forEach(item => addInstMarker(item));
+            usersMapDB
+                .filter(u => u.sectors.some(s => s.toLowerCase().includes(cn)))
+                .forEach(item => addPersonMarker(item));
         }
 
+        // ── Sidebar ──
         function openSidebar(item) {
             if (!currentUser) { openAuthModal(); return; }
             if (!checkEcosistemaAccess()) return;
             document.getElementById('userPanel').classList.add('translate-x-[115%]');
             document.getElementById('sideTitle').innerText = item.name;
             const badge = document.getElementById('sideBadge');
-            badge.innerText = item.sub + ' | Cadena: ' + item.crop;
-            
-            if(item.type === 'ict') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-blue-100 text-blue-800";
-            if(item.type === 'spt') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-amber-100 text-amber-800";
-            if(item.type === 'raa') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-emerald-100 text-emerald-800";
 
-            document.getElementById('sideContent').innerHTML = `
-                <p><strong>Ubicación / Campus:</strong> ${item.inst}</p>
-                <p class="mt-1"><strong>Contacto Directo:</strong> ${item.contact}</p>
-                <p class="mt-1 text-slate-500 italic">"${item.desc}"</p>
-                <p class="text-[9px] text-slate-400 mt-2">Georreferencia: ${item.lat}, ${item.lng}</p>
-            `;
+            if (item.markerType === 'person') {
+                badge.innerText = '👤 ' + item.sub;
+                badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-indigo-100 text-indigo-800";
+                document.getElementById('sideContent').innerHTML = `
+                    <p><strong>Perfil:</strong> ${item.sub}</p>
+                    <p class="mt-1"><strong>Institución/Negocio:</strong> ${item.inst}</p>
+                    ${item.contact ? `<p class="mt-1"><strong>Contacto:</strong> ${item.contact}</p>` : ''}
+                    ${item.crop ? `<p class="mt-1 text-slate-500">Sector(es): ${item.crop}</p>` : ''}
+                `;
+            } else {
+                badge.innerText = '🏢 ' + (item.sub || '') + (item.crop ? ' | ' + item.crop : '');
+                if (item.type === 'ict') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-blue-100 text-blue-800";
+                if (item.type === 'spt') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-amber-100 text-amber-800";
+                if (item.type === 'raa') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-emerald-100 text-emerald-800";
+                document.getElementById('sideContent').innerHTML = `
+                    <p><strong>Ubicación:</strong> ${item.inst}</p>
+                    ${item.contact ? `<p class="mt-1"><strong>Contacto:</strong> ${item.contact}</p>` : ''}
+                    ${item.desc ? `<p class="mt-1 text-slate-500 italic">"${item.desc}"</p>` : ''}
+                `;
+            }
             document.getElementById('sidebar').classList.remove('-translate-x-[115%]');
         }
 
@@ -2468,7 +2533,7 @@
             populateTable();
         }
 
-        resetToAllPoints();
+        loadInstitucionesFromDB();
         populateTable();
 
         // ══ BLOG ══
@@ -3578,10 +3643,12 @@
             if (!instId) {
                 title.textContent = 'Registrar Nueva Institución';
                 body.innerHTML = buildInstForm(null);
+                setTimeout(() => initMapPicker('if-map-picker', 'if-lat', 'if-lng', 'if-coords-display', null, null), 150);
             } else {
                 title.textContent = 'Editar Institución';
                 const { data } = await sb.from('instituciones').select('*').eq('id', instId).single();
                 body.innerHTML = buildInstForm(data);
+                setTimeout(() => initMapPicker('if-map-picker', 'if-lat', 'if-lng', 'if-coords-display', data?.ubicacion_lat, data?.ubicacion_lng), 150);
             }
         }
 
@@ -3617,8 +3684,18 @@
                 <input id="if-nombre" required value="${v.nombre||''}" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Dirección o código postal *</label>
-                <input id="if-ubicacion" required value="${v.ubicacion_texto||''}" placeholder="Dirección, ciudad o CP" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Dirección o referencia</label>
+                <input id="if-ubicacion" value="${v.ubicacion_texto||''}" placeholder="Colonia, calle, CP…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Ubicación en el mapa <span class="normal-case text-slate-400 font-medium">(arrastra el pin)</span></label>
+                <div class="map-picker-wrap" style="height:200px;">
+                  <div id="if-map-picker" style="height:200px;"></div>
+                  <div class="map-picker-hint">📍 Arrastra el pin a tu ubicación exacta</div>
+                </div>
+                <input type="hidden" id="if-lat" value="${v.ubicacion_lat||''}">
+                <input type="hidden" id="if-lng" value="${v.ubicacion_lng||''}">
+                <p id="if-coords-display" class="text-[10px] text-slate-400 mt-1 font-mono">${v.ubicacion_lat ? v.ubicacion_lat.toFixed(5)+', '+v.ubicacion_lng.toFixed(5) : ''}</p>
               </div>
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Página web</label>
@@ -3692,11 +3769,15 @@
             const errEl = document.getElementById('if-error');
             const sub = document.getElementById('if-subcategoria').value;
             const sector = [...document.querySelectorAll('.if-sector-cb:checked')].map(c => c.value);
+            const ifLat = parseFloat(document.getElementById('if-lat').value);
+            const ifLng = parseFloat(document.getElementById('if-lng').value);
             const datos = {
                 subcategoria: sub,
                 categoria: CATEGORIA_MAP[sub] || '',
                 nombre: document.getElementById('if-nombre').value.trim(),
                 ubicacion_texto: document.getElementById('if-ubicacion').value.trim(),
+                ubicacion_lat: isNaN(ifLat) ? null : ifLat,
+                ubicacion_lng: isNaN(ifLng) ? null : ifLng,
                 web: document.getElementById('if-web').value.trim() || null,
                 sector,
                 comentarios: document.getElementById('if-comentarios').value.trim(),
@@ -3723,6 +3804,7 @@
             } else {
                 closeInstModal();
                 await loadMisInstituciones();
+                loadInstitucionesFromDB();
             }
         }
 
@@ -3814,6 +3896,43 @@
             await sb.from('perfiles_usuario').delete().eq('id', userId);
             // Nota: la eliminación de auth.users requiere función server-side o API admin
             await loadMasterPanel();
+        }
+
+        // ── MINI-MAPA PICKER ──
+        const CHI_LAT = 28.6353, CHI_LNG = -106.0889;
+        let pickerMaps = {}; // cache de instancias para no reinicializar
+
+        function initMapPicker(containerId, latId, lngId, displayId, initLat, initLng) {
+            // Destruir instancia previa si existe
+            if (pickerMaps[containerId]) {
+                pickerMaps[containerId].remove();
+                delete pickerMaps[containerId];
+            }
+
+            const lat = initLat || CHI_LAT;
+            const lng = initLng || CHI_LNG;
+
+            const pMap = L.map(containerId, { zoomControl: true, attributionControl: false }).setView([lat, lng], initLat ? 15 : 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(pMap);
+
+            const marker = L.marker([lat, lng], { draggable: true }).addTo(pMap);
+
+            function updateCoords(latlng) {
+                document.getElementById(latId).value = latlng.lat.toFixed(6);
+                document.getElementById(lngId).value = latlng.lng.toFixed(6);
+                if (displayId) {
+                    document.getElementById(displayId).textContent =
+                        latlng.lat.toFixed(5) + ', ' + latlng.lng.toFixed(5);
+                }
+            }
+
+            updateCoords(marker.getLatLng());
+            marker.on('dragend', e => updateCoords(e.target.getLatLng()));
+            pMap.on('click', e => { marker.setLatLng(e.latlng); updateCoords(e.latlng); });
+
+            pickerMaps[containerId] = pMap;
+            // Leaflet necesita invalidar tamaño tras render en modal oculto
+            setTimeout(() => pMap.invalidateSize(), 150);
         }
 
         // ── 2DA BARRERA ──
@@ -3918,6 +4037,8 @@
             ecoInstSelectedId = null;
             document.getElementById('eco-busqueda-panel').classList.add('hidden');
             document.getElementById('eco-nueva-inst-section').classList.remove('hidden');
+            // Inicializar el mini-mapa después de que el div sea visible
+            setTimeout(() => initMapPicker('ni-map-picker', 'ni-lat', 'ni-lng', 'ni-coords-display', null, null), 100);
         }
 
         function hideNuevaInstSection() {
@@ -4002,10 +4123,14 @@
             if (!hasSelected && hasNueva) {
                 const sub = document.getElementById('ni-subcategoria').value;
                 const niSector = [...document.querySelectorAll('.ni-sector-cb:checked')].map(c => c.value);
+                const niLat = parseFloat(document.getElementById('ni-lat').value);
+                const niLng = parseFloat(document.getElementById('ni-lng').value);
                 const instData = {
                     subcategoria: sub, categoria: CATEGORIA_MAP[sub] || '',
                     nombre: document.getElementById('ni-nombre').value.trim(),
                     ubicacion_texto: document.getElementById('ni-ubicacion').value.trim(),
+                    ubicacion_lat: isNaN(niLat) ? null : niLat,
+                    ubicacion_lng: isNaN(niLng) ? null : niLng,
                     web: document.getElementById('ni-web').value.trim() || null,
                     sector: niSector,
                     comentarios: document.getElementById('ni-comentarios').value.trim(),
@@ -4034,6 +4159,7 @@
             currentProfile = { ...currentProfile, ...upsertData, perfil_completo: true };
             btn.disabled = false; txt.textContent = 'Completar mi registro'; spin.classList.add('hidden');
             closeEcosistemaModal();
+            loadInstitucionesFromDB();
             alert('✓ ¡Registro completado! Ya eres parte del Ecosistema CV2A.');
         }
 
