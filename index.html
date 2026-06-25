@@ -1995,7 +1995,9 @@
 
           <!-- STEP 2: Institución -->
           <div id="eco-step-2" class="hidden space-y-4">
-            <div>
+
+            <!-- Panel búsqueda (visible por default) -->
+            <div id="eco-busqueda-panel">
               <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">¿A qué institución/negocio estás afiliado/a? *</label>
               <div class="relative">
                 <input type="text" id="eco-inst-search" placeholder="Buscar institución registrada…" autocomplete="off" oninput="searchInstituciones(this.value)" onfocus="searchInstituciones(this.value)"
@@ -2006,10 +2008,16 @@
                 <span id="eco-inst-selected-name">—</span>
                 <button type="button" onclick="clearInstSelected()" class="text-blue-400 hover:text-blue-700 ml-2 cursor-pointer font-black">✕</button>
               </div>
+              <button type="button" onclick="showNuevaInstSection()" class="mt-3 w-full border-2 border-dashed border-slate-200 hover:border-blue-400 hover:text-blue-600 text-slate-400 font-bold text-xs py-2.5 rounded-xl transition cursor-pointer">
+                + Mi institución no está en la lista — Registrar nueva
+              </button>
             </div>
 
-            <!-- Registro nueva institución (oculto por default) -->
-            <div id="eco-nueva-inst-section" class="hidden border-t border-slate-100 pt-4">
+            <!-- Formulario nueva institución (oculto por default) -->
+            <div id="eco-nueva-inst-section" class="hidden">
+              <div class="flex items-center gap-2 mb-4">
+                <button type="button" onclick="hideNuevaInstSection()" class="text-slate-400 hover:text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer">← Volver a buscar</button>
+              </div>
               <p class="text-xs font-bold text-blue-600 mb-3">Registrar nueva institución/negocio</p>
               <div class="space-y-3" id="form-nueva-inst">
                 <div>
@@ -3876,18 +3884,14 @@
             if (!list) return;
             const q = query.toLowerCase();
             const filtered = allInstitucionesCache.filter(i => i.nombre.toLowerCase().includes(q)).slice(0, 8);
-            list.innerHTML = '';
-            // Primera opción siempre: registrar nueva
-            const newDiv = document.createElement('div');
-            newDiv.className = 'autocomplete-item font-bold text-blue-600';
-            newDiv.textContent = '+ Registrar nueva institución/negocio';
-            newDiv.onclick = () => showNuevaInstSection();
-            list.appendChild(newDiv);
 
+            if (filtered.length === 0) { list.classList.add('hidden'); return; }
+
+            list.innerHTML = '';
             filtered.forEach(i => {
                 const div = document.createElement('div');
                 div.className = 'autocomplete-item';
-                div.innerHTML = `<strong>${i.nombre}</strong> <span class="text-slate-400 text-[10px]">${i.subcategoria}</span>`;
+                div.innerHTML = `<strong>${i.nombre}</strong> <span class="text-slate-400 text-[10px] ml-1">${i.subcategoria}</span>`;
                 div.onclick = () => selectInst(i.id, i.nombre);
                 list.appendChild(div);
             });
@@ -3912,9 +3916,16 @@
         function showNuevaInstSection() {
             document.getElementById('eco-inst-autocomplete').classList.add('hidden');
             ecoInstSelectedId = null;
-            document.getElementById('eco-inst-selected').classList.add('hidden');
-            document.getElementById('eco-inst-search').value = '';
+            document.getElementById('eco-busqueda-panel').classList.add('hidden');
             document.getElementById('eco-nueva-inst-section').classList.remove('hidden');
+        }
+
+        function hideNuevaInstSection() {
+            document.getElementById('eco-nueva-inst-section').classList.add('hidden');
+            document.getElementById('eco-busqueda-panel').classList.remove('hidden');
+            document.getElementById('eco-inst-search').value = '';
+            document.getElementById('eco-inst-selected').classList.add('hidden');
+            ecoInstSelectedId = null;
         }
 
         function onNiSubcategoriaChange() {
@@ -3966,9 +3977,28 @@
 
             btn.disabled = true; txt.textContent = 'Guardando…'; spin.classList.remove('hidden');
 
+            // PRIMERO guardar perfil (la FK admin_id en instituciones lo requiere)
+            const lineas = chipData['eco-lineas'] || [];
+            const patentes = chipData['eco-patentes'] || [];
+            const upsertData = {
+                id: currentUser.id, email: currentUser.email,
+                nombre_completo: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
+                perfil_tipo: tipo, sector, contacto_preferido: contacto, comentarios,
+                lineas_investigacion: lineas, patentes,
+                is_master: isMaster(), perfil_completo: true,
+                updated_at: new Date().toISOString()
+            };
+            const { error: profErr } = await sb.from('perfiles_usuario').upsert(upsertData, { onConflict: 'id' });
+            if (profErr) {
+                errEl.textContent = 'Error al guardar perfil: ' + profErr.message;
+                errEl.classList.remove('hidden');
+                btn.disabled = false; txt.textContent = 'Completar mi registro'; spin.classList.add('hidden');
+                return;
+            }
+
             let institucionId = ecoInstSelectedId;
 
-            // Si es nueva institución, crearla primero
+            // Si es nueva institución, crearla después de tener el perfil
             if (!hasSelected && hasNueva) {
                 const sub = document.getElementById('ni-subcategoria').value;
                 const niSector = [...document.querySelectorAll('.ni-sector-cb:checked')].map(c => c.value);
@@ -3991,25 +4021,6 @@
                 }
                 institucionId = newInst.id;
                 allInstitucionesCache.push({ id: newInst.id, nombre: newInst.nombre, subcategoria: newInst.subcategoria });
-            }
-
-            // Guardar perfil usuario
-            const lineas = chipData['eco-lineas'] || [];
-            const patentes = chipData['eco-patentes'] || [];
-            const upsertData = {
-                id: currentUser.id, email: currentUser.email,
-                nombre_completo: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
-                perfil_tipo: tipo, sector, contacto_preferido: contacto, comentarios,
-                lineas_investigacion: lineas, patentes,
-                is_master: isMaster(), perfil_completo: true,
-                updated_at: new Date().toISOString()
-            };
-            const { error: profErr } = await sb.from('perfiles_usuario').upsert(upsertData, { onConflict: 'id' });
-            if (profErr) {
-                errEl.textContent = 'Error al guardar perfil: ' + profErr.message;
-                errEl.classList.remove('hidden');
-                btn.disabled = false; txt.textContent = 'Completar mi registro'; spin.classList.add('hidden');
-                return;
             }
 
             // Crear afiliación
