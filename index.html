@@ -119,6 +119,22 @@
             text-align: center;
         }
 
+        /* ══ PERFIL SECTION & MODALS ══ */
+        .perfil-tab-btn { transition: all 0.2s; }
+        .perfil-tab-btn.active { background:#2563eb; color:#fff; }
+        .tag-chip { display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:9999px; padding:3px 10px; font-size:11px; font-weight:600; }
+        .tag-chip button { background:none; border:none; cursor:pointer; color:#93c5fd; font-size:13px; line-height:1; padding:0; }
+        .tag-chip button:hover { color:#1d4ed8; }
+        .autocomplete-list { position:absolute; left:0; right:0; top:100%; background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.1); z-index:100; max-height:200px; overflow-y:auto; }
+        .autocomplete-item { padding:8px 14px; font-size:12px; cursor:pointer; font-weight:500; color:#334155; }
+        .autocomplete-item:hover { background:#eff6ff; color:#1d4ed8; }
+        .danger-zone { border:2px solid #fca5a5; background:#fff5f5; border-radius:16px; padding:16px; }
+        .perfil-afil-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:16px; }
+        .eco-step-dot.active { background:#2563eb !important; color:#fff !important; }
+        .eco-step-dot.done { background:#10b981 !important; color:#fff !important; }
+        .master-badge { background:linear-gradient(135deg,#7c3aed,#2563eb); color:#fff; font-size:9px; font-weight:800; padding:2px 7px; border-radius:999px; letter-spacing:.05em; text-transform:uppercase; }
+        select.multi-select { min-height:80px; }
+
         @media (max-width: 767px) {
 
             /* ──────────────────────────────────────────
@@ -1650,15 +1666,17 @@
             </div>
             <div class="space-y-4">
                 <!-- Avatar + nombre dinámico -->
-                <div class="flex items-center space-x-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-                    <div id="panel-avatar" class="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-black text-sm shadow-sm shrink-0 overflow-hidden">
+                <div class="flex items-center space-x-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100 cursor-pointer hover:border-blue-300 transition group" onclick="toggleUserPanel(); switchSection(null,'perfil')">
+                    <div id="panel-avatar" class="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-black text-sm shadow-sm shrink-0 overflow-hidden group-hover:ring-2 ring-blue-400 transition">
                         <span id="panel-avatar-initials">?</span>
                         <img id="panel-avatar-img" src="" alt="" class="hidden w-full h-full object-cover">
                     </div>
-                    <div class="min-w-0">
-                        <p id="panel-username" class="text-sm font-bold text-slate-900 truncate">—</p>
+                    <div class="min-w-0 flex-1">
+                        <p id="panel-username" class="text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition">—</p>
                         <p id="panel-email" class="text-[10px] text-slate-500 font-medium truncate">—</p>
+                        <p class="text-[9px] text-blue-500 font-bold mt-0.5">Ver Mi Perfil →</p>
                     </div>
+                    <span id="panel-master-badge" class="hidden master-badge shrink-0">Maestro</span>
                 </div>
                 <!-- Info de cuenta -->
                 <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2 text-[11px]">
@@ -1686,6 +1704,388 @@
                 <span>↩</span> Cerrar sesión
             </button>
         </div>
+    </div>
+
+    <!-- ══ SECCIÓN MI PERFIL ══ -->
+    <div id="section-perfil" class="hidden min-h-screen pt-24 pb-20 bg-slate-50">
+      <div class="max-w-4xl mx-auto px-4 md:px-8">
+
+        <!-- Header del perfil -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8 mb-6 flex items-center gap-5">
+          <div id="pp-avatar" class="bg-blue-600 text-white rounded-full w-20 h-20 flex items-center justify-center font-black text-2xl shadow-md shrink-0 overflow-hidden">
+            <span id="pp-avatar-initials">?</span>
+            <img id="pp-avatar-img" src="" alt="" class="hidden w-full h-full object-cover">
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 id="pp-name" class="text-2xl font-black text-slate-900">—</h1>
+              <span id="pp-master-badge" class="hidden master-badge">⭐ Perfil Maestro</span>
+            </div>
+            <p id="pp-email-display" class="text-sm text-slate-500 font-medium">—</p>
+            <p id="pp-tipo-display" class="text-xs text-blue-600 font-bold mt-1">—</p>
+          </div>
+          <div id="pp-incomplete-banner" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700 font-semibold max-w-xs">
+            ⚠️ Completa tu perfil para acceder al Ecosistema
+            <button onclick="openEcosistemaModal()" class="block mt-2 bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg font-bold w-full transition cursor-pointer">Completar ahora</button>
+          </div>
+        </div>
+
+        <!-- Tabs de navegación -->
+        <div class="flex gap-2 flex-wrap mb-6">
+          <button onclick="switchPerfilTab('datos')" id="ptab-datos" class="perfil-tab-btn active px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white border border-transparent cursor-pointer transition">Datos Personales</button>
+          <button onclick="switchPerfilTab('intereses')" id="ptab-intereses" class="perfil-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-200 cursor-pointer transition hover:border-blue-300">Mis Intereses</button>
+          <button onclick="switchPerfilTab('instituciones')" id="ptab-instituciones" class="perfil-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-200 cursor-pointer transition hover:border-blue-300">Mis Instituciones</button>
+          <button onclick="switchPerfilTab('cuestionario')" id="ptab-cuestionario" class="perfil-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-200 cursor-pointer transition hover:border-blue-300">Mi Cuestionario</button>
+          <button onclick="switchPerfilTab('maestro')" id="ptab-maestro" class="perfil-tab-btn hidden px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white border border-transparent cursor-pointer transition">⭐ Panel Maestro</button>
+          <button onclick="switchPerfilTab('peligro')" id="ptab-peligro" class="perfil-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-red-500 border border-red-200 cursor-pointer transition hover:bg-red-50 ml-auto">⚠ Zona de Peligro</button>
+        </div>
+
+        <!-- TAB: Datos Personales -->
+        <div id="ptab-content-datos" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+          <h2 class="text-base font-bold text-slate-900 mb-5">Editar Datos Personales</h2>
+          <form id="form-editar-perfil" onsubmit="saveEditarPerfil(event)" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Nombre Completo *</label>
+                <input type="text" id="ep-nombre" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Correo electrónico</label>
+                <input type="email" id="ep-email" disabled class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium bg-slate-50 text-slate-400 cursor-not-allowed">
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Tipo de Perfil</label>
+              <select id="ep-tipo" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <option value="">Sin especificar</option>
+                <option value="Productor">Productor</option>
+                <option value="Empresario">Empresario</option>
+                <option value="Investigador">Investigador</option>
+                <option value="Inversionista">Inversionista</option>
+                <option value="Maestro">Maestro</option>
+                <option value="Facilitador">Facilitador</option>
+                <option value="Alumno">Alumno</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Sector(es)</label>
+              <div class="flex flex-wrap gap-2" id="ep-sector-checkboxes">
+                <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="nuez" class="ep-sector-cb accent-blue-600"> Nuez</label>
+                <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="vid" class="ep-sector-cb accent-blue-600"> Vid</label>
+                <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="leche" class="ep-sector-cb accent-blue-600"> Leche</label>
+                <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="carne" class="ep-sector-cb accent-blue-600"> Carne</label>
+                <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="otros" class="ep-sector-cb accent-blue-600"> Otros</label>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Mejor medio de contacto *</label>
+              <input type="text" id="ep-contacto" required placeholder="email, WhatsApp, teléfono…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Comentarios</label>
+              <textarea id="ep-comentarios" rows="3" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
+            </div>
+            <!-- Investigador: campos específicos -->
+            <div id="ep-investigador-fields" class="hidden space-y-4 border-t border-slate-100 pt-4">
+              <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Campos de Investigador</p>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Líneas de investigación actuales</label>
+                <div id="ep-lineas-container" class="flex flex-wrap gap-2 min-h-8 mb-2"></div>
+                <div class="flex gap-2">
+                  <input type="text" id="ep-linea-input" placeholder="Añadir línea de investigación…" class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <button type="button" onclick="addChip('ep-lineas','ep-linea-input')" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition cursor-pointer">+</button>
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Patentes para transferencia tecnológica</label>
+                <div id="ep-patentes-container" class="flex flex-wrap gap-2 min-h-8 mb-2"></div>
+                <div class="flex gap-2">
+                  <input type="text" id="ep-patente-input" placeholder="Añadir patente…" class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <button type="button" onclick="addChip('ep-patentes','ep-patente-input')" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition cursor-pointer">+</button>
+                </div>
+              </div>
+            </div>
+            <div id="ep-save-feedback" class="hidden"></div>
+            <div class="flex justify-end">
+              <button type="submit" id="ep-save-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition cursor-pointer flex items-center gap-2">
+                <span id="ep-save-text">Guardar cambios</span>
+                <span id="ep-save-spinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full" style="animation:spin .7s linear infinite"></span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- TAB: Mis Intereses -->
+        <div id="ptab-content-intereses" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+          <h2 class="text-base font-bold text-slate-900 mb-2">Mis Intereses</h2>
+          <p class="text-xs text-slate-500 mb-5">Selecciona temas que te interesan. Cada tarjeta nueva que crees se agrega a la lista para toda la comunidad.</p>
+          <!-- Autocomplete buscar/crear -->
+          <div class="relative mb-5">
+            <input type="text" id="interes-search" placeholder="Buscar o crear tarjeta de interés…" autocomplete="off"
+              class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              oninput="renderInteresesAutocomplete(this.value)" onfocus="renderInteresesAutocomplete(this.value)">
+            <div id="interes-autocomplete" class="autocomplete-list hidden"></div>
+          </div>
+          <!-- Mis tarjetas seleccionadas -->
+          <div>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Mis tarjetas</p>
+            <div id="mis-intereses-chips" class="flex flex-wrap gap-2 min-h-10"></div>
+          </div>
+        </div>
+
+        <!-- TAB: Mis Instituciones -->
+        <div id="ptab-content-instituciones" class="hidden space-y-4">
+          <div class="flex justify-between items-center">
+            <h2 class="text-base font-bold text-slate-900">Mis Instituciones</h2>
+            <button onclick="openInstitucionModal(null)" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition cursor-pointer">+ Registrar nueva</button>
+          </div>
+          <div id="mis-instituciones-list" class="space-y-4">
+            <div class="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">
+              Cargando instituciones…
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Mi Cuestionario -->
+        <div id="ptab-content-cuestionario" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
+          <h2 class="text-base font-bold text-slate-900 mb-5">Respuestas de Mi Registro</h2>
+          <div id="cuestionario-respuestas" class="space-y-3 text-sm text-slate-600">
+            <p class="text-slate-400 italic">Sin datos de cuestionario todavía.</p>
+          </div>
+        </div>
+
+        <!-- TAB: Panel Maestro -->
+        <div id="ptab-content-maestro" class="hidden space-y-5">
+          <div class="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl p-6">
+            <h2 class="text-lg font-black mb-1">⭐ Panel Maestro</h2>
+            <p class="text-sm opacity-80">Control total sobre usuarios e instituciones del Ecosistema CV2A.</p>
+          </div>
+          <!-- Filtros -->
+          <div class="bg-white rounded-2xl border border-slate-100 p-4 flex flex-wrap gap-3 items-center">
+            <input type="text" id="master-search" placeholder="Buscar usuario o institución…" oninput="filterMasterList()" class="flex-1 min-w-48 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+            <select id="master-filter-tipo" onchange="filterMasterList()" class="border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none">
+              <option value="">Todos los perfiles</option>
+              <option value="Productor">Productor</option>
+              <option value="Empresario">Empresario</option>
+              <option value="Investigador">Investigador</option>
+              <option value="Inversionista">Inversionista</option>
+              <option value="Maestro">Maestro</option>
+              <option value="Facilitador">Facilitador</option>
+              <option value="Alumno">Alumno</option>
+            </select>
+            <button onclick="loadMasterPanel()" class="bg-purple-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-purple-700 transition cursor-pointer">↺ Actualizar</button>
+          </div>
+          <!-- Lista usuarios -->
+          <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+            <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 flex items-center gap-2">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Usuarios registrados</span>
+              <span id="master-count" class="text-[10px] font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">0</span>
+            </div>
+            <div id="master-users-list" class="divide-y divide-slate-100">
+              <div class="p-6 text-center text-slate-400 text-xs">Cargando…</div>
+            </div>
+          </div>
+          <!-- Lista instituciones -->
+          <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+            <div class="bg-slate-50 px-4 py-2 border-b border-slate-100">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Instituciones registradas</span>
+            </div>
+            <div id="master-inst-list" class="divide-y divide-slate-100">
+              <div class="p-6 text-center text-slate-400 text-xs">Cargando…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Zona de Peligro -->
+        <div id="ptab-content-peligro" class="hidden">
+          <div class="danger-zone">
+            <h2 class="text-base font-bold text-red-700 mb-2">⚠ Zona de Peligro</h2>
+            <p class="text-xs text-red-600 mb-5">Estas acciones son irreversibles. Procede con cuidado.</p>
+            <div class="bg-white rounded-xl p-4 border border-red-200 mb-4">
+              <h3 class="text-sm font-bold text-slate-800 mb-1">Eliminar mi cuenta</h3>
+              <p class="text-xs text-slate-500 mb-3">Se eliminarán permanentemente todos tus datos, afiliaciones e intereses. Las instituciones que administras necesitarán un nuevo administrador.</p>
+              <button onclick="confirmDeleteAccount()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition cursor-pointer">Eliminar mi cuenta definitivamente</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ MODAL 2DA BARRERA ══ -->
+    <div id="ecosistema-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] hidden items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="p-6 md:p-8">
+          <div class="text-center mb-5">
+            <img src="Logo CV2A-05 (1).png" alt="CV2A" class="h-10 mx-auto mb-3 object-contain">
+            <h2 class="text-xl font-black text-slate-900">Únete al Ecosistema</h2>
+            <p class="text-xs text-slate-500 mt-1">Completa tu perfil para conectar con perfiles de tu interés</p>
+          </div>
+          <!-- Steps -->
+          <div class="flex items-center justify-center gap-3 mb-6">
+            <div class="flex items-center gap-1.5">
+              <div id="eco-dot-1" class="eco-step-dot active w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-black">1</div>
+              <span class="text-xs font-semibold text-slate-600">Tu Perfil</span>
+            </div>
+            <div class="w-10 h-px bg-slate-200"></div>
+            <div class="flex items-center gap-1.5">
+              <div id="eco-dot-2" class="eco-step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs flex items-center justify-center font-black">2</div>
+              <span class="text-xs font-semibold text-slate-400">Tu Institución</span>
+            </div>
+          </div>
+
+          <!-- STEP 1: Perfil -->
+          <div id="eco-step-1">
+            <form id="form-eco-perfil" onsubmit="ecoGotoStep2(event)" class="space-y-4">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Tipo de perfil *</label>
+                <select id="eco-tipo" required onchange="toggleEcoInvestigadorFields()" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                  <option value="">Selecciona tu perfil…</option>
+                  <option value="Productor">Productor</option>
+                  <option value="Empresario">Empresario</option>
+                  <option value="Investigador">Investigador</option>
+                  <option value="Inversionista">Inversionista (no visible públicamente)</option>
+                  <option value="Maestro">Maestro</option>
+                  <option value="Facilitador">Facilitador</option>
+                  <option value="Alumno">Alumno</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Sector(es) relacionado(s)</label>
+                <div class="flex flex-wrap gap-3">
+                  <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="nuez" class="eco-sector-cb accent-blue-600"> Nuez</label>
+                  <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="vid" class="eco-sector-cb accent-blue-600"> Vid</label>
+                  <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="leche" class="eco-sector-cb accent-blue-600"> Leche</label>
+                  <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="carne" class="eco-sector-cb accent-blue-600"> Carne</label>
+                  <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="otros" class="eco-sector-cb accent-blue-600"> Otros</label>
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Mejor medio de contacto *</label>
+                <input type="text" id="eco-contacto" required placeholder="email, WhatsApp, teléfono…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Comentarios</label>
+                <textarea id="eco-comentarios" rows="2" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
+              </div>
+              <!-- Investigador fields -->
+              <div id="eco-investigador-fields" class="hidden space-y-4 border-t border-slate-100 pt-4">
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Campos de Investigador</p>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Líneas de investigación actuales</label>
+                  <div id="eco-lineas-container" class="flex flex-wrap gap-2 min-h-6 mb-2"></div>
+                  <div class="flex gap-2">
+                    <input type="text" id="eco-linea-input" placeholder="Añadir…" class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="button" onclick="addChip('eco-lineas','eco-linea-input')" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 cursor-pointer transition">+</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Patentes para transferencia tecnológica</label>
+                  <div id="eco-patentes-container" class="flex flex-wrap gap-2 min-h-6 mb-2"></div>
+                  <div class="flex gap-2">
+                    <input type="text" id="eco-patente-input" placeholder="Añadir patente…" class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="button" onclick="addChip('eco-patentes','eco-patente-input')" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 cursor-pointer transition">+</button>
+                  </div>
+                </div>
+              </div>
+              <div id="eco-step1-error" class="hidden text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
+              <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer">Siguiente → Tu Institución</button>
+            </form>
+          </div>
+
+          <!-- STEP 2: Institución -->
+          <div id="eco-step-2" class="hidden space-y-4">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">¿A qué institución/negocio estás afiliado/a? *</label>
+              <div class="relative">
+                <input type="text" id="eco-inst-search" placeholder="Buscar institución registrada…" autocomplete="off" oninput="searchInstituciones(this.value)" onfocus="searchInstituciones(this.value)"
+                  class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                <div id="eco-inst-autocomplete" class="autocomplete-list hidden"></div>
+              </div>
+              <div id="eco-inst-selected" class="hidden mt-2 bg-blue-50 border border-blue-200 rounded-xl p-3 text-xs font-semibold text-blue-700 flex justify-between items-center">
+                <span id="eco-inst-selected-name">—</span>
+                <button type="button" onclick="clearInstSelected()" class="text-blue-400 hover:text-blue-700 ml-2 cursor-pointer font-black">✕</button>
+              </div>
+            </div>
+
+            <!-- Registro nueva institución (oculto por default) -->
+            <div id="eco-nueva-inst-section" class="hidden border-t border-slate-100 pt-4">
+              <p class="text-xs font-bold text-blue-600 mb-3">Registrar nueva institución/negocio</p>
+              <div class="space-y-3" id="form-nueva-inst">
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Tipo de institución/negocio *</label>
+                  <select id="ni-subcategoria" required onchange="onNiSubcategoriaChange()" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    <option value="">Selecciona…</option>
+                    <optgroup label="Red de Aliados y Asesoría">
+                      <option value="Dependencia de gobierno">Dependencia de gobierno</option>
+                      <option value="Asociación de la iniciativa privada">Asociación de la iniciativa privada</option>
+                      <option value="Empresa de consultoría">Empresa de consultoría</option>
+                    </optgroup>
+                    <optgroup label="Sector Productivo Transformador">
+                      <option value="Unidad de Producción">Unidad de Producción</option>
+                      <option value="Empresa de Valor Agregado">Empresa de Valor Agregado</option>
+                    </optgroup>
+                    <optgroup label="Instituciones de Ciencia y Tecnología">
+                      <option value="Centro de Investigación">Centro de Investigación</option>
+                      <option value="Universidad">Universidad</option>
+                      <option value="Preparatoria">Preparatoria</option>
+                      <option value="Laboratorio Privado">Laboratorio Privado</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5" id="ni-nombre-label">Nombre *</label>
+                  <input type="text" id="ni-nombre" required placeholder="Nombre de la institución/negocio" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Dirección o código postal *</label>
+                  <input type="text" id="ni-ubicacion" required placeholder="Dirección, ciudad o código postal" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Página web</label>
+                  <input type="url" id="ni-web" placeholder="https://…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Sector(es) *</label>
+                  <div class="flex flex-wrap gap-3">
+                    <label class="flex items-center gap-1.5 text-xs cursor-pointer"><input type="checkbox" value="nuez" class="ni-sector-cb accent-blue-600"> Nuez</label>
+                    <label class="flex items-center gap-1.5 text-xs cursor-pointer"><input type="checkbox" value="vid" class="ni-sector-cb accent-blue-600"> Vid</label>
+                    <label class="flex items-center gap-1.5 text-xs cursor-pointer"><input type="checkbox" value="leche" class="ni-sector-cb accent-blue-600"> Leche</label>
+                    <label class="flex items-center gap-1.5 text-xs cursor-pointer"><input type="checkbox" value="carne" class="ni-sector-cb accent-blue-600"> Carne</label>
+                    <label class="flex items-center gap-1.5 text-xs cursor-pointer"><input type="checkbox" value="otro" class="ni-sector-cb accent-blue-600"> Otro</label>
+                  </div>
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Comentarios</label>
+                  <textarea id="ni-comentarios" rows="2" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
+                </div>
+                <!-- Campos dinámicos según subcategoría -->
+                <div id="ni-dynamic-fields" class="space-y-3"></div>
+              </div>
+            </div>
+
+            <div id="eco-step2-error" class="hidden text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
+            <div class="flex gap-3">
+              <button type="button" onclick="ecoBackToStep1()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition cursor-pointer">← Atrás</button>
+              <button type="button" id="eco-complete-btn" onclick="saveEcoRegistro()" class="flex-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer flex items-center justify-center gap-2">
+                <span id="eco-complete-text">Completar mi registro</span>
+                <span id="eco-complete-spinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full" style="animation:spin .7s linear infinite"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODAL EDITAR INSTITUCIÓN ══ -->
+    <div id="inst-edit-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] hidden items-center justify-center p-4" onclick="if(event.target===this)closeInstModal()">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto p-6 md:p-8" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-5">
+          <h2 id="inst-modal-title" class="text-base font-black text-slate-900">Editar Institución</h2>
+          <button onclick="closeInstModal()" class="text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer font-bold">✕</button>
+        </div>
+        <div id="inst-modal-body" class="space-y-3"><!-- populated by JS --></div>
+      </div>
     </div>
 
     <footer class="bg-slate-900 text-slate-400 py-12 px-6 md:px-8 border-t border-slate-800 relative z-40">
@@ -1736,7 +2136,7 @@
                 openAuthModal();
                 return;
             }
-            const sections = ['ecosistema', 'nosotros', 'inteligencia', 'ruta', 'mercado', 'noticias', 'privacidad', 'terminos', 'contacto'];
+            const sections = ['ecosistema', 'nosotros', 'inteligencia', 'ruta', 'mercado', 'noticias', 'privacidad', 'terminos', 'contacto', 'perfil'];
             
             sections.forEach(id => {
                 const el = document.getElementById(`section-${id}`);
@@ -1757,6 +2157,10 @@
             
             if (sectionId === 'ecosistema') {
                 setTimeout(() => { map.invalidateSize(); }, 100);
+            }
+            if (sectionId === 'perfil') {
+                if (!currentUser) { openAuthModal(); return; }
+                renderPerfilSection();
             }
 
             if (sectionId === 'inteligencia') {
@@ -1906,6 +2310,7 @@
 
         function handlePerfilClick(subType) {
             if (!currentUser) { openAuthModal(); return; }
+            if (!checkEcosistemaAccess()) return;
             if (window.scrollY <= 50) {
                 window.scrollTo({ top: 120, behavior: 'smooth' });
                 setTimeout(() => { filterPerfil(subType); }, 500);
@@ -1916,6 +2321,7 @@
 
         function handleBolaClick(category) {
             if (!currentUser) { openAuthModal(); return; }
+            if (!checkEcosistemaAccess()) return;
             if (window.scrollY <= 50) {
                 window.scrollTo({ top: 120, behavior: 'smooth' });
                 setTimeout(() => { filterMainCategory(category); }, 500);
@@ -1984,6 +2390,7 @@
 
         function openSidebar(item) {
             if (!currentUser) { openAuthModal(); return; }
+            if (!checkEcosistemaAccess()) return;
             document.getElementById('userPanel').classList.add('translate-x-[115%]');
             document.getElementById('sideTitle').innerText = item.name;
             const badge = document.getElementById('sideBadge');
@@ -2558,11 +2965,26 @@
             const { data: { session } } = await sb.auth.getSession();
             currentUser = session?.user ?? null;
             updateUIForAuthState(currentUser);
+            if (currentUser) await loadUserProfile();
 
-            sb.auth.onAuthStateChange((event, session) => {
+            sb.auth.onAuthStateChange(async (event, session) => {
                 currentUser = session?.user ?? null;
                 updateUIForAuthState(currentUser);
-                if (event === 'SIGNED_IN') closeAuthModal();
+                if (event === 'SIGNED_IN') {
+                    closeAuthModal();
+                    await loadUserProfile();
+                    // Si el perfil no está completo, mostrar aviso sutil
+                    if (currentProfile && !currentProfile.perfil_completo) {
+                        const tip = document.createElement('div');
+                        tip.id = 'perfil-tip';
+                        tip.className = 'fixed bottom-20 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-semibold px-5 py-3 rounded-full shadow-xl z-[90] flex items-center gap-2 cursor-pointer';
+                        tip.innerHTML = '⚠ Completa tu perfil para acceder al Ecosistema <span class="text-blue-300">→</span>';
+                        tip.onclick = () => { openEcosistemaModal(); tip.remove(); };
+                        document.body.appendChild(tip);
+                        setTimeout(() => tip.remove(), 7000);
+                    }
+                }
+                if (event === 'SIGNED_OUT') { currentProfile = null; updateUIForProfile(); }
             });
         }
 
@@ -2772,6 +3194,856 @@
             document.querySelectorAll('.mercado-overlay').forEach(overlay => {
                 overlay.classList.toggle('hidden', !!user);
             });
+        }
+
+        // ════════════════════════════════════════════
+        // ── PERFIL EXTENDIDO & 2DA BARRERA ──
+        // ════════════════════════════════════════════
+        const MASTER_EMAIL = 'gabriel.chfutura@gmail.com';
+        let currentProfile = null;
+        let allTagsInteres = [];
+        let misInteresesIds = new Set();
+        let masterUsersCache = [];
+        let ecoInstSelectedId = null;
+        let chipData = { 'eco-lineas': [], 'eco-patentes': [], 'ep-lineas': [], 'ep-patentes': [] };
+
+        function isMaster() {
+            return currentUser?.email === MASTER_EMAIL || currentProfile?.is_master === true;
+        }
+
+        function checkEcosistemaAccess() {
+            if (!currentUser) { openAuthModal(); return false; }
+            if (!currentProfile || !currentProfile.perfil_completo) {
+                openEcosistemaModal();
+                return false;
+            }
+            return true;
+        }
+
+        function canEditInstitucion(inst) {
+            if (!currentUser) return false;
+            if (isMaster()) return true;
+            if (inst.admin_id === currentUser.id) return true;
+            return false;
+        }
+
+        // ── Carga perfil extendido desde Supabase ──
+        async function loadUserProfile() {
+            if (!currentUser) return;
+            const { data } = await sb.from('perfiles_usuario').select('*').eq('id', currentUser.id).single();
+            currentProfile = data || null;
+            updateUIForProfile();
+        }
+
+        function updateUIForProfile() {
+            const masterBadge = document.getElementById('panel-master-badge');
+            if (isMaster() && masterBadge) masterBadge.classList.remove('hidden');
+            else if (masterBadge) masterBadge.classList.add('hidden');
+        }
+
+        // ── Render sección completa Mi Perfil ──
+        async function renderPerfilSection() {
+            if (!currentUser) return;
+            await loadUserProfile();
+            const u = currentUser;
+            const p = currentProfile;
+            const displayName = u.user_metadata?.full_name || u.user_metadata?.username || u.email.split('@')[0];
+
+            // Header
+            document.getElementById('pp-name').textContent = displayName;
+            document.getElementById('pp-email-display').textContent = u.email;
+            document.getElementById('pp-tipo-display').textContent = p?.perfil_tipo ? ('Perfil: ' + p.perfil_tipo) : 'Perfil sin completar';
+
+            const ppMasterBadge = document.getElementById('pp-master-badge');
+            if (isMaster()) ppMasterBadge.classList.remove('hidden'); else ppMasterBadge.classList.add('hidden');
+
+            const avatarUrl = u.user_metadata?.avatar_url;
+            if (avatarUrl) {
+                document.getElementById('pp-avatar-img').src = avatarUrl;
+                document.getElementById('pp-avatar-img').classList.remove('hidden');
+                document.getElementById('pp-avatar-initials').classList.add('hidden');
+            } else {
+                document.getElementById('pp-avatar-initials').textContent = displayName.substring(0, 2).toUpperCase();
+            }
+
+            // Banner si perfil incompleto
+            const banner = document.getElementById('pp-incomplete-banner');
+            if (!p?.perfil_completo) banner.classList.remove('hidden'); else banner.classList.add('hidden');
+
+            // Mostrar tab maestro solo si aplica
+            const tabMaestro = document.getElementById('ptab-maestro');
+            if (isMaster()) tabMaestro.classList.remove('hidden'); else tabMaestro.classList.add('hidden');
+
+            // Pre-llenar formulario editar datos
+            document.getElementById('ep-nombre').value = displayName;
+            document.getElementById('ep-email').value = u.email;
+            document.getElementById('ep-tipo').value = p?.perfil_tipo || '';
+            document.getElementById('ep-contacto').value = p?.contacto_preferido || '';
+            document.getElementById('ep-comentarios').value = p?.comentarios || '';
+
+            // Sectores
+            document.querySelectorAll('.ep-sector-cb').forEach(cb => {
+                cb.checked = Array.isArray(p?.sector) && p.sector.includes(cb.value);
+            });
+
+            // Campos investigador
+            toggleEpInvestigadorFields();
+            if (p?.lineas_investigacion) {
+                chipData['ep-lineas'] = [...p.lineas_investigacion];
+                renderChips('ep-lineas');
+            }
+            if (p?.patentes) {
+                chipData['ep-patentes'] = [...p.patentes];
+                renderChips('ep-patentes');
+            }
+
+            // Cuestionario
+            renderCuestionarioRespuestas(p);
+
+            // Cargar intereses
+            await loadIntereses();
+
+            // Cargar instituciones
+            await loadMisInstituciones();
+
+            // Panel maestro (si aplica y tab activo)
+            if (isMaster()) await loadMasterPanel();
+        }
+
+        // ── Tabs de Mi Perfil ──
+        function switchPerfilTab(tab) {
+            const tabs = ['datos','intereses','instituciones','cuestionario','maestro','peligro'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`ptab-${t}`);
+                const content = document.getElementById(`ptab-content-${t}`);
+                if (!btn || !content) return;
+                if (t === tab) {
+                    btn.classList.add('active');
+                    content.classList.remove('hidden');
+                } else {
+                    btn.classList.remove('active');
+                    content.classList.add('hidden');
+                }
+            });
+            if (tab === 'maestro') loadMasterPanel();
+            if (tab === 'instituciones') loadMisInstituciones();
+        }
+
+        // ── Guardar edición de datos personales ──
+        async function saveEditarPerfil(event) {
+            event.preventDefault();
+            const btn = document.getElementById('ep-save-btn');
+            const txt = document.getElementById('ep-save-text');
+            const spin = document.getElementById('ep-save-spinner');
+            const fb = document.getElementById('ep-save-feedback');
+            btn.disabled = true; txt.textContent = 'Guardando…'; spin.classList.remove('hidden');
+
+            const nombre = document.getElementById('ep-nombre').value.trim();
+            const sector = [...document.querySelectorAll('.ep-sector-cb:checked')].map(c => c.value);
+            const contacto = document.getElementById('ep-contacto').value.trim();
+            const comentarios = document.getElementById('ep-comentarios').value.trim();
+            const perfil_tipo = document.getElementById('ep-tipo').value;
+
+            // Actualiza metadata en auth
+            await sb.auth.updateUser({ data: { full_name: nombre, username: nombre } });
+
+            // Upsert en perfiles_usuario
+            const upsertData = {
+                id: currentUser.id, email: currentUser.email, nombre_completo: nombre,
+                perfil_tipo: perfil_tipo || null, sector, contacto_preferido: contacto,
+                comentarios, is_master: isMaster(),
+                lineas_investigacion: chipData['ep-lineas'],
+                patentes: chipData['ep-patentes'],
+                updated_at: new Date().toISOString()
+            };
+            const { error } = await sb.from('perfiles_usuario').upsert(upsertData, { onConflict: 'id' });
+
+            btn.disabled = false; txt.textContent = 'Guardar cambios'; spin.classList.add('hidden');
+            fb.classList.remove('hidden');
+            if (error) {
+                fb.className = 'text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2';
+                fb.textContent = 'Error al guardar: ' + error.message;
+            } else {
+                fb.className = 'text-xs text-teal-700 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2';
+                fb.textContent = '✓ Datos guardados correctamente.';
+                await loadUserProfile();
+                updateUIForAuthState(currentUser);
+                // Actualizar header de perfil
+                document.getElementById('pp-name').textContent = nombre;
+                document.getElementById('pp-tipo-display').textContent = perfil_tipo ? ('Perfil: ' + perfil_tipo) : 'Perfil sin completar';
+            }
+            setTimeout(() => fb.classList.add('hidden'), 4000);
+        }
+
+        function toggleEpInvestigadorFields() {
+            const tipo = document.getElementById('ep-tipo')?.value;
+            const fields = document.getElementById('ep-investigador-fields');
+            if (fields) fields.classList.toggle('hidden', tipo !== 'Investigador');
+        }
+        document.getElementById('ep-tipo')?.addEventListener('change', toggleEpInvestigadorFields);
+
+        // ── CHIPS (tarjetas de texto) ──
+        function addChip(key, inputId) {
+            const input = document.getElementById(inputId);
+            const val = input.value.trim();
+            if (!val || chipData[key].includes(val)) { input.value = ''; return; }
+            chipData[key].push(val);
+            input.value = '';
+            renderChips(key);
+        }
+
+        function removeChip(key, val) {
+            chipData[key] = chipData[key].filter(v => v !== val);
+            renderChips(key);
+        }
+
+        function renderChips(key) {
+            const container = document.getElementById(`${key}-container`);
+            if (!container) return;
+            container.innerHTML = chipData[key].map(v =>
+                `<span class="tag-chip">${v}<button type="button" onclick="removeChip('${key}','${v.replace(/'/g,"\\'")}')">✕</button></span>`
+            ).join('');
+        }
+
+        // ── INTERESES ──
+        async function loadIntereses() {
+            const { data: allTags } = await sb.from('tags_interes').select('id,nombre').order('nombre');
+            allTagsInteres = allTags || [];
+
+            const { data: myTags } = await sb.from('usuario_intereses').select('tag_id').eq('user_id', currentUser.id);
+            misInteresesIds = new Set((myTags || []).map(t => t.tag_id));
+            renderMisInteresesChips();
+        }
+
+        function renderMisInteresesChips() {
+            const container = document.getElementById('mis-intereses-chips');
+            if (!container) return;
+            const myTags = allTagsInteres.filter(t => misInteresesIds.has(t.id));
+            if (myTags.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 italic">Aún no tienes tarjetas de interés seleccionadas.</p>';
+                return;
+            }
+            container.innerHTML = myTags.map(t =>
+                `<span class="tag-chip">${t.nombre}<button type="button" onclick="removeInteres('${t.id}')">✕</button></span>`
+            ).join('');
+        }
+
+        function renderInteresesAutocomplete(query) {
+            const list = document.getElementById('interes-autocomplete');
+            const q = query.trim().toLowerCase();
+            const filtered = allTagsInteres.filter(t => !misInteresesIds.has(t.id) && t.nombre.toLowerCase().includes(q));
+            const showCreate = q.length > 1 && !allTagsInteres.some(t => t.nombre.toLowerCase() === q);
+
+            list.innerHTML = '';
+            if (filtered.length === 0 && !showCreate) { list.classList.add('hidden'); return; }
+
+            filtered.slice(0, 8).forEach(t => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.textContent = t.nombre;
+                div.onclick = () => addInteres(t.id, t.nombre);
+                list.appendChild(div);
+            });
+            if (showCreate) {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item font-bold text-blue-600';
+                div.textContent = `+ Crear tarjeta "${query.trim()}"`;
+                div.onclick = () => createAndAddInteres(query.trim());
+                list.appendChild(div);
+            }
+            list.classList.remove('hidden');
+        }
+
+        async function addInteres(tagId, nombre) {
+            document.getElementById('interes-search').value = '';
+            document.getElementById('interes-autocomplete').classList.add('hidden');
+            if (misInteresesIds.has(tagId)) return;
+            await sb.from('usuario_intereses').insert({ user_id: currentUser.id, tag_id: tagId });
+            misInteresesIds.add(tagId);
+            if (!allTagsInteres.find(t => t.id === tagId)) allTagsInteres.push({ id: tagId, nombre });
+            renderMisInteresesChips();
+        }
+
+        async function createAndAddInteres(nombre) {
+            document.getElementById('interes-search').value = '';
+            document.getElementById('interes-autocomplete').classList.add('hidden');
+            const { data, error } = await sb.from('tags_interes').insert({ nombre, creado_por: currentUser.id }).select().single();
+            if (error) { alert('Error al crear tarjeta: ' + error.message); return; }
+            allTagsInteres.push(data);
+            await addInteres(data.id, data.nombre);
+        }
+
+        async function removeInteres(tagId) {
+            await sb.from('usuario_intereses').delete().eq('user_id', currentUser.id).eq('tag_id', tagId);
+            misInteresesIds.delete(tagId);
+            renderMisInteresesChips();
+        }
+
+        document.addEventListener('click', e => {
+            const ac = document.getElementById('interes-autocomplete');
+            if (ac && !ac.contains(e.target) && e.target.id !== 'interes-search') ac.classList.add('hidden');
+            const ac2 = document.getElementById('eco-inst-autocomplete');
+            if (ac2 && !ac2.contains(e.target) && e.target.id !== 'eco-inst-search') ac2.classList.add('hidden');
+        });
+
+        // ── MIS INSTITUCIONES ──
+        async function loadMisInstituciones() {
+            const container = document.getElementById('mis-instituciones-list');
+            if (!container) return;
+            container.innerHTML = '<div class="bg-white rounded-2xl border border-slate-100 p-6 text-center text-slate-400 text-xs">Cargando…</div>';
+
+            // Instituciones donde soy admin
+            const { data: adminInst } = await sb.from('instituciones').select('*, perfiles_usuario!admin_id(nombre_completo,email)').eq('admin_id', currentUser.id);
+            // Instituciones donde estoy afiliado
+            const { data: afilInst } = await sb.from('afiliaciones').select('nivel_acceso, instituciones(*, perfiles_usuario!admin_id(nombre_completo))').eq('user_id', currentUser.id);
+
+            const all = [
+                ...(adminInst || []).map(i => ({ ...i, rol: 'Administrador', nivel_acceso: 'edicion' })),
+                ...(afilInst || []).filter(a => !adminInst?.find(ai => ai.id === a.instituciones.id)).map(a => ({ ...a.instituciones, rol: 'Afiliado', nivel_acceso: a.nivel_acceso }))
+            ];
+
+            if (all.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white rounded-2xl border border-slate-100 p-8 text-center">
+                        <p class="text-slate-400 text-sm mb-3">No tienes instituciones registradas o afiliadas.</p>
+                        <button onclick="openInstitucionModal(null)" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-xl text-xs hover:bg-blue-700 transition cursor-pointer">+ Registrar institución</button>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = all.map(inst => renderInstCard(inst)).join('');
+            // Cargar afiliados por institución
+            for (const inst of all) loadAfiliadosForInst(inst.id);
+        }
+
+        function renderInstCard(inst) {
+            const canEdit = isMaster() || inst.admin_id === currentUser.id || inst.nivel_acceso === 'edicion';
+            const categoryColors = {
+                'Red de Aliados y Asesoría': 'bg-emerald-100 text-emerald-800',
+                'Sector Productivo Transformador': 'bg-amber-100 text-amber-800',
+                'Instituciones de Ciencia y Tecnología': 'bg-blue-100 text-blue-800'
+            };
+            const badgeClass = categoryColors[inst.categoria] || 'bg-slate-100 text-slate-700';
+            return `
+            <div class="perfil-afil-card">
+                <div class="flex justify-between items-start gap-3 mb-3">
+                    <div>
+                        <span class="text-[9px] font-bold uppercase tracking-widest ${badgeClass} px-2 py-0.5 rounded-md">${inst.subcategoria || inst.categoria}</span>
+                        <h3 class="font-bold text-slate-900 text-sm mt-1">${inst.nombre}</h3>
+                        <p class="text-xs text-slate-500">${inst.ubicacion_texto || ''} ${inst.web ? `• <a href="${inst.web}" target="_blank" class="text-blue-600 hover:underline">Web</a>` : ''}</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Rol: <strong class="text-slate-600">${inst.rol}</strong>${inst.sector?.length ? ' • ' + inst.sector.join(', ') : ''}</p>
+                    </div>
+                    ${canEdit ? `<button onclick="openInstitucionModal('${inst.id}')" class="shrink-0 bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">✏ Editar</button>` : ''}
+                </div>
+                <div id="afiliados-${inst.id}" class="border-t border-slate-100 pt-3 mt-2">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Personas afiliadas</p>
+                    <div id="afiliados-list-${inst.id}" class="flex flex-wrap gap-2"><span class="text-xs text-slate-400">Cargando…</span></div>
+                </div>
+            </div>`;
+        }
+
+        async function loadAfiliadosForInst(instId) {
+            const el = document.getElementById(`afiliados-list-${instId}`);
+            if (!el) return;
+            const { data } = await sb.from('afiliaciones').select('nivel_acceso, perfiles_usuario(id, nombre_completo, perfil_tipo)').eq('institucion_id', instId);
+            if (!data || data.length === 0) { el.innerHTML = '<span class="text-xs text-slate-400 italic">Sin afiliados registrados.</span>'; return; }
+            el.innerHTML = data.map(a => {
+                const p = a.perfiles_usuario;
+                const initials = p.nombre_completo ? p.nombre_completo.substring(0,2).toUpperCase() : '?';
+                return `<div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-full px-2 py-1" title="${p.nombre_completo} · ${p.perfil_tipo || ''} · ${a.nivel_acceso}">
+                    <div class="w-5 h-5 rounded-full bg-blue-200 text-blue-800 flex items-center justify-center text-[8px] font-black shrink-0">${initials}</div>
+                    <span class="text-[10px] font-semibold text-slate-700">${p.nombre_completo?.split(' ')[0] || '—'}</span>
+                </div>`;
+            }).join('');
+        }
+
+        // ── MODAL EDITAR/CREAR INSTITUCIÓN ──
+        async function openInstitucionModal(instId) {
+            const modal = document.getElementById('inst-edit-modal');
+            const title = document.getElementById('inst-modal-title');
+            const body = document.getElementById('inst-modal-body');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+
+            if (!instId) {
+                title.textContent = 'Registrar Nueva Institución';
+                body.innerHTML = buildInstForm(null);
+            } else {
+                title.textContent = 'Editar Institución';
+                const { data } = await sb.from('instituciones').select('*').eq('id', instId).single();
+                body.innerHTML = buildInstForm(data);
+            }
+        }
+
+        function closeInstModal() {
+            const modal = document.getElementById('inst-edit-modal');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+        }
+
+        function buildInstForm(inst) {
+            const v = inst || {};
+            const subcats = [
+                { group: 'Red de Aliados y Asesoría', opts: ['Dependencia de gobierno','Asociación de la iniciativa privada','Empresa de consultoría'] },
+                { group: 'Sector Productivo Transformador', opts: ['Unidad de Producción','Empresa de Valor Agregado'] },
+                { group: 'Instituciones de Ciencia y Tecnología', opts: ['Centro de Investigación','Universidad','Preparatoria','Laboratorio Privado'] }
+            ];
+            const catMap = { 'Dependencia de gobierno':'Red de Aliados y Asesoría','Asociación de la iniciativa privada':'Red de Aliados y Asesoría','Empresa de consultoría':'Red de Aliados y Asesoría','Unidad de Producción':'Sector Productivo Transformador','Empresa de Valor Agregado':'Sector Productivo Transformador','Centro de Investigación':'Instituciones de Ciencia y Tecnología','Universidad':'Instituciones de Ciencia y Tecnología','Preparatoria':'Instituciones de Ciencia y Tecnología','Laboratorio Privado':'Instituciones de Ciencia y Tecnología' };
+
+            let selectOpts = subcats.map(g => `<optgroup label="${g.group}">${g.opts.map(o => `<option value="${o}" ${v.subcategoria===o?'selected':''}>${o}</option>`).join('')}</optgroup>`).join('');
+
+            const sectors = ['nuez','vid','leche','carne','otro'];
+            const sectorCbs = sectors.map(s => `<label class="flex items-center gap-1.5 text-xs cursor-pointer"><input type="checkbox" value="${s}" class="if-sector-cb accent-blue-600" ${(v.sector||[]).includes(s)?'checked':''}> ${s.charAt(0).toUpperCase()+s.slice(1)}</label>`).join('');
+
+            return `
+            <form onsubmit="saveInstitucionForm(event,'${v.id||''}','${JSON.stringify(catMap).replace(/"/g,'&quot;')}')" class="space-y-3">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tipo de institución *</label>
+                <select id="if-subcategoria" required onchange="onIfSubcategoriaChange(this)" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">Selecciona…</option>${selectOpts}
+                </select>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Nombre *</label>
+                <input id="if-nombre" required value="${v.nombre||''}" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Dirección o código postal *</label>
+                <input id="if-ubicacion" required value="${v.ubicacion_texto||''}" placeholder="Dirección, ciudad o CP" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Página web</label>
+                <input id="if-web" type="url" value="${v.web||''}" placeholder="https://…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Sector(es) *</label>
+                <div class="flex flex-wrap gap-3">${sectorCbs}</div>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Comentarios</label>
+                <textarea id="if-comentarios" rows="2" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">${v.comentarios||''}</textarea>
+              </div>
+              <div id="if-dynamic-fields" class="space-y-3">${buildDynamicInstFields(v.subcategoria, v.datos_especificos||{})}</div>
+              <div id="if-error" class="hidden text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
+              <div class="flex gap-2 pt-2">
+                <button type="button" onclick="closeInstModal()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-sm hover:bg-slate-200 transition cursor-pointer">Cancelar</button>
+                <button type="submit" class="flex-1 bg-blue-600 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-blue-700 transition cursor-pointer">Guardar</button>
+                ${v.id && (isMaster() || v.admin_id === currentUser.id) ? `<button type="button" onclick="deleteInstitucion('${v.id}')" class="bg-red-50 text-red-600 font-bold py-2.5 px-3 rounded-xl text-sm hover:bg-red-100 transition cursor-pointer">🗑</button>` : ''}
+              </div>
+            </form>`;
+        }
+
+        function onIfSubcategoriaChange(sel) {
+            const sub = sel.value;
+            document.getElementById('if-dynamic-fields').innerHTML = buildDynamicInstFields(sub, {});
+        }
+
+        function buildDynamicInstFields(sub, de) {
+            if (!sub) return '';
+            de = de || {};
+            const raa = ['Dependencia de gobierno','Asociación de la iniciativa privada','Empresa de consultoría'];
+            const ict = ['Centro de Investigación','Universidad','Preparatoria','Laboratorio Privado'];
+            if (raa.includes(sub)) return `
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Qué servicios/apoyos pueden ofrecer al ecosistema? *</label>
+              <textarea id="de-servicios" rows="2" required class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">${de.servicios_apoyos||''}</textarea>`;
+            if (sub === 'Unidad de Producción') return `
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Tipo de unidad</label>
+              <select id="de-tipo-unidad" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"><option value="">—</option><option value="rancho" ${de.tipo_unidad==='rancho'?'selected':''}>Rancho</option><option value="huerta" ${de.tipo_unidad==='huerta'?'selected':''}>Huerta</option><option value="viñedo" ${de.tipo_unidad==='viñedo'?'selected':''}>Viñedo</option><option value="establo" ${de.tipo_unidad==='establo'?'selected':''}>Establo</option><option value="otro" ${de.tipo_unidad==='otro'?'selected':''}>Otro</option></select></div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Residuos para revalorización? *</label><input id="de-residuos" required value="${de.residuos||''}" placeholder="Especifica…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Maquinaria que podrías rentar?</label><input id="de-maquinaria" value="${de.maquinaria||''}" placeholder="Especifica…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Superficie de producción *</label><input id="de-superficie" required value="${de.superficie||''}" placeholder="ej. 500 ha" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Producción anual/mensual *</label><input id="de-produccion" required value="${de.produccion||''}" placeholder="toneladas/año, litros/mes…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Contacto de la unidad</label><input id="de-contacto" value="${de.contacto||''}" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>`;
+            if (sub === 'Empresa de Valor Agregado') return `
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Residuos para revalorización? *</label><input id="de-residuos" required value="${de.residuos||''}" placeholder="Especifica…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Maquinaria/espacios que podría rentar? *</label><input id="de-maquinaria" required value="${de.maquinaria||''}" placeholder="Especifica…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Qué producen? *</label><input id="de-productos" required value="${de.productos||''}" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Cuánto producen al mes? *</label><div class="flex gap-2"><input id="de-cantidad" required value="${de.cantidad||''}" placeholder="Cantidad" class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"><input id="de-unidades" value="${de.unidades||''}" placeholder="unidades" class="w-24 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div></div>`;
+            if (ict.includes(sub)) return `
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Con qué laboratorios cuenta?</label><textarea id="de-laboratorios" rows="2" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none resize-none">${de.laboratorios||''}</textarea></div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Ofrecen servicios de laboratorio?</label><input id="de-servicios-lab" value="${de.servicios_laboratorio||''}" placeholder="Especifica…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>`;
+            return '';
+        }
+
+        function collectDynamicFields(sub) {
+            const raa = ['Dependencia de gobierno','Asociación de la iniciativa privada','Empresa de consultoría'];
+            const ict = ['Centro de Investigación','Universidad','Preparatoria','Laboratorio Privado'];
+            const g = id => document.getElementById(id)?.value || '';
+            if (raa.includes(sub)) return { servicios_apoyos: g('de-servicios') };
+            if (sub === 'Unidad de Producción') return { tipo_unidad: g('de-tipo-unidad'), residuos: g('de-residuos'), maquinaria: g('de-maquinaria'), superficie: g('de-superficie'), produccion: g('de-produccion'), contacto: g('de-contacto') };
+            if (sub === 'Empresa de Valor Agregado') return { residuos: g('de-residuos'), maquinaria: g('de-maquinaria'), productos: g('de-productos'), cantidad: g('de-cantidad'), unidades: g('de-unidades') };
+            if (ict.includes(sub)) return { laboratorios: g('de-laboratorios'), servicios_laboratorio: g('de-servicios-lab') };
+            return {};
+        }
+
+        const CATEGORIA_MAP = { 'Dependencia de gobierno':'Red de Aliados y Asesoría','Asociación de la iniciativa privada':'Red de Aliados y Asesoría','Empresa de consultoría':'Red de Aliados y Asesoría','Unidad de Producción':'Sector Productivo Transformador','Empresa de Valor Agregado':'Sector Productivo Transformador','Centro de Investigación':'Instituciones de Ciencia y Tecnología','Universidad':'Instituciones de Ciencia y Tecnología','Preparatoria':'Instituciones de Ciencia y Tecnología','Laboratorio Privado':'Instituciones de Ciencia y Tecnología' };
+
+        async function saveInstitucionForm(event, existingId) {
+            event.preventDefault();
+            const errEl = document.getElementById('if-error');
+            const sub = document.getElementById('if-subcategoria').value;
+            const sector = [...document.querySelectorAll('.if-sector-cb:checked')].map(c => c.value);
+            const datos = {
+                subcategoria: sub,
+                categoria: CATEGORIA_MAP[sub] || '',
+                nombre: document.getElementById('if-nombre').value.trim(),
+                ubicacion_texto: document.getElementById('if-ubicacion').value.trim(),
+                web: document.getElementById('if-web').value.trim() || null,
+                sector,
+                comentarios: document.getElementById('if-comentarios').value.trim(),
+                datos_especificos: collectDynamicFields(sub),
+                admin_id: currentUser.id,
+                updated_at: new Date().toISOString()
+            };
+
+            let error;
+            if (existingId) {
+                ({ error } = await sb.from('instituciones').update(datos).eq('id', existingId));
+            } else {
+                const { error: e, data: newInst } = await sb.from('instituciones').insert(datos).select().single();
+                error = e;
+                if (!e && newInst) {
+                    // Auto-afiliar al creador
+                    await sb.from('afiliaciones').insert({ user_id: currentUser.id, institucion_id: newInst.id, nivel_acceso: 'edicion' });
+                }
+            }
+
+            if (error) {
+                errEl.textContent = 'Error: ' + error.message;
+                errEl.classList.remove('hidden');
+            } else {
+                closeInstModal();
+                await loadMisInstituciones();
+            }
+        }
+
+        async function deleteInstitucion(instId) {
+            if (!confirm('¿Eliminar esta institución? Esta acción es irreversible.')) return;
+            await sb.from('afiliaciones').delete().eq('institucion_id', instId);
+            await sb.from('instituciones').delete().eq('id', instId);
+            closeInstModal();
+            await loadMisInstituciones();
+        }
+
+        // ── CUESTIONARIO RESPUESTAS ──
+        function renderCuestionarioRespuestas(p) {
+            const el = document.getElementById('cuestionario-respuestas');
+            if (!el) return;
+            if (!p?.perfil_tipo) { el.innerHTML = '<p class="text-slate-400 italic text-xs">No has completado el 2do registro todavía.</p>'; return; }
+            const fields = [
+                { label: 'Tipo de perfil', val: p.perfil_tipo },
+                { label: 'Sector(es)', val: p.sector?.join(', ') },
+                { label: 'Contacto preferido', val: p.contacto_preferido },
+                { label: 'Comentarios', val: p.comentarios },
+                { label: 'Líneas de investigación', val: p.lineas_investigacion?.join('; ') },
+                { label: 'Patentes', val: p.patentes?.join('; ') },
+            ].filter(f => f.val);
+            el.innerHTML = fields.map(f => `
+                <div class="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">${f.label}</p>
+                    <p class="text-sm text-slate-700 font-medium">${f.val}</p>
+                </div>`).join('');
+        }
+
+        // ── PANEL MAESTRO ──
+        async function loadMasterPanel() {
+            if (!isMaster()) return;
+            const { data: users } = await sb.from('perfiles_usuario').select('*, afiliaciones(nivel_acceso, instituciones(nombre,subcategoria))').order('created_at', { ascending: false });
+            masterUsersCache = users || [];
+            document.getElementById('master-count').textContent = masterUsersCache.length;
+            renderMasterUsersList(masterUsersCache);
+
+            const { data: insts } = await sb.from('instituciones').select('*, perfiles_usuario!admin_id(nombre_completo)').order('created_at', { ascending: false });
+            renderMasterInstList(insts || []);
+        }
+
+        function filterMasterList() {
+            const q = document.getElementById('master-search')?.value.toLowerCase() || '';
+            const tipo = document.getElementById('master-filter-tipo')?.value || '';
+            const filtered = masterUsersCache.filter(u =>
+                (!q || u.nombre_completo?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)) &&
+                (!tipo || u.perfil_tipo === tipo)
+            );
+            renderMasterUsersList(filtered);
+        }
+
+        function renderMasterUsersList(users) {
+            const el = document.getElementById('master-users-list');
+            if (!el) return;
+            if (!users.length) { el.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">Sin resultados</div>'; return; }
+            el.innerHTML = users.map(u => `
+                <div class="px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-black shrink-0">${u.nombre_completo?.substring(0,2).toUpperCase()||'?'}</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-slate-900 truncate">${u.nombre_completo||'—'} ${u.is_master ? '<span class="master-badge ml-1">Maestro</span>' : ''}</p>
+                        <p class="text-[10px] text-slate-400 truncate">${u.email} · ${u.perfil_tipo||'Sin perfil'} · ${u.perfil_completo ? '✓ Completo' : '⚠ Incompleto'}</p>
+                    </div>
+                    <button onclick="masterDeleteUser('${u.id}','${(u.nombre_completo||'').replace(/'/g,"\\'")}','${u.email}')" class="text-[10px] text-red-500 hover:text-red-700 font-bold px-2 py-1 rounded-lg hover:bg-red-50 transition cursor-pointer shrink-0">🗑</button>
+                </div>`).join('');
+        }
+
+        function renderMasterInstList(insts) {
+            const el = document.getElementById('master-inst-list');
+            if (!el) return;
+            if (!insts.length) { el.innerHTML = '<div class="p-4 text-xs text-slate-400 text-center">Sin instituciones</div>'; return; }
+            el.innerHTML = insts.map(i => `
+                <div class="px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-slate-900">${i.nombre}</p>
+                        <p class="text-[10px] text-slate-400">${i.subcategoria} · Admin: ${i.perfiles_usuario?.nombre_completo||'—'}</p>
+                    </div>
+                    <button onclick="openInstitucionModal('${i.id}')" class="text-[10px] text-blue-600 font-bold px-2 py-1 rounded-lg hover:bg-blue-50 transition cursor-pointer shrink-0">✏</button>
+                    <button onclick="deleteInstitucion('${i.id}')" class="text-[10px] text-red-500 font-bold px-2 py-1 rounded-lg hover:bg-red-50 transition cursor-pointer shrink-0">🗑</button>
+                </div>`).join('');
+        }
+
+        async function masterDeleteUser(userId, nombre, email) {
+            if (email === MASTER_EMAIL) { alert('No puedes eliminar la cuenta maestra.'); return; }
+            if (!confirm(`¿Eliminar al usuario "${nombre}" (${email})? Esta acción es irreversible.`)) return;
+            await sb.from('afiliaciones').delete().eq('user_id', userId);
+            await sb.from('usuario_intereses').delete().eq('user_id', userId);
+            await sb.from('perfiles_usuario').delete().eq('id', userId);
+            // Nota: la eliminación de auth.users requiere función server-side o API admin
+            await loadMasterPanel();
+        }
+
+        // ── 2DA BARRERA ──
+        function openEcosistemaModal() {
+            document.getElementById('ecosistema-modal').classList.remove('hidden');
+            document.getElementById('ecosistema-modal').classList.add('flex');
+            // Reset a step 1
+            document.getElementById('eco-step-1').classList.remove('hidden');
+            document.getElementById('eco-step-2').classList.add('hidden');
+            document.getElementById('eco-dot-1').className = 'eco-step-dot active w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-black';
+            document.getElementById('eco-dot-2').className = 'eco-step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs flex items-center justify-center font-black';
+        }
+
+        function closeEcosistemaModal() {
+            document.getElementById('ecosistema-modal').classList.add('hidden');
+            document.getElementById('ecosistema-modal').classList.remove('flex');
+        }
+
+        function toggleEcoInvestigadorFields() {
+            const tipo = document.getElementById('eco-tipo')?.value;
+            document.getElementById('eco-investigador-fields').classList.toggle('hidden', tipo !== 'Investigador');
+        }
+
+        function ecoGotoStep2(event) {
+            event.preventDefault();
+            const tipo = document.getElementById('eco-tipo').value;
+            const contacto = document.getElementById('eco-contacto').value.trim();
+            const errEl = document.getElementById('eco-step1-error');
+            if (!tipo) { errEl.textContent = 'Selecciona tu tipo de perfil.'; errEl.classList.remove('hidden'); return; }
+            if (!contacto) { errEl.textContent = 'Indica tu mejor medio de contacto.'; errEl.classList.remove('hidden'); return; }
+            errEl.classList.add('hidden');
+
+            // Si es Inversionista, saltar directo a guardar (sin institución)
+            if (tipo === 'Inversionista') {
+                saveEcoRegistroInversionista();
+                return;
+            }
+
+            document.getElementById('eco-step-1').classList.add('hidden');
+            document.getElementById('eco-step-2').classList.remove('hidden');
+            document.getElementById('eco-dot-1').className = 'eco-step-dot done w-6 h-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center font-black';
+            document.getElementById('eco-dot-2').className = 'eco-step-dot active w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-black';
+            loadInstitucionesSearch('');
+        }
+
+        function ecoBackToStep1() {
+            document.getElementById('eco-step-2').classList.add('hidden');
+            document.getElementById('eco-step-1').classList.remove('hidden');
+            document.getElementById('eco-dot-1').className = 'eco-step-dot active w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-black';
+            document.getElementById('eco-dot-2').className = 'eco-step-dot w-6 h-6 rounded-full bg-slate-200 text-slate-500 text-xs flex items-center justify-center font-black';
+        }
+
+        let allInstitucionesCache = [];
+        async function loadInstitucionesSearch(query) {
+            if (!allInstitucionesCache.length) {
+                const { data } = await sb.from('instituciones').select('id,nombre,subcategoria').order('nombre');
+                allInstitucionesCache = data || [];
+            }
+            renderInstAutocomplete(query);
+        }
+
+        function searchInstituciones(query) {
+            loadInstitucionesSearch(query);
+        }
+
+        function renderInstAutocomplete(query) {
+            const list = document.getElementById('eco-inst-autocomplete');
+            if (!list) return;
+            const q = query.toLowerCase();
+            const filtered = allInstitucionesCache.filter(i => i.nombre.toLowerCase().includes(q)).slice(0, 8);
+            list.innerHTML = '';
+            // Primera opción siempre: registrar nueva
+            const newDiv = document.createElement('div');
+            newDiv.className = 'autocomplete-item font-bold text-blue-600';
+            newDiv.textContent = '+ Registrar nueva institución/negocio';
+            newDiv.onclick = () => showNuevaInstSection();
+            list.appendChild(newDiv);
+
+            filtered.forEach(i => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.innerHTML = `<strong>${i.nombre}</strong> <span class="text-slate-400 text-[10px]">${i.subcategoria}</span>`;
+                div.onclick = () => selectInst(i.id, i.nombre);
+                list.appendChild(div);
+            });
+            list.classList.remove('hidden');
+        }
+
+        function selectInst(id, nombre) {
+            ecoInstSelectedId = id;
+            document.getElementById('eco-inst-search').value = nombre;
+            document.getElementById('eco-inst-autocomplete').classList.add('hidden');
+            document.getElementById('eco-inst-selected').classList.remove('hidden');
+            document.getElementById('eco-inst-selected-name').textContent = nombre;
+            document.getElementById('eco-nueva-inst-section').classList.add('hidden');
+        }
+
+        function clearInstSelected() {
+            ecoInstSelectedId = null;
+            document.getElementById('eco-inst-search').value = '';
+            document.getElementById('eco-inst-selected').classList.add('hidden');
+        }
+
+        function showNuevaInstSection() {
+            document.getElementById('eco-inst-autocomplete').classList.add('hidden');
+            ecoInstSelectedId = null;
+            document.getElementById('eco-inst-selected').classList.add('hidden');
+            document.getElementById('eco-inst-search').value = '';
+            document.getElementById('eco-nueva-inst-section').classList.remove('hidden');
+        }
+
+        function onNiSubcategoriaChange() {
+            const sub = document.getElementById('ni-subcategoria').value;
+            document.getElementById('ni-dynamic-fields').innerHTML = buildDynamicInstFields(sub, {});
+            const label = document.getElementById('ni-nombre-label');
+            if (label) label.textContent = `¿Cómo se llama tu ${sub || 'institución'}? *`;
+        }
+
+        async function saveEcoRegistroInversionista() {
+            const sector = [...document.querySelectorAll('.eco-sector-cb:checked')].map(c => c.value);
+            const upsertData = {
+                id: currentUser.id, email: currentUser.email,
+                nombre_completo: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
+                perfil_tipo: 'Inversionista', sector,
+                contacto_preferido: document.getElementById('eco-contacto').value.trim(),
+                comentarios: document.getElementById('eco-comentarios').value.trim(),
+                is_master: isMaster(), perfil_completo: true,
+                updated_at: new Date().toISOString()
+            };
+            await sb.from('perfiles_usuario').upsert(upsertData, { onConflict: 'id' });
+            closeEcosistemaModal();
+            currentProfile = { ...currentProfile, ...upsertData };
+            alert('✓ ¡Registro completado! Bienvenido al Ecosistema CV2A.');
+        }
+
+        async function saveEcoRegistro() {
+            const errEl = document.getElementById('eco-step2-error');
+            const btn = document.getElementById('eco-complete-btn');
+            const txt = document.getElementById('eco-complete-text');
+            const spin = document.getElementById('eco-complete-spinner');
+
+            const tipo = document.getElementById('eco-tipo').value;
+            const sector = [...document.querySelectorAll('.eco-sector-cb:checked')].map(c => c.value);
+            const contacto = document.getElementById('eco-contacto').value.trim();
+            const comentarios = document.getElementById('eco-comentarios').value.trim();
+
+            // Validar: debe haber institución seleccionada O nueva institución con nombre
+            const hasSelected = !!ecoInstSelectedId;
+            const nuevaSection = document.getElementById('eco-nueva-inst-section');
+            const hasNueva = !nuevaSection.classList.contains('hidden') && document.getElementById('ni-nombre')?.value.trim();
+
+            if (!hasSelected && !hasNueva) {
+                errEl.textContent = 'Selecciona una institución o registra una nueva.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            errEl.classList.add('hidden');
+
+            btn.disabled = true; txt.textContent = 'Guardando…'; spin.classList.remove('hidden');
+
+            let institucionId = ecoInstSelectedId;
+
+            // Si es nueva institución, crearla primero
+            if (!hasSelected && hasNueva) {
+                const sub = document.getElementById('ni-subcategoria').value;
+                const niSector = [...document.querySelectorAll('.ni-sector-cb:checked')].map(c => c.value);
+                const instData = {
+                    subcategoria: sub, categoria: CATEGORIA_MAP[sub] || '',
+                    nombre: document.getElementById('ni-nombre').value.trim(),
+                    ubicacion_texto: document.getElementById('ni-ubicacion').value.trim(),
+                    web: document.getElementById('ni-web').value.trim() || null,
+                    sector: niSector,
+                    comentarios: document.getElementById('ni-comentarios').value.trim(),
+                    datos_especificos: collectDynamicFieldsNi(sub),
+                    admin_id: currentUser.id
+                };
+                const { data: newInst, error: instErr } = await sb.from('instituciones').insert(instData).select().single();
+                if (instErr) {
+                    errEl.textContent = 'Error al registrar institución: ' + instErr.message;
+                    errEl.classList.remove('hidden');
+                    btn.disabled = false; txt.textContent = 'Completar mi registro'; spin.classList.add('hidden');
+                    return;
+                }
+                institucionId = newInst.id;
+                allInstitucionesCache.push({ id: newInst.id, nombre: newInst.nombre, subcategoria: newInst.subcategoria });
+            }
+
+            // Guardar perfil usuario
+            const lineas = chipData['eco-lineas'] || [];
+            const patentes = chipData['eco-patentes'] || [];
+            const upsertData = {
+                id: currentUser.id, email: currentUser.email,
+                nombre_completo: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
+                perfil_tipo: tipo, sector, contacto_preferido: contacto, comentarios,
+                lineas_investigacion: lineas, patentes,
+                is_master: isMaster(), perfil_completo: true,
+                updated_at: new Date().toISOString()
+            };
+            const { error: profErr } = await sb.from('perfiles_usuario').upsert(upsertData, { onConflict: 'id' });
+            if (profErr) {
+                errEl.textContent = 'Error al guardar perfil: ' + profErr.message;
+                errEl.classList.remove('hidden');
+                btn.disabled = false; txt.textContent = 'Completar mi registro'; spin.classList.add('hidden');
+                return;
+            }
+
+            // Crear afiliación
+            if (institucionId) {
+                await sb.from('afiliaciones').upsert(
+                    { user_id: currentUser.id, institucion_id: institucionId, nivel_acceso: hasNueva ? 'edicion' : 'lectura' },
+                    { onConflict: 'user_id,institucion_id' }
+                );
+            }
+
+            currentProfile = { ...currentProfile, ...upsertData, perfil_completo: true };
+            btn.disabled = false; txt.textContent = 'Completar mi registro'; spin.classList.add('hidden');
+            closeEcosistemaModal();
+            alert('✓ ¡Registro completado! Ya eres parte del Ecosistema CV2A.');
+        }
+
+        function collectDynamicFieldsNi(sub) {
+            const raa = ['Dependencia de gobierno','Asociación de la iniciativa privada','Empresa de consultoría'];
+            const ict = ['Centro de Investigación','Universidad','Preparatoria','Laboratorio Privado'];
+            const g = id => document.getElementById(id)?.value || '';
+            if (raa.includes(sub)) return { servicios_apoyos: g('de-servicios') };
+            if (sub === 'Unidad de Producción') return { tipo_unidad: g('de-tipo-unidad'), residuos: g('de-residuos'), maquinaria: g('de-maquinaria'), superficie: g('de-superficie'), produccion: g('de-produccion'), contacto: g('de-contacto') };
+            if (sub === 'Empresa de Valor Agregado') return { residuos: g('de-residuos'), maquinaria: g('de-maquinaria'), productos: g('de-productos'), cantidad: g('de-cantidad'), unidades: g('de-unidades') };
+            if (ict.includes(sub)) return { laboratorios: g('de-laboratorios'), servicios_laboratorio: g('de-servicios-lab') };
+            return {};
+        }
+
+        // ── Eliminar cuenta ──
+        async function confirmDeleteAccount() {
+            const confirmText = prompt('Esta acción es IRREVERSIBLE. Escribe "ELIMINAR" para confirmar:');
+            if (confirmText !== 'ELIMINAR') { alert('Confirmación incorrecta. Cuenta no eliminada.'); return; }
+            await sb.from('usuario_intereses').delete().eq('user_id', currentUser.id);
+            await sb.from('afiliaciones').delete().eq('user_id', currentUser.id);
+            await sb.from('perfiles_usuario').delete().eq('id', currentUser.id);
+            await sb.auth.signOut();
+            switchSection(null, 'ecosistema');
+            alert('Tu cuenta ha sido eliminada.');
         }
 
         // ── Arranque ──
