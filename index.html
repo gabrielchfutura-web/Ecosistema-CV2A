@@ -16,6 +16,70 @@
     <style>
         .smooth-ui { transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
 
+        /* ── Filtro activo: escala + halo ── */
+        .filter-btn-active {
+            transform: scale(1.13) !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25), 0 4px 16px rgba(37, 99, 235, 0.20) !important;
+            border-color: #93c5fd !important;
+            z-index: 60 !important;
+        }
+
+        /* ── Indicador de filtro en el mapa ── */
+        #map-filter-indicator {
+            position: absolute;
+            top: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 45;
+            background: rgba(255,255,255,0.93);
+            backdrop-filter: blur(8px);
+            border: 1.5px solid #bfdbfe;
+            color: #1d4ed8;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 16px;
+            border-radius: 999px;
+            box-shadow: 0 2px 10px rgba(37,99,235,0.12);
+            white-space: nowrap;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /* ── Tooltip personalizado ── */
+        .eco-tooltip {
+            position: fixed;
+            background: rgba(15,23,42,0.90);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 8px;
+            pointer-events: none;
+            z-index: 9999;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            transform: translateX(-50%);
+        }
+        .eco-tooltip.visible { opacity: 1; }
+
+        /* ── Leyenda estática formas ── */
+        .shape-legend {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .shape-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
         /* Contenedor del Panel de Control */
         .panel-master {
             position: fixed;
@@ -152,7 +216,9 @@
             .panel-master {
                 width: 264px !important;
                 height: 264px !important;
-                top: 38% !important;
+                top: 57% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) scale(1) !important;
             }
 
             /* ──────────────────────────────────────────
@@ -268,21 +334,32 @@
                 <div id="heroHeader" class="fixed top-24 left-12 z-10 max-w-md pointer-events-none transition-all duration-500 opacity-100">
                     <h1 class="text-3xl font-black text-slate-900 tracking-tight leading-none">Ecosistema<br><span class="text-blue-600">del CV2A</span></h1>
                     <p class="text-xs text-slate-500 mt-2 font-medium leading-relaxed">Capacidades científicas,<br>tecnológicas y de soporte</p>
+                    <div class="shape-legend mt-3">
+                        <div class="shape-legend-item">
+                            <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#6366f1" stroke="white" stroke-width="1.5"/></svg>
+                            <span>Personas</span>
+                        </div>
+                        <div class="shape-legend-item">
+                            <svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,11 1,11" fill="#2563eb" stroke="white" stroke-width="1.2"/></svg>
+                            <span>Instituciones / Empresas</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="map-wrapper">
                     <div id="map" class="w-full h-full"></div>
+                    <div id="map-filter-indicator">Todo el ecosistema</div>
                 </div>
 
                 <div id="perfilesContainer" class="bar-initial">
                     <div id="perfilesLayout" class="relative w-full h-full">
-                        <button onclick="handlePerfilClick('Investigador')" id="perf1" class="smooth-ui absolute left-24 top-[40%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🔬 Investigadores</button>
-                        <button onclick="handlePerfilClick('Maestro')" id="perf2" class="smooth-ui absolute left-16 top-[53%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">👨‍🏫 Maestros</button>
-                        <button onclick="handlePerfilClick('Estudiante')" id="perf3" class="smooth-ui absolute left-24 top-[66%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🎓 Estudiantes</button>
-                        
-                        <button onclick="handlePerfilClick('Productor')" id="perf4" class="smooth-ui absolute right-24 top-[40%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🚜 Productores</button>
-                        <button onclick="handlePerfilClick('Facilitador')" id="perf5" class="smooth-ui absolute right-16 top-[53%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🤝 Facilitadores</button>
-                        <button onclick="handlePerfilClick('Empresario')" id="perf6" class="smooth-ui absolute right-24 top-[66%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">💼 Empresarios</button>
+                        <button onclick="handlePerfilClick('Investigador')" id="perf1" title="Investigadores" class="smooth-ui absolute left-24 top-[40%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🔬 Investigadores</button>
+                        <button onclick="handlePerfilClick('Maestro')" id="perf2" title="Maestros" class="smooth-ui absolute left-16 top-[53%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">👨‍🏫 Maestros</button>
+                        <button onclick="handlePerfilClick('Estudiante')" id="perf3" title="Estudiantes" class="smooth-ui absolute left-24 top-[66%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🎓 Estudiantes</button>
+
+                        <button onclick="handlePerfilClick('Productor')" id="perf4" title="Productores" class="smooth-ui absolute right-24 top-[40%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🚜 Productores</button>
+                        <button onclick="handlePerfilClick('Facilitador')" id="perf5" title="Facilitadores" class="smooth-ui absolute right-16 top-[53%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">🤝 Facilitadores</button>
+                        <button onclick="handlePerfilClick('Empresario')" id="perf6" title="Empresarios" class="smooth-ui absolute right-24 top-[66%] bg-white/95 text-slate-700 font-bold text-xs px-4 py-2.5 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer">💼 Empresarios</button>
                     </div>
                 </div>
 
@@ -291,31 +368,31 @@
                         <img src="CV2A grafica.png" alt="Ecosistema CV2A" class="w-full h-full object-contain filter drop-shadow-xl">
                     </div>
 
-                    <button onclick="resetToAllPoints()" class="smooth-ui centro-logo absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-36 h-36 shadow-xl border-4 border-white z-20 p-3 flex items-center justify-center cursor-pointer transition active:scale-95">
+                    <button id="btn-cv2a" onclick="resetToAllPoints()" title="Todo el ecosistema" class="smooth-ui centro-logo absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-36 h-36 shadow-xl border-4 border-white z-20 p-3 flex items-center justify-center cursor-pointer transition hover:scale-105 active:scale-95">
                         <img src="Logo CV2A-05 (1).png" alt="CV2A Central" class="w-full h-full object-contain">
                     </button>
 
-                    <button onclick="handleBolaClick('ict')" class="smooth-ui bola-ict absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
+                    <button id="btn-ict" onclick="handleBolaClick('ict')" title="Instituciones de Ciencia y Tecnología" class="smooth-ui bola-ict absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
                         <img src="ICT.png" alt="ICT" class="w-full h-full object-cover">
                     </button>
-                    <button onclick="handleBolaClick('raa')" class="smooth-ui bola-raa absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
+                    <button id="btn-raa" onclick="handleBolaClick('raa')" title="Red de Aliados y Asesoría" class="smooth-ui bola-raa absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
                         <img src="RAA.png" alt="RAA" class="w-full h-full object-cover">
                     </button>
-                    <button onclick="handleBolaClick('spt')" class="smooth-ui bola-spt absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
+                    <button id="btn-spt" onclick="handleBolaClick('spt')" title="Sector Productivo y Transformador" class="smooth-ui bola-spt absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
                         <img src="SPT.png" alt="SPT" class="w-full h-full object-cover">
                     </button>
 
                     <div id="cropNodes" class="absolute inset-0 z-10 pointer-events-none opacity-0 transition-opacity duration-500">
-                        <button onclick="filterByCrop('Vid')" class="absolute top-1/4 left-0 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Vid">
+                        <button id="btn-vid" onclick="filterByCrop('Vid')" class="absolute top-1/4 left-0 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Vid">
                             <img src="icon.vid.png" alt="Vid" class="w-full h-full object-contain">
                         </button>
-                        <button onclick="filterByCrop('Carne')" class="absolute top-8 left-1/3 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Carne">
+                        <button id="btn-carne" onclick="filterByCrop('Carne')" class="absolute top-8 left-1/3 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Carne">
                             <img src="icon.meat.png" alt="Carne" class="w-full h-full object-contain">
                         </button>
-                        <button onclick="filterByCrop('Leche')" class="absolute bottom-8 left-1/3 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Leche">
+                        <button id="btn-leche" onclick="filterByCrop('Leche')" class="absolute bottom-8 left-1/3 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Leche">
                             <img src="icon.milk.png" alt="Leche" class="w-full h-full object-contain">
                         </button>
-                        <button onclick="filterByCrop('Nuez')" class="absolute bottom-1/4 left-0 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Nuez">
+                        <button id="btn-nuez" onclick="filterByCrop('Nuez')" class="absolute bottom-1/4 left-0 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Nuez">
                             <img src="icon.nuts.png" alt="Nuez" class="w-full h-full object-contain">
                         </button>
                     </div>
@@ -2304,6 +2381,7 @@
 
                 const classes = "bg-white/95 px-3 py-1.5 rounded-full shadow-lg border border-slate-200 text-[10px] pointer-events-auto transform hover:-translate-y-1 cursor-pointer";
                 p1.className = p2.className = p3.className = p4.className = p5.className = p6.className = classes + " smooth-ui fixed bottom-6";
+                if (_activeFilterBtn && [p1,p2,p3,p4,p5,p6].includes(_activeFilterBtn)) _activeFilterBtn.classList.add('filter-btn-active');
 
                 if (isMobile) {
                     // MAPA ABIERTO — 2 filas × 3 columnas en la parte inferior
@@ -2332,6 +2410,7 @@
                 cropNodes.classList.remove('opacity-100');
 
                 p1.className = p2.className = p3.className = p4.className = p5.className = p6.className = "smooth-ui absolute bg-white/95 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer";
+                if (_activeFilterBtn && [p1,p2,p3,p4,p5,p6].includes(_activeFilterBtn)) _activeFilterBtn.classList.add('filter-btn-active');
 
                 if (isMobile) {
                     // SIN MAPA — botones DEBAJO del círculo: 2 columnas × 3 filas
@@ -2351,26 +2430,73 @@
             }
         });
 
+        // ── Filtro activo: tracking y visualización ──
+        let _activeFilterBtn = null;
+
+        function setActiveFilter(btnId, indicatorText) {
+            // Quitar estado activo del botón anterior
+            if (_activeFilterBtn) {
+                _activeFilterBtn.classList.remove('filter-btn-active');
+            }
+            // Aplicar al nuevo
+            const btn = btnId ? document.getElementById(btnId) : null;
+            if (btn) btn.classList.add('filter-btn-active');
+            _activeFilterBtn = btn;
+            // Actualizar indicador en el mapa
+            const ind = document.getElementById('map-filter-indicator');
+            if (ind) ind.textContent = indicatorText;
+        }
+
+        // Asegurar que el mapa sea completamente visible (sin tablas visibles)
+        function ensureMapVisible(cb) {
+            const tableTop = document.getElementById('tableSection').getBoundingClientRect().top + window.scrollY;
+            const inMapZone = window.scrollY >= 50;
+            const tablesVisible = window.scrollY >= tableTop - window.innerHeight * 0.5;
+
+            if (!inMapZone) {
+                // Mapa no abierto aún — abrir y luego aplicar filtro
+                window.scrollTo({ top: 120, behavior: 'smooth' });
+                setTimeout(cb, 500);
+            } else if (tablesVisible) {
+                // Tablas visibles — regresar al mapa completo
+                window.scrollTo({ top: 120, behavior: 'smooth' });
+                setTimeout(cb, 400);
+            } else {
+                cb();
+            }
+        }
+
         function handlePerfilClick(subType) {
             if (!currentUser) { openAuthModal(); return; }
             if (!checkEcosistemaAccess()) return;
-            if (window.scrollY <= 50) {
-                window.scrollTo({ top: 120, behavior: 'smooth' });
-                setTimeout(() => { filterPerfil(subType); }, 500);
-            } else {
+            const perfMap = {
+                'Investigador': { id: 'perf1', label: 'Investigadores afiliados a ICT' },
+                'Maestro':      { id: 'perf2', label: 'Maestros afiliados a ICT' },
+                'Estudiante':   { id: 'perf3', label: 'Estudiantes afiliados a ICT' },
+                'Productor':    { id: 'perf4', label: 'Productores afiliados al SPT' },
+                'Facilitador':  { id: 'perf5', label: 'Facilitadores afiliados a la RAA' },
+                'Empresario':   { id: 'perf6', label: 'Empresarios del SPT' },
+            };
+            const meta = perfMap[subType] || { id: null, label: subType };
+            ensureMapVisible(() => {
                 filterPerfil(subType);
-            }
+                setActiveFilter(meta.id, meta.label);
+            });
         }
 
         function handleBolaClick(category) {
             if (!currentUser) { openAuthModal(); return; }
             if (!checkEcosistemaAccess()) return;
-            if (window.scrollY <= 50) {
-                window.scrollTo({ top: 120, behavior: 'smooth' });
-                setTimeout(() => { filterMainCategory(category); }, 500);
-            } else {
+            const bolaMap = {
+                'ict': { id: 'btn-ict', label: 'Instituciones de Ciencia y Tecnología' },
+                'raa': { id: 'btn-raa', label: 'Instituciones y Negocios de la Red de Aliados y Asesoría' },
+                'spt': { id: 'btn-spt', label: 'Sector Productivo y Transformador' },
+            };
+            const meta = bolaMap[category] || { id: null, label: category };
+            ensureMapVisible(() => {
                 filterMainCategory(category);
-            }
+                setActiveFilter(meta.id, meta.label);
+            });
         }
 
         // ── Colores y formas ──
@@ -2444,6 +2570,7 @@
             if (!usersMapDB.length) await loadUsersFromDB();
             unifedDB.forEach(item => addInstMarker(item));
             usersMapDB.forEach(item => addPersonMarker(item));
+            setActiveFilter('btn-cv2a', 'Todo el ecosistema');
         }
 
         // Filtros ICT / SPT / RAA: solo instituciones (triángulos)
@@ -2463,16 +2590,28 @@
 
         // Filtros de cultivo/sector: personas (círculos) + instituciones (triángulos)
         async function filterByCrop(cropName) {
-            closeSidebar();
-            clusterMarkers.clearLayers();
-            if (!usersMapDB.length) await loadUsersFromDB();
-            const cn = cropName.toLowerCase();
-            unifedDB
-                .filter(d => d.crop.toLowerCase().includes(cn))
-                .forEach(item => addInstMarker(item));
-            usersMapDB
-                .filter(u => u.sectors.some(s => s.toLowerCase().includes(cn)))
-                .forEach(item => addPersonMarker(item));
+            if (!currentUser) { openAuthModal(); return; }
+            if (!checkEcosistemaAccess()) return;
+            const cropMeta = {
+                'Vid':   { id: 'btn-vid',   label: 'Todo y todos los relacionados a la vid' },
+                'Carne': { id: 'btn-carne', label: 'Todo y todos los relacionados a la carne' },
+                'Leche': { id: 'btn-leche', label: 'Todo y todos los relacionados a la leche' },
+                'Nuez':  { id: 'btn-nuez',  label: 'Todo y todos los relacionados a la nuez' },
+            };
+            const meta = cropMeta[cropName] || { id: null, label: cropName };
+            ensureMapVisible(async () => {
+                closeSidebar();
+                clusterMarkers.clearLayers();
+                if (!usersMapDB.length) await loadUsersFromDB();
+                const cn = cropName.toLowerCase();
+                unifedDB
+                    .filter(d => d.crop.toLowerCase().includes(cn))
+                    .forEach(item => addInstMarker(item));
+                usersMapDB
+                    .filter(u => u.sectors.some(s => s.toLowerCase().includes(cn)))
+                    .forEach(item => addPersonMarker(item));
+                setActiveFilter(meta.id, meta.label);
+            });
         }
 
         // ── Sidebar ──
