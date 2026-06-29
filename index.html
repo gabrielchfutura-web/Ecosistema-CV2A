@@ -327,28 +327,19 @@
 
         /* ══════════════════════════════════════════════════════
            MOBILE HUB — Solo aplica en mobile con mapa abierto
-           Panel 72px colapsado → 220px expandido, 8 botones simétricos
-           Alineado con el texto "Ecosistema del CV2A" (top-24 = 96px)
-
-           Layout expandido (220×220), centro en (110,110), r=80px:
-             1 ICT      θ=  0°  → left:86,  top:6
-             2 RAA      θ= 45°  → left:143, top:29
-             3 SPT      θ= 90°  → left:166, top:86
-             4 CV2A-ring θ=135° → left:143, top:143
-             5 Nuez     θ=180°  → left:86,  top:166
-             6 Vid      θ=225°  → left:29,  top:143
-             7 Leche    θ=270°  → left:6,   top:86
-             8 Carne    θ=315°  → left:29,  top:29
+           Las posiciones exactas de los botones del anillo se
+           calculan dinámicamente con JS (sin/cos). El CSS solo
+           maneja el panel, el círculo central y los estados base.
            ══════════════════════════════════════════════════════ */
         @media (max-width: 767px) {
 
-            /* ── COLAPSADO: botón circular único ── */
+            /* ── COLAPSADO ── */
             .panel-master.scrolled {
                 width: 72px !important;
                 height: 72px !important;
-                right: 19px !important;        /* 0.5cm del borde derecho */
+                right: 19px !important;
                 left: auto !important;
-                top: 83px !important;          /* nav ~64px + 0.5cm gap */
+                top: 83px !important;
                 transform: none !important;
                 border-radius: 50% !important;
                 background: transparent !important;
@@ -356,12 +347,12 @@
                 overflow: visible !important;
                 transition: width 0.4s cubic-bezier(0.34,1.4,0.64,1),
                             height 0.4s cubic-bezier(0.34,1.4,0.64,1),
-                            border-radius 0.3s ease,
-                            top 0.3s ease !important;
+                            border-radius 0.3s ease !important;
             }
 
-            /* Círculo central — display del filtro activo, rellena el panel */
+            /* Círculo central: siempre centrado en el panel */
             .scrolled .centro-logo {
+                position: absolute !important;
                 width: 64px !important;
                 height: 64px !important;
                 left: 50% !important;
@@ -369,125 +360,39 @@
                 transform: translate(-50%, -50%) !important;
                 opacity: 1 !important;
                 pointer-events: auto !important;
-                z-index: 10 !important;
+                z-index: 20 !important;
                 border: 2px solid #e2e8f0 !important;
                 box-shadow: 0 4px 18px rgba(0,0,0,0.14) !important;
+                margin: 0 !important;
             }
 
-            /* Todos los botones del anillo: colapsados al centro */
+            /* Botones del anillo: ocultos en estado colapsado */
             .scrolled .bola-ict,
             .scrolled .bola-raa,
             .scrolled .bola-spt,
-            .scrolled #btn-cv2a-ring,
-            .scrolled #btn-nuez,
-            .scrolled #btn-vid,
-            .scrolled #btn-leche,
-            .scrolled #btn-carne {
-                width: 48px !important;
-                height: 48px !important;
-                opacity: 0 !important;
-                pointer-events: none !important;
-                top: 50% !important;
-                left: 50% !important;
-                transform: translate(-50%,-50%) scale(0.1) !important;
-                transition: opacity 0.22s ease,
-                            top  0.4s cubic-bezier(0.34,1.4,0.64,1),
-                            left 0.4s cubic-bezier(0.34,1.4,0.64,1),
-                            transform 0.4s cubic-bezier(0.34,1.4,0.64,1) !important;
-            }
+            .scrolled #btn-cv2a-ring { display: none !important; }
 
-            /* CV2A-ring: solo existe en mobile scrolled, oculto en collapsed */
-            .scrolled #btn-cv2a-ring { display: block !important; }
+            /* Crop nodes ocultos en colapsado */
+            .scrolled #cropNodes { display: none !important; }
 
-            /* Crop nodes: visibles solo en mobile-panel-open */
-            .scrolled #cropNodes {
-                display: none !important;
-                opacity: 1 !important;
-            }
-
-            /* ── EXPANDIDO: panel frosted-glass 220×220 ── */
+            /* ── EXPANDIDO ── */
             .panel-master.scrolled.mobile-panel-open {
                 width: 220px !important;
                 height: 220px !important;
-                right: 19px !important;        /* 0.5cm del borde derecho */
-                top: 83px !important;          /* nav ~64px + 0.5cm gap */
+                right: 19px !important;
+                top: 83px !important;
                 border-radius: 26px !important;
                 background: rgba(248,250,252,0.97) !important;
                 backdrop-filter: blur(18px) !important;
                 -webkit-backdrop-filter: blur(18px) !important;
                 box-shadow: 0 8px 40px rgba(0,0,0,0.16) !important;
-            }
-
-            /* Círculo central: fijado exactamente en el centro del panel 220×220 */
-            .scrolled.mobile-panel-open .centro-logo {
-                top: 110px !important;
-                left: 110px !important;
-                transform: translate(-50%, -50%) !important;
-                width: 64px !important;
-                height: 64px !important;
+                overflow: hidden !important;
             }
 
             /* heroHeader: 0.5cm del nav y del borde izquierdo */
             #heroHeader {
                 top: 83px !important;
                 left: 19px !important;
-            }
-
-            /* Bolas principales */
-            .scrolled.mobile-panel-open .bola-ict {
-                opacity: 1 !important; pointer-events: auto !important;
-                top: 6px !important; left: 86px !important;
-                transform: none !important; transition-delay: 0ms !important;
-            }
-            .scrolled.mobile-panel-open .bola-raa {
-                opacity: 1 !important; pointer-events: auto !important;
-                top: 29px !important; left: 143px !important;
-                transform: none !important; transition-delay: 30ms !important;
-            }
-            .scrolled.mobile-panel-open .bola-spt {
-                opacity: 1 !important; pointer-events: auto !important;
-                top: 86px !important; left: 166px !important;
-                transform: none !important; transition-delay: 60ms !important;
-            }
-
-            /* CV2A ring button */
-            .scrolled.mobile-panel-open #btn-cv2a-ring {
-                opacity: 1 !important; pointer-events: auto !important;
-                top: 143px !important; left: 143px !important;
-                transform: none !important; transition-delay: 90ms !important;
-            }
-
-            /* Crop nodes visibles + posiciones de anillo */
-            .scrolled.mobile-panel-open #cropNodes {
-                display: block !important;
-            }
-            .scrolled.mobile-panel-open #btn-nuez {
-                opacity: 1 !important; pointer-events: auto !important;
-                top: 166px !important; left: 86px !important;
-                transform: none !important; transition-delay: 120ms !important;
-                width: 48px !important; height: 48px !important;
-                bottom: auto !important; right: auto !important;
-            }
-            .scrolled.mobile-panel-open #btn-vid {
-                opacity: 1 !important; pointer-events: auto !important;
-                top: 143px !important; left: 29px !important;
-                transform: none !important; transition-delay: 150ms !important;
-                width: 48px !important; height: 48px !important;
-                bottom: auto !important; right: auto !important;
-            }
-            .scrolled.mobile-panel-open #btn-leche {
-                opacity: 1 !important; pointer-events: auto !important;
-                top: 86px !important; left: 6px !important;
-                transform: none !important; transition-delay: 180ms !important;
-                width: 48px !important; height: 48px !important;
-                bottom: auto !important; right: auto !important;
-            }
-            .scrolled.mobile-panel-open #btn-carne {
-                opacity: 1 !important; pointer-events: auto !important;
-                top: 29px !important; left: 29px !important;
-                transform: none !important; transition-delay: 210ms !important;
-                width: 48px !important; height: 48px !important;
-                bottom: auto !important; right: auto !important;
             }
         }
     </style>
@@ -651,14 +556,7 @@
 
                     <div class="overflow-x-auto shadow-xs rounded-xl border border-slate-200 bg-white">
                         <table class="min-w-full divide-y divide-slate-200 text-xs text-left" id="tableData">
-                            <thead class="bg-slate-50 text-slate-400 font-bold uppercase tracking-wider">
-                                <tr>
-                                    <th class="px-4 py-3">ID</th>
-                                    <th class="px-4 py-3">Nombre</th>
-                                    <th class="px-4 py-3">Institución / Ubicación</th>
-                                    <th class="px-4 py-3">Contacto</th>
-                                    <th class="px-4 py-3">Descripción</th>
-                                </tr>
+                            <thead id="tableHead" class="bg-slate-50 text-slate-400 font-bold uppercase tracking-wider">
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-slate-600" id="tableBody">
                             </tbody>
@@ -2034,27 +1932,30 @@
 
         <!-- Tabs de navegación -->
         <div class="flex gap-2 flex-wrap mb-6">
-          <button onclick="switchPerfilTab('datos')" id="ptab-datos" class="perfil-tab-btn active px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white border border-transparent cursor-pointer transition">Datos Personales</button>
+          <button onclick="switchPerfilTab('datos')" id="ptab-datos" class="perfil-tab-btn active px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white border border-transparent cursor-pointer transition">Mi Información</button>
           <button onclick="switchPerfilTab('intereses')" id="ptab-intereses" class="perfil-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-200 cursor-pointer transition hover:border-blue-300">Mis Intereses</button>
           <button onclick="switchPerfilTab('instituciones')" id="ptab-instituciones" class="perfil-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-200 cursor-pointer transition hover:border-blue-300">Mis Instituciones</button>
-          <button onclick="switchPerfilTab('cuestionario')" id="ptab-cuestionario" class="perfil-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 border border-slate-200 cursor-pointer transition hover:border-blue-300">Mi Cuestionario</button>
           <button onclick="switchPerfilTab('maestro')" id="ptab-maestro" class="perfil-tab-btn hidden px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white border border-transparent cursor-pointer transition">⭐ Panel Maestro</button>
           <button onclick="switchPerfilTab('peligro')" id="ptab-peligro" class="perfil-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-white text-red-500 border border-red-200 cursor-pointer transition hover:bg-red-50 ml-auto">⚠ Zona de Peligro</button>
         </div>
 
-        <!-- TAB: Datos Personales -->
+        <!-- TAB: Mi Información -->
         <div id="ptab-content-datos" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
-          <h2 class="text-base font-bold text-slate-900 mb-5">Editar Datos Personales</h2>
+          <h2 class="text-base font-bold text-slate-900 mb-5">Mi Información</h2>
           <form id="form-editar-perfil" onsubmit="saveEditarPerfil(event)" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Título</label>
+                <input type="text" id="ep-titulo" placeholder="Dr., Ing., Lic., M.C.…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+              </div>
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Nombre Completo *</label>
                 <input type="text" id="ep-nombre" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
               </div>
-              <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Correo electrónico</label>
-                <input type="email" id="ep-email" disabled class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium bg-slate-50 text-slate-400 cursor-not-allowed">
-              </div>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Correo electrónico</label>
+              <input type="email" id="ep-email" disabled class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium bg-slate-50 text-slate-400 cursor-not-allowed">
             </div>
             <div>
               <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Tipo de Perfil</label>
@@ -2079,14 +1980,6 @@
                 <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="otros" class="ep-sector-cb accent-blue-600"> Otros</label>
               </div>
             </div>
-            <div>
-              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Mejor medio de contacto *</label>
-              <input type="text" id="ep-contacto" required placeholder="email, WhatsApp, teléfono…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-            </div>
-            <div>
-              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Comentarios</label>
-              <textarea id="ep-comentarios" rows="3" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
-            </div>
             <!-- Investigador: campos específicos -->
             <div id="ep-investigador-fields" class="hidden space-y-4 border-t border-slate-100 pt-4">
               <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Campos de Investigador</p>
@@ -2106,6 +1999,18 @@
                   <button type="button" onclick="addChip('ep-patentes','ep-patente-input')" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition cursor-pointer">+</button>
                 </div>
               </div>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">¿Qué buscas en el Ecosistema del CV²A?</label>
+              <textarea id="ep-busca" rows="2" placeholder="Estoy interesado en…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Contacto *</label>
+              <input type="text" id="ep-contacto" required placeholder="email, WhatsApp, teléfono…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Comentarios</label>
+              <textarea id="ep-comentarios" rows="3" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
             </div>
             <div id="ep-save-feedback" class="hidden"></div>
             <div class="flex justify-end">
@@ -2145,14 +2050,6 @@
             <div class="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">
               Cargando instituciones…
             </div>
-          </div>
-        </div>
-
-        <!-- TAB: Mi Cuestionario -->
-        <div id="ptab-content-cuestionario" class="hidden bg-white rounded-2xl shadow-sm border border-slate-100 p-6 md:p-8">
-          <h2 class="text-base font-bold text-slate-900 mb-5">Respuestas de Mi Registro</h2>
-          <div id="cuestionario-respuestas" class="space-y-3 text-sm text-slate-600">
-            <p class="text-slate-400 italic">Sin datos de cuestionario todavía.</p>
           </div>
         </div>
 
@@ -2240,6 +2137,10 @@
           <div id="eco-step-1">
             <form id="form-eco-perfil" onsubmit="ecoGotoStep2(event)" class="space-y-4">
               <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Título</label>
+                <input type="text" id="eco-titulo" placeholder="Dr., Ing., Lic., M.C.…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+              </div>
+              <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Tipo de perfil *</label>
                 <select id="eco-tipo" required onchange="toggleEcoInvestigadorFields()" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                   <option value="">Selecciona tu perfil…</option>
@@ -2262,14 +2163,6 @@
                   <label class="flex items-center gap-1.5 text-xs font-medium text-slate-600 cursor-pointer"><input type="checkbox" value="otros" class="eco-sector-cb accent-blue-600"> Otros</label>
                 </div>
               </div>
-              <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Mejor medio de contacto *</label>
-                <input type="text" id="eco-contacto" required placeholder="email, WhatsApp, teléfono…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-              </div>
-              <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Comentarios</label>
-                <textarea id="eco-comentarios" rows="2" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
-              </div>
               <!-- Investigador fields -->
               <div id="eco-investigador-fields" class="hidden space-y-4 border-t border-slate-100 pt-4">
                 <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Campos de Investigador</p>
@@ -2289,6 +2182,18 @@
                     <button type="button" onclick="addChip('eco-patentes','eco-patente-input')" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 cursor-pointer transition">+</button>
                   </div>
                 </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">¿Qué buscas en el Ecosistema del CV²A?</label>
+                <textarea id="eco-busca" rows="2" placeholder="Estoy interesado en…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Contacto *</label>
+                <input type="text" id="eco-contacto" required placeholder="email, WhatsApp, teléfono…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Comentarios</label>
+                <textarea id="eco-comentarios" rows="2" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
               </div>
               <div id="eco-step1-error" class="hidden text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
               <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer">Siguiente → Tu Institución</button>
@@ -2344,15 +2249,19 @@
                   </select>
                 </div>
                 <div>
-                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5" id="ni-nombre-label">Nombre *</label>
-                  <input type="text" id="ni-nombre" required placeholder="Nombre de la institución/negocio" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Acrónimo</label>
+                  <input type="text" id="ni-acronimo" placeholder="UACH, CIAD, INIFAP…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5" id="ni-nombre-label">Nombre Completo *</label>
+                  <input type="text" id="ni-nombre" required placeholder="Nombre completo de la institución/negocio" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                 </div>
                 <div>
                   <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Dirección o referencia</label>
-                  <input type="text" id="ni-ubicacion" placeholder="Colonia, calle, CP…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                  <input type="text" id="ni-ubicacion" placeholder="Colonia, calle, CP…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition" oninput="geocodeAddressDebounced('ni')">
                 </div>
                 <div>
-                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Ubicación en el mapa * <span class="normal-case text-slate-400 font-medium">(arrastra el pin)</span></label>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Ubicación en el mapa * <span class="normal-case text-slate-400 font-medium">(arrastra el pin o escribe la dirección arriba)</span></label>
                   <div class="map-picker-wrap" style="height:200px;">
                     <div id="ni-map-picker" style="height:200px;"></div>
                     <div class="map-picker-hint">📍 Arrastra el pin a tu ubicación exacta</div>
@@ -2375,12 +2284,12 @@
                     <label class="flex items-center gap-1.5 text-xs cursor-pointer"><input type="checkbox" value="otro" class="ni-sector-cb accent-blue-600"> Otro</label>
                   </div>
                 </div>
+                <!-- Campos dinámicos según subcategoría -->
+                <div id="ni-dynamic-fields" class="space-y-3"></div>
                 <div>
                   <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Comentarios</label>
                   <textarea id="ni-comentarios" rows="2" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
                 </div>
-                <!-- Campos dinámicos según subcategoría -->
-                <div id="ni-dynamic-fields" class="space-y-3"></div>
               </div>
             </div>
 
@@ -2415,11 +2324,37 @@
           <p id="ud-inst"></p>
           <p id="ud-sector"></p>
           <p id="ud-contacto"></p>
+          <p id="ud-comentarios"></p>
         </div>
       </div>
     </div>
 
     <!-- ══ MODAL EDITAR INSTITUCIÓN ══ -->
+    <!-- ── Feedback button ── -->
+    <button id="feedback-btn" onclick="openFeedbackModal()" class="fixed bottom-20 right-6 bg-white border border-slate-200 text-slate-600 text-xs font-semibold px-3 py-2 rounded-full shadow-lg hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all z-50 flex items-center gap-1.5 cursor-pointer" title="Enviar comentarios">
+        <span>💬</span> Feedback
+    </button>
+
+    <!-- ── Feedback modal ── -->
+    <div id="feedback-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[95] hidden items-center justify-center p-4" onclick="if(event.target===this)closeFeedbackModal()">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-base font-black text-slate-900">¿Qué piensas del CV²A?</h2>
+          <button onclick="closeFeedbackModal()" class="text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full w-7 h-7 flex items-center justify-center cursor-pointer font-bold">✕</button>
+        </div>
+        <p class="text-xs text-slate-500 mb-4">Tu opinión nos ayuda a mejorar la plataforma.</p>
+        <textarea id="feedback-text" rows="4" placeholder="Escribe tu comentario, sugerencia o reporte de error…" class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none transition"></textarea>
+        <div id="feedback-email-row" class="mt-3">
+          <input id="feedback-email" type="email" placeholder="Tu correo (opcional, para recibir respuesta)" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+        </div>
+        <div id="feedback-status" class="hidden mt-3 text-xs font-semibold rounded-lg px-4 py-2.5 text-center"></div>
+        <div class="flex gap-3 mt-4">
+          <button onclick="closeFeedbackModal()" class="flex-1 border border-slate-200 text-slate-600 text-sm font-semibold py-2.5 rounded-xl hover:bg-slate-50 transition cursor-pointer">Cancelar</button>
+          <button id="feedback-submit" onclick="submitFeedback()" class="flex-1 bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-blue-700 transition cursor-pointer">Enviar</button>
+        </div>
+      </div>
+    </div>
+
     <div id="inst-edit-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] hidden items-center justify-center p-4" onclick="if(event.target===this)closeInstModal()">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto p-6 md:p-8" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-5">
@@ -2568,8 +2503,11 @@
                     type: CATEGORIA_TYPE[i.categoria] || 'raa',
                     sub: i.subcategoria || '',
                     crop: (i.sector || []).join(', ') || 'General',
+                    sectors: i.sector || [],
                     name: i.nombre,
+                    acronimo: i.datos_especificos?.acronimo || '',
                     inst: i.ubicacion_texto || '',
+                    web: i.web || '',
                     contact: i.datos_especificos?.contacto || i.web || '',
                     desc: i.comentarios || '',
                     lat: i.ubicacion_lat,
@@ -2774,7 +2712,7 @@
         async function loadUsersFromDB() {
             const { data } = await sb
                 .from('afiliaciones')
-                .select('perfiles_usuario!user_id(id, nombre_completo, perfil_tipo, contacto_preferido, sector), instituciones!institucion_id(id, nombre, categoria, ubicacion_lat, ubicacion_lng)');
+                .select('perfiles_usuario!user_id(id, nombre_completo, perfil_tipo, contacto_preferido, sector, comentarios), instituciones!institucion_id(id, nombre, categoria, ubicacion_lat, ubicacion_lng)');
 
             usersMapDB = (data || [])
                 .filter(a =>
@@ -2791,8 +2729,9 @@
                     crop: (a.perfiles_usuario.sector || []).join(', '),
                     name: a.perfiles_usuario.nombre_completo || '—',
                     inst: a.instituciones.nombre,
+                    instId: a.instituciones.id,
                     contact: a.perfiles_usuario.contacto_preferido || '',
-                    desc: '',
+                    desc: a.perfiles_usuario.comentarios || '',
                     lat: a.instituciones.ubicacion_lat,
                     lng: a.instituciones.ubicacion_lng
                 }));
@@ -2809,12 +2748,79 @@
         // ── Mobile hub helpers ──
         function isMobileHub() { return window.innerWidth < 768 && window.scrollY > 50; }
 
+        // ── Constantes del layout radial ──
+        const _HUB = { size: 220, center: 110, radius: 75, btnSize: 48, centerBtnSize: 64 };
+        // 8 botones en sentido horario desde arriba: ICT(0°) RAA(45°) SPT(90°) CV2A(135°) Nuez(180°) Vid(225°) Leche(270°) Carne(315°)
+        const _HUB_RING = ['btn-ict','btn-raa','btn-spt','btn-cv2a-ring','btn-nuez','btn-vid','btn-leche','btn-carne'];
+
+        function _hubSetStyle(el, props) {
+            if (!el) return;
+            Object.entries(props).forEach(([k, v]) => el.style.setProperty(k, v, 'important'));
+        }
+
         function openMobileHub() {
-            document.getElementById('masterPanel').classList.add('mobile-panel-open');
+            const panel = document.getElementById('masterPanel');
+            panel.classList.add('mobile-panel-open');
+
+            // Círculo central: exactamente en el centro geométrico
+            const C = _HUB.center, halfC = _HUB.centerBtnSize / 2;
+            _hubSetStyle(document.getElementById('btn-cv2a'), {
+                position: 'absolute',
+                left: (C - halfC) + 'px',
+                top:  (C - halfC) + 'px',
+                width:  _HUB.centerBtnSize + 'px',
+                height: _HUB.centerBtnSize + 'px',
+                transform: 'none',
+                'z-index': '20',
+            });
+
+            // Botones del anillo: posiciones calculadas con sin/cos
+            const halfB = _HUB.btnSize / 2;
+            _HUB_RING.forEach((id, i) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const angleRad = (i * 45 - 90) * Math.PI / 180;
+                const x = C + _HUB.radius * Math.cos(angleRad) - halfB;
+                const y = C + _HUB.radius * Math.sin(angleRad) - halfB;
+                _hubSetStyle(el, {
+                    display:         'flex',
+                    position:        'absolute',
+                    left:            x + 'px',
+                    top:             y + 'px',
+                    right:           'auto',
+                    bottom:          'auto',
+                    width:           _HUB.btnSize + 'px',
+                    height:          _HUB.btnSize + 'px',
+                    opacity:         '1',
+                    'pointer-events':'auto',
+                    transform:       'none',
+                    'transition-delay': (i * 30) + 'ms',
+                    'z-index':       '10',
+                });
+            });
+
+            // Mostrar cropNodes para que los crop-buttons sean accesibles
+            const cn = document.getElementById('cropNodes');
+            if (cn) _hubSetStyle(cn, { display: 'block', opacity: '1', 'pointer-events': 'none' });
         }
 
         function closeMobileHub() {
-            document.getElementById('masterPanel').classList.remove('mobile-panel-open');
+            const panel = document.getElementById('masterPanel');
+            panel.classList.remove('mobile-panel-open');
+
+            // Limpiar estilos inline del círculo central
+            const centerBtn = document.getElementById('btn-cv2a');
+            if (centerBtn) centerBtn.removeAttribute('style');
+
+            // Limpiar estilos inline de todos los botones del anillo
+            _HUB_RING.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.removeAttribute('style');
+            });
+
+            // Ocultar cropNodes
+            const cn = document.getElementById('cropNodes');
+            if (cn) cn.removeAttribute('style');
         }
 
         function setMobileHubIcon(src) {
@@ -2953,17 +2959,26 @@
             document.getElementById('userPanel').classList.add('translate-x-[115%]');
             document.getElementById('sideTitle').innerText = item.name;
             const badge = document.getElementById('sideBadge');
+            const showroom = document.getElementById('showroomSpace');
 
             if (item.markerType === 'person') {
+                showroom.classList.add('hidden');
                 badge.innerText = '👤 ' + item.sub;
                 badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-indigo-100 text-indigo-800";
+                // Find the institution item from unifedDB to make it clickable
+                const instItem = unifedDB.find(d => d.id === item.instId);
+                const instBtn = instItem
+                    ? `<button onclick='openSidebar(${JSON.stringify(instItem).replace(/'/g,"&#39;")})' class="text-blue-600 font-semibold hover:underline cursor-pointer text-left">${item.inst}</button>`
+                    : `<span>${item.inst || '—'}</span>`;
                 document.getElementById('sideContent').innerHTML = `
                     <p><strong>Perfil:</strong> ${item.sub}</p>
-                    <p class="mt-1"><strong>Institución/Negocio:</strong> ${item.inst}</p>
+                    <p class="mt-1"><strong>Institución/Negocio:</strong> ${instBtn}</p>
+                    ${item.crop ? `<p class="mt-1"><strong>Sector(es):</strong> ${item.crop}</p>` : ''}
                     ${item.contact ? `<p class="mt-1"><strong>Contacto:</strong> ${item.contact}</p>` : ''}
-                    ${item.crop ? `<p class="mt-1 text-slate-500">Sector(es): ${item.crop}</p>` : ''}
+                    ${item.desc ? `<p class="mt-1"><strong>Comentarios:</strong> ${item.desc}</p>` : ''}
                 `;
             } else {
+                showroom.classList.remove('hidden');
                 badge.innerText = '🏢 ' + (item.sub || '') + (item.crop ? ' | ' + item.crop : '');
                 if (item.type === 'ict') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-blue-100 text-blue-800";
                 if (item.type === 'spt') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-amber-100 text-amber-800";
@@ -2979,17 +2994,17 @@
                         </div>
                     </div>
                 `;
-                loadSidebarAfiliados(item.id);
+                loadSidebarAfiliados(item.id, item);
             }
             document.getElementById('sidebar').classList.remove('-translate-x-[115%]');
         }
 
-        async function loadSidebarAfiliados(institucionId) {
+        async function loadSidebarAfiliados(institucionId, instItem) {
             const el = document.getElementById('sidebar-afiliados-list');
             if (!el) return;
             const { data } = await sb
                 .from('afiliaciones')
-                .select('perfiles_usuario!user_id(id, nombre_completo, perfil_tipo, contacto_preferido, sector)')
+                .select('perfiles_usuario!user_id(id, nombre_completo, perfil_tipo, contacto_preferido, sector, comentarios)')
                 .eq('institucion_id', institucionId);
             if (!data || data.length === 0) {
                 el.innerHTML = '<span class="text-[10px] text-slate-400 italic">Sin afiliados registrados.</span>';
@@ -2998,8 +3013,21 @@
             el.innerHTML = data.map(a => {
                 const p = a.perfiles_usuario;
                 const initials = (p.nombre_completo || '?').substring(0, 2).toUpperCase();
-                const dataAttr = encodeURIComponent(JSON.stringify(p));
-                return `<div onclick="openUserDetail('${dataAttr}')" class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-2 py-0.5 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition" title="${p.nombre_completo}">
+                // Build a synthetic person item so openSidebar can display the full panel
+                const personItem = {
+                    markerType: 'person',
+                    id: p.id,
+                    name: p.nombre_completo || '—',
+                    sub: p.perfil_tipo || '',
+                    inst: instItem?.name || '',
+                    instId: instItem?.id || null,
+                    crop: (p.sector || []).join(', '),
+                    contact: p.contacto_preferido || '',
+                    desc: p.comentarios || '',
+                    lat: instItem?.lat, lng: instItem?.lng
+                };
+                const encoded = JSON.stringify(personItem).replace(/'/g,"&#39;");
+                return `<div onclick='openSidebar(${encoded})' class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-2 py-0.5 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition" title="${p.nombre_completo}">
                     <div class="w-4 h-4 rounded-full bg-indigo-200 text-indigo-800 flex items-center justify-center text-[7px] font-black shrink-0">${initials}</div>
                     <span class="text-[10px] font-semibold text-slate-700">${p.nombre_completo?.split(' ')[0] || '—'}</span>
                 </div>`;
@@ -3046,21 +3074,46 @@
         }
 
         let currentTab = 'ict';
+
+        const TABLE_SCHEMA = {
+            ict: [
+                { label: 'Acrónimo', render: row => `<span class="text-blue-600 font-bold cursor-pointer hover:underline" onclick='openSidebar(${JSON.stringify(row).replace(/'/g,"&#39;")})'>${row.acronimo || row.name}</span>` },
+                { label: 'Ubicación', render: row => `<span class="text-slate-500">${row.inst || '—'}</span>` },
+                { label: 'Página web', render: row => row.web ? `<a href="${row.web}" target="_blank" rel="noopener" class="text-blue-600 hover:underline truncate max-w-[160px] block">${row.web.replace(/^https?:\/\//,'')}</a>` : '<span class="text-slate-300">—</span>' },
+                { label: 'Sectores', render: row => `<span class="text-slate-600">${row.sectors?.join(', ') || '—'}</span>` },
+            ],
+            spt: [
+                { label: 'Nombre', render: row => `<span class="text-blue-600 font-bold cursor-pointer hover:underline" onclick='openSidebar(${JSON.stringify(row).replace(/'/g,"&#39;")})'>${row.name}</span>` },
+                { label: 'Ubicación', render: row => `<span class="text-slate-500">${row.inst || '—'}</span>` },
+                { label: 'Página web', render: row => row.web ? `<a href="${row.web}" target="_blank" rel="noopener" class="text-blue-600 hover:underline truncate max-w-[160px] block">${row.web.replace(/^https?:\/\//,'')}</a>` : '<span class="text-slate-300">—</span>' },
+                { label: 'Sectores', render: row => `<span class="text-slate-600">${row.sectors?.join(', ') || '—'}</span>` },
+            ],
+            raa: [
+                { label: 'Acrónimo', render: row => `<span class="text-blue-600 font-bold cursor-pointer hover:underline" onclick='openSidebar(${JSON.stringify(row).replace(/'/g,"&#39;")})'>${row.acronimo || '—'}</span>` },
+                { label: 'Nombre Completo', render: row => `<span class="text-slate-800 font-medium">${row.name}</span>` },
+                { label: 'Ubicación', render: row => `<span class="text-slate-500">${row.inst || '—'}</span>` },
+                { label: 'Página web', render: row => row.web ? `<a href="${row.web}" target="_blank" rel="noopener" class="text-blue-600 hover:underline truncate max-w-[160px] block">${row.web.replace(/^https?:\/\//,'')}</a>` : '<span class="text-slate-300">—</span>' },
+            ],
+        };
+
         function populateTable() {
+            const schema = TABLE_SCHEMA[currentTab] || TABLE_SCHEMA.ict;
+            const thead = document.getElementById('tableHead');
             const tbody = document.getElementById('tableBody');
+
+            thead.innerHTML = `<tr>${schema.map(col => `<th class="px-4 py-3">${col.label}</th>`).join('')}</tr>`;
             tbody.innerHTML = '';
+
             const filteredData = unifedDB.filter(d => d.type === currentTab);
+            if (!filteredData.length) {
+                tbody.innerHTML = `<tr><td colspan="${schema.length}" class="px-4 py-6 text-center text-slate-400 italic">Sin registros en esta categoría.</td></tr>`;
+                return;
+            }
 
             filteredData.forEach(row => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100";
-                tr.innerHTML = `
-                    <td class="px-4 py-3 font-semibold text-slate-900">#${row.id}</td>
-                    <td class="px-4 py-3 font-medium text-slate-800">${row.name}</td>
-                    <td class="px-4 py-3 text-slate-500">${row.inst}</td>
-                    <td class="px-4 py-3 text-blue-600 font-mono">${row.contact || 'No disponible'}</td>
-                    <td class="px-4 py-3 max-w-xs truncate" title="${row.desc}">${row.desc}</td>
-                `;
+                tr.innerHTML = schema.map(col => `<td class="px-4 py-3">${col.render(row)}</td>`).join('');
                 tbody.appendChild(tr);
             });
         }
@@ -3823,7 +3876,7 @@
         let misInteresesIds = new Set();
         let masterUsersCache = [];
         let ecoInstSelectedId = null;
-        let chipData = { 'eco-lineas': [], 'eco-patentes': [], 'ep-lineas': [], 'ep-patentes': [] };
+        let chipData = { 'eco-lineas': [], 'eco-patentes': [], 'ep-lineas': [], 'ep-patentes': [], 'if-labs': [], 'ni-labs': [] };
 
         function isMaster() {
             return currentUser?.email === MASTER_EMAIL || currentProfile?.is_master === true;
@@ -3898,7 +3951,9 @@
             // Pre-llenar formulario editar datos
             document.getElementById('ep-nombre').value = displayName;
             document.getElementById('ep-email').value = u.email;
+            if (document.getElementById('ep-titulo')) document.getElementById('ep-titulo').value = p?.titulo || '';
             document.getElementById('ep-tipo').value = p?.perfil_tipo || '';
+            if (document.getElementById('ep-busca')) document.getElementById('ep-busca').value = p?.busca_en_ecosistema || '';
             document.getElementById('ep-contacto').value = p?.contacto_preferido || '';
             document.getElementById('ep-comentarios').value = p?.comentarios || '';
 
@@ -3918,9 +3973,6 @@
                 renderChips('ep-patentes');
             }
 
-            // Cuestionario
-            renderCuestionarioRespuestas(p);
-
             // Cargar intereses
             await loadIntereses();
 
@@ -3933,7 +3985,7 @@
 
         // ── Tabs de Mi Perfil ──
         function switchPerfilTab(tab) {
-            const tabs = ['datos','intereses','instituciones','cuestionario','maestro','peligro'];
+            const tabs = ['datos','intereses','instituciones','maestro','peligro'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`ptab-${t}`);
                 const content = document.getElementById(`ptab-content-${t}`);
@@ -3971,7 +4023,10 @@
             // Upsert en perfiles_usuario
             const upsertData = {
                 id: currentUser.id, email: currentUser.email, nombre_completo: nombre,
-                perfil_tipo: perfil_tipo || null, sector, contacto_preferido: contacto,
+                titulo: document.getElementById('ep-titulo')?.value.trim() || null,
+                perfil_tipo: perfil_tipo || null, sector,
+                busca_en_ecosistema: document.getElementById('ep-busca')?.value.trim() || null,
+                contacto_preferido: contacto,
                 comentarios, is_master: isMaster(),
                 lineas_investigacion: chipData['ep-lineas'],
                 patentes: chipData['ep-patentes'],
@@ -4202,6 +4257,66 @@
             modal.classList.add('hidden'); modal.classList.remove('flex');
         }
 
+        // ════════════════════════════════════════════
+        // ── FEEDBACK ──
+        // ════════════════════════════════════════════
+        function openFeedbackModal() {
+            document.getElementById('feedback-text').value = '';
+            document.getElementById('feedback-email').value = currentUser?.email ?? '';
+            const status = document.getElementById('feedback-status');
+            status.className = 'hidden mt-3 text-xs font-semibold rounded-lg px-4 py-2.5 text-center';
+            status.textContent = '';
+            document.getElementById('feedback-submit').disabled = false;
+            const modal = document.getElementById('feedback-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => document.getElementById('feedback-text').focus(), 50);
+        }
+
+        function closeFeedbackModal() {
+            const modal = document.getElementById('feedback-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function submitFeedback() {
+            const text = document.getElementById('feedback-text').value.trim();
+            const email = document.getElementById('feedback-email').value.trim();
+            const status = document.getElementById('feedback-status');
+            const submitBtn = document.getElementById('feedback-submit');
+
+            if (!text) {
+                status.textContent = 'Por favor escribe tu comentario antes de enviar.';
+                status.className = 'mt-3 text-xs font-semibold rounded-lg px-4 py-2.5 text-center bg-red-50 text-red-600';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Enviando…';
+
+            const payload = {
+                mensaje: text,
+                email: email || null,
+                user_id: currentUser?.id ?? null,
+                url: window.location.href,
+                created_at: new Date().toISOString()
+            };
+
+            const { error } = await sb.from('feedback').insert(payload);
+
+            if (error) {
+                status.textContent = 'Error al enviar. Por favor intenta de nuevo.';
+                status.className = 'mt-3 text-xs font-semibold rounded-lg px-4 py-2.5 text-center bg-red-50 text-red-600';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Enviar';
+            } else {
+                status.textContent = '¡Gracias por tu comentario! Lo revisaremos pronto.';
+                status.className = 'mt-3 text-xs font-semibold rounded-lg px-4 py-2.5 text-center bg-green-50 text-green-700';
+                submitBtn.textContent = 'Enviado ✓';
+                setTimeout(closeFeedbackModal, 2000);
+            }
+        }
+
         function buildInstForm(inst) {
             const v = inst || {};
             const subcats = [
@@ -4225,15 +4340,19 @@
                 </select>
               </div>
               <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Nombre *</label>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Acrónimo</label>
+                <input id="if-acronimo" value="${v.datos_especificos?.acronimo||''}" placeholder="UACH, CIAD, INIFAP…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Nombre Completo *</label>
                 <input id="if-nombre" required value="${v.nombre||''}" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Dirección o referencia</label>
-                <input id="if-ubicacion" value="${v.ubicacion_texto||''}" placeholder="Colonia, calle, CP…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input id="if-ubicacion" value="${v.ubicacion_texto||''}" placeholder="Colonia, calle, CP…" oninput="geocodeAddressDebounced('if')" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Ubicación en el mapa <span class="normal-case text-slate-400 font-medium">(arrastra el pin)</span></label>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Ubicación en el mapa <span class="normal-case text-slate-400 font-medium">(arrastra el pin o escribe la dirección arriba)</span></label>
                 <div class="map-picker-wrap" style="height:200px;">
                   <div id="if-map-picker" style="height:200px;"></div>
                   <div class="map-picker-hint">📍 Arrastra el pin a tu ubicación exacta</div>
@@ -4244,17 +4363,17 @@
               </div>
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Página web</label>
-                <input id="if-web" type="url" value="${v.web||''}" placeholder="https://…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input id="if-web" type="text" value="${v.web||''}" placeholder="https://…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Sector(es) *</label>
                 <div class="flex flex-wrap gap-3">${sectorCbs}</div>
               </div>
+              <div id="if-dynamic-fields" class="space-y-3">${buildDynamicInstFields(v.subcategoria, v.datos_especificos||{})}</div>
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Comentarios</label>
                 <textarea id="if-comentarios" rows="2" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">${v.comentarios||''}</textarea>
               </div>
-              <div id="if-dynamic-fields" class="space-y-3">${buildDynamicInstFields(v.subcategoria, v.datos_especificos||{})}</div>
               <div id="if-error" class="hidden text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
               <div class="flex gap-2 pt-2">
                 <button type="button" onclick="closeInstModal()" class="flex-1 bg-slate-100 text-slate-700 font-bold py-2.5 rounded-xl text-sm hover:bg-slate-200 transition cursor-pointer">Cancelar</button>
@@ -4290,10 +4409,46 @@
               <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Maquinaria/espacios que podría rentar? *</label><input id="de-maquinaria" required value="${de.maquinaria||''}" placeholder="Especifica…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>
               <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Qué producen? *</label><input id="de-productos" required value="${de.productos||''}" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>
               <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Cuánto producen al mes? *</label><div class="flex gap-2"><input id="de-cantidad" required value="${de.cantidad||''}" placeholder="Cantidad" class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"><input id="de-unidades" value="${de.unidades||''}" placeholder="unidades" class="w-24 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div></div>`;
-            if (ict.includes(sub)) return `
-              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Con qué laboratorios cuenta?</label><textarea id="de-laboratorios" rows="2" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none resize-none">${de.laboratorios||''}</textarea></div>
-              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Ofrecen servicios de laboratorio?</label><input id="de-servicios-lab" value="${de.servicios_laboratorio||''}" placeholder="Especifica…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"></div>`;
+            if (ict.includes(sub)) {
+                const labKey = document.getElementById('if-subcategoria') ? 'if-labs' : 'ni-labs';
+                const existingLabs = Array.isArray(de.laboratorios) ? de.laboratorios : (de.laboratorios ? [de.laboratorios] : []);
+                if (!chipData[labKey]) chipData[labKey] = [];
+                chipData[labKey] = existingLabs;
+                setTimeout(() => renderChips(labKey), 0);
+                const existingPdfs = (de.pdfs || []).map(url => `<a href="${url}" target="_blank" rel="noopener" class="text-blue-600 text-[10px] hover:underline truncate block">${url.split('/').pop()}</a>`).join('');
+                return `
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Con qué laboratorios cuenta?</label>
+                <div id="${labKey}-container" class="flex flex-wrap gap-2 min-h-8 mb-2 bg-slate-50 rounded-xl p-2 border border-slate-100"></div>
+                <div class="flex gap-2">
+                  <input type="text" id="${labKey}-input" placeholder="Añadir laboratorio…" class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <button type="button" onclick="addChip('${labKey}','${labKey}-input')" class="bg-blue-600 text-white px-3 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition cursor-pointer">+</button>
+                </div>
+              </div>
+              <div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Ofrecen servicios de laboratorio?</label><input id="de-servicios-lab" value="${de.servicios_laboratorio||''}" placeholder="Especifica…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Documentos / Servicios (PDF)</label>
+                ${existingPdfs ? `<div class="mb-2 space-y-1">${existingPdfs}</div>` : ''}
+                <input type="file" id="de-pdfs" accept=".pdf" multiple class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                <p class="text-[10px] text-slate-400 mt-1">Los PDFs serán visibles para otros usuarios al ver tu perfil en el mapa.</p>
+              </div>`;
+            }
             return '';
+        }
+
+        async function uploadInstPdfs(instId, existingPdfs) {
+            const input = document.getElementById('de-pdfs');
+            if (!input || !input.files.length) return existingPdfs || [];
+            const urls = [...(existingPdfs || [])];
+            for (const file of input.files) {
+                const path = `inst-docs/${instId}/${Date.now()}-${file.name}`;
+                const { data, error } = await sb.storage.from('institution-documents').upload(path, file, { upsert: false });
+                if (!error && data) {
+                    const { data: pub } = sb.storage.from('institution-documents').getPublicUrl(path);
+                    urls.push(pub.publicUrl);
+                }
+            }
+            return urls;
         }
 
         function collectDynamicFields(sub) {
@@ -4303,7 +4458,7 @@
             if (raa.includes(sub)) return { servicios_apoyos: g('de-servicios') };
             if (sub === 'Unidad de Producción') return { tipo_unidad: g('de-tipo-unidad'), residuos: g('de-residuos'), maquinaria: g('de-maquinaria'), superficie: g('de-superficie'), produccion: g('de-produccion'), contacto: g('de-contacto') };
             if (sub === 'Empresa de Valor Agregado') return { residuos: g('de-residuos'), maquinaria: g('de-maquinaria'), productos: g('de-productos'), cantidad: g('de-cantidad'), unidades: g('de-unidades') };
-            if (ict.includes(sub)) return { laboratorios: g('de-laboratorios'), servicios_laboratorio: g('de-servicios-lab') };
+            if (ict.includes(sub)) return { laboratorios: chipData['if-labs'] || [], servicios_laboratorio: g('de-servicios-lab') };
             return {};
         }
 
@@ -4316,6 +4471,13 @@
             const sector = [...document.querySelectorAll('.if-sector-cb:checked')].map(c => c.value);
             const ifLat = parseFloat(document.getElementById('if-lat').value);
             const ifLng = parseFloat(document.getElementById('if-lng').value);
+            let webVal = document.getElementById('if-web').value.trim();
+            if (webVal && !/^https?:\/\//i.test(webVal)) webVal = 'https://' + webVal;
+            const dynFields = collectDynamicFields(sub);
+            const ict = ['Centro de Investigación','Universidad','Preparatoria','Laboratorio Privado'];
+            if (ict.includes(sub) && existingId) {
+                dynFields.pdfs = await uploadInstPdfs(existingId, dynFields.pdfs);
+            }
             const datos = {
                 subcategoria: sub,
                 categoria: CATEGORIA_MAP[sub] || '',
@@ -4323,10 +4485,10 @@
                 ubicacion_texto: document.getElementById('if-ubicacion').value.trim(),
                 ubicacion_lat: isNaN(ifLat) ? null : ifLat,
                 ubicacion_lng: isNaN(ifLng) ? null : ifLng,
-                web: document.getElementById('if-web').value.trim() || null,
+                web: webVal || null,
                 sector,
                 comentarios: document.getElementById('if-comentarios').value.trim(),
-                datos_especificos: collectDynamicFields(sub),
+                datos_especificos: { ...dynFields, acronimo: document.getElementById('if-acronimo')?.value.trim() || '' },
                 admin_id: currentUser.id,
                 updated_at: new Date().toISOString()
             };
@@ -4448,6 +4610,47 @@
         const CHI_LAT = 28.6353, CHI_LNG = -106.0889;
         let pickerMaps = {}; // cache de instancias para no reinicializar
 
+        // ── Geocodificación bidireccional con Nominatim ──
+        const _geoTimers = {};
+
+        function geocodeAddressDebounced(prefix) {
+            clearTimeout(_geoTimers[prefix]);
+            _geoTimers[prefix] = setTimeout(() => geocodeAddress(prefix), 600);
+        }
+
+        async function geocodeAddress(prefix) {
+            const addrEl = document.getElementById(`${prefix}-ubicacion`);
+            if (!addrEl) return;
+            const q = addrEl.value.trim();
+            if (q.length < 5) return;
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=mx`, { headers: { 'Accept-Language': 'es' } });
+                const data = await res.json();
+                if (!data.length) return;
+                const { lat, lon } = data[0];
+                const latlng = L.latLng(parseFloat(lat), parseFloat(lon));
+                const mapId = `${prefix}-map-picker`;
+                const pMap = pickerMaps[mapId];
+                if (pMap) {
+                    pMap.setView(latlng, 15);
+                    pMap._pickerMarker?.setLatLng(latlng);
+                }
+                document.getElementById(`${prefix}-lat`).value = parseFloat(lat).toFixed(6);
+                document.getElementById(`${prefix}-lng`).value = parseFloat(lon).toFixed(6);
+                const dispEl = document.getElementById(`${prefix}-coords-display`);
+                if (dispEl) dispEl.textContent = parseFloat(lat).toFixed(5) + ', ' + parseFloat(lon).toFixed(5);
+            } catch (e) { /* ignore network errors */ }
+        }
+
+        async function reverseGeocode(prefix, latlng) {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latlng.lat}&lon=${latlng.lng}&format=json`, { headers: { 'Accept-Language': 'es' } });
+                const data = await res.json();
+                const addrEl = document.getElementById(`${prefix}-ubicacion`);
+                if (addrEl && data?.display_name) addrEl.value = data.display_name;
+            } catch (e) { /* ignore */ }
+        }
+
         function initMapPicker(containerId, latId, lngId, displayId, initLat, initLng) {
             // Destruir instancia previa si existe
             if (pickerMaps[containerId]) {
@@ -4462,6 +4665,10 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(pMap);
 
             const marker = L.marker([lat, lng], { draggable: true }).addTo(pMap);
+            pMap._pickerMarker = marker;
+
+            // Derive prefix from containerId: 'ni-map-picker' → 'ni', 'if-map-picker' → 'if'
+            const prefix = containerId.replace('-map-picker', '');
 
             function updateCoords(latlng) {
                 document.getElementById(latId).value = latlng.lat.toFixed(6);
@@ -4473,8 +4680,15 @@
             }
 
             updateCoords(marker.getLatLng());
-            marker.on('dragend', e => updateCoords(e.target.getLatLng()));
-            pMap.on('click', e => { marker.setLatLng(e.latlng); updateCoords(e.latlng); });
+            marker.on('dragend', e => {
+                updateCoords(e.target.getLatLng());
+                reverseGeocode(prefix, e.target.getLatLng());
+            });
+            pMap.on('click', e => {
+                marker.setLatLng(e.latlng);
+                updateCoords(e.latlng);
+                reverseGeocode(prefix, e.latlng);
+            });
 
             pickerMaps[containerId] = pMap;
             // Leaflet necesita invalidar tamaño tras render en modal oculto
@@ -4508,7 +4722,7 @@
             const contacto = document.getElementById('eco-contacto').value.trim();
             const errEl = document.getElementById('eco-step1-error');
             if (!tipo) { errEl.textContent = 'Selecciona tu tipo de perfil.'; errEl.classList.remove('hidden'); return; }
-            if (!contacto) { errEl.textContent = 'Indica tu mejor medio de contacto.'; errEl.classList.remove('hidden'); return; }
+            if (!contacto) { errEl.textContent = 'Indica tu contacto.'; errEl.classList.remove('hidden'); return; }
             errEl.classList.add('hidden');
 
             // Si es Inversionista, saltar directo a guardar (sin institución)
@@ -4599,7 +4813,7 @@
             const sub = document.getElementById('ni-subcategoria').value;
             document.getElementById('ni-dynamic-fields').innerHTML = buildDynamicInstFields(sub, {});
             const label = document.getElementById('ni-nombre-label');
-            if (label) label.textContent = `¿Cómo se llama tu ${sub || 'institución'}? *`;
+            if (label) label.textContent = `Nombre Completo de tu ${sub || 'institución'} *`;
         }
 
         async function saveEcoRegistroInversionista() {
@@ -4607,7 +4821,9 @@
             const upsertData = {
                 id: currentUser.id, email: currentUser.email,
                 nombre_completo: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
+                titulo: document.getElementById('eco-titulo')?.value.trim() || null,
                 perfil_tipo: 'Inversionista', sector,
+                busca_en_ecosistema: document.getElementById('eco-busca')?.value.trim() || null,
                 contacto_preferido: document.getElementById('eco-contacto').value.trim(),
                 comentarios: document.getElementById('eco-comentarios').value.trim(),
                 is_master: isMaster(), perfil_completo: true,
@@ -4650,7 +4866,10 @@
             const upsertData = {
                 id: currentUser.id, email: currentUser.email,
                 nombre_completo: currentUser.user_metadata?.full_name || currentUser.email.split('@')[0],
-                perfil_tipo: tipo, sector, contacto_preferido: contacto, comentarios,
+                titulo: document.getElementById('eco-titulo')?.value.trim() || null,
+                perfil_tipo: tipo, sector,
+                busca_en_ecosistema: document.getElementById('eco-busca')?.value.trim() || null,
+                contacto_preferido: contacto, comentarios,
                 lineas_investigacion: lineas, patentes,
                 is_master: isMaster(), perfil_completo: true,
                 updated_at: new Date().toISOString()
@@ -4671,16 +4890,18 @@
                 const niSector = [...document.querySelectorAll('.ni-sector-cb:checked')].map(c => c.value);
                 const niLat = parseFloat(document.getElementById('ni-lat').value);
                 const niLng = parseFloat(document.getElementById('ni-lng').value);
+                let niWeb = document.getElementById('ni-web').value.trim();
+                if (niWeb && !/^https?:\/\//i.test(niWeb)) niWeb = 'https://' + niWeb;
                 const instData = {
                     subcategoria: sub, categoria: CATEGORIA_MAP[sub] || '',
                     nombre: document.getElementById('ni-nombre').value.trim(),
                     ubicacion_texto: document.getElementById('ni-ubicacion').value.trim(),
                     ubicacion_lat: isNaN(niLat) ? null : niLat,
                     ubicacion_lng: isNaN(niLng) ? null : niLng,
-                    web: document.getElementById('ni-web').value.trim() || null,
+                    web: niWeb || null,
                     sector: niSector,
                     comentarios: document.getElementById('ni-comentarios').value.trim(),
-                    datos_especificos: collectDynamicFieldsNi(sub),
+                    datos_especificos: { ...collectDynamicFieldsNi(sub), acronimo: document.getElementById('ni-acronimo')?.value.trim() || '' },
                     admin_id: currentUser.id
                 };
                 const { data: newInst, error: instErr } = await sb.from('instituciones').insert(instData).select().single();
@@ -4716,7 +4937,7 @@
             if (raa.includes(sub)) return { servicios_apoyos: g('de-servicios') };
             if (sub === 'Unidad de Producción') return { tipo_unidad: g('de-tipo-unidad'), residuos: g('de-residuos'), maquinaria: g('de-maquinaria'), superficie: g('de-superficie'), produccion: g('de-produccion'), contacto: g('de-contacto') };
             if (sub === 'Empresa de Valor Agregado') return { residuos: g('de-residuos'), maquinaria: g('de-maquinaria'), productos: g('de-productos'), cantidad: g('de-cantidad'), unidades: g('de-unidades') };
-            if (ict.includes(sub)) return { laboratorios: g('de-laboratorios'), servicios_laboratorio: g('de-servicios-lab') };
+            if (ict.includes(sub)) return { laboratorios: chipData['ni-labs'] || [], servicios_laboratorio: g('de-servicios-lab') };
             return {};
         }
 
