@@ -324,6 +324,107 @@
             /* Tabla de datos */
             #tableSection { padding-top: 5rem; padding-left: 1rem; padding-right: 1rem; }
         }
+
+        /* ══════════════════════════════════════════════════════
+           MOBILE HUB — Solo aplica en mobile con mapa abierto
+           Panel 72px colapsado → 240px expandido, bolas simétricas
+           ══════════════════════════════════════════════════════ */
+        @media (max-width: 767px) {
+
+            /* Colapsado: solo el botón CV2A circular */
+            .panel-master.scrolled {
+                width: 72px !important;
+                height: 72px !important;
+                right: 12px !important;
+                left: auto !important;
+                top: 72px !important;
+                transform: none !important;
+                border-radius: 50% !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                overflow: visible !important;
+                transition: width 0.38s cubic-bezier(0.34,1.4,0.64,1),
+                            height 0.38s cubic-bezier(0.34,1.4,0.64,1),
+                            border-radius 0.3s ease,
+                            top 0.3s ease !important;
+            }
+
+            /* CV2A logo — centrado en el panel (funciona para 72px y 240px) */
+            .scrolled .centro-logo {
+                width: 64px !important;
+                height: 64px !important;
+                left: 50% !important;
+                top: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                z-index: 10 !important;
+                border: 2px solid #e2e8f0 !important;
+                box-shadow: 0 4px 18px rgba(0,0,0,0.14) !important;
+            }
+
+            /* Bolas: colapsadas al centro del botón CV2A */
+            .scrolled .bola-ict,
+            .scrolled .bola-raa,
+            .scrolled .bola-spt {
+                width: 52px !important;
+                height: 52px !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%,-50%) scale(0.1) !important;
+                transition: opacity 0.2s ease,
+                            top 0.38s cubic-bezier(0.34,1.4,0.64,1),
+                            left 0.38s cubic-bezier(0.34,1.4,0.64,1),
+                            transform 0.38s cubic-bezier(0.34,1.4,0.64,1) !important;
+            }
+
+            /* Crop nodes: ocultos en mobile (hub no los incluye) */
+            .scrolled #cropNodes { display: none !important; }
+
+            /* ── Expandido: fondo redondeado + bolas simétricas ── */
+            /* Layout: panel 240×240, CV2A centrado en (120,120), bolas a r=80px
+               ICT   →  0°  (arriba)       centro: (120, 40)  → left:94,  top:14
+               RAA   → 120° (abajo-der)    centro: (189,160)  → left:163, top:134
+               SPT   → 240° (abajo-izq)    centro:  (51,160)  → left:25,  top:134 */
+            .panel-master.scrolled.mobile-panel-open {
+                width: 240px !important;
+                height: 240px !important;
+                right: 8px !important;
+                top: 66px !important;
+                border-radius: 28px !important;
+                background: rgba(248,250,252,0.96) !important;
+                backdrop-filter: blur(16px) !important;
+                -webkit-backdrop-filter: blur(16px) !important;
+                box-shadow: 0 8px 40px rgba(0,0,0,0.15) !important;
+            }
+
+            .scrolled.mobile-panel-open .bola-ict {
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                top: 14px !important;
+                left: 94px !important;
+                transform: none !important;
+                transition-delay: 0ms !important;
+            }
+            .scrolled.mobile-panel-open .bola-raa {
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                top: 134px !important;
+                left: 163px !important;
+                transform: none !important;
+                transition-delay: 55ms !important;
+            }
+            .scrolled.mobile-panel-open .bola-spt {
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                top: 134px !important;
+                left: 25px !important;
+                transform: none !important;
+                transition-delay: 110ms !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased relative flex flex-col min-h-screen">
@@ -401,7 +502,7 @@
                     </div>
 
                     <button id="btn-cv2a" onclick="handleCV2AClick()" title="Todo el ecosistema" class="smooth-ui centro-logo absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-36 h-36 shadow-xl border-4 border-white z-20 p-3 flex items-center justify-center cursor-pointer transition hover:scale-105 active:scale-95">
-                        <img src="Logo CV2A-05 (1).png" alt="CV2A Central" class="w-full h-full object-contain">
+                        <img id="hub-cv2a-img" src="Logo CV2A-05 (1).png" alt="CV2A Central" class="w-full h-full object-contain">
                     </button>
 
                     <button id="btn-ict" onclick="handleBolaClick('ict')" title="Instituciones de Ciencia y Tecnología" class="smooth-ui bola-ict absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
@@ -2366,6 +2467,9 @@
         
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '© DESEC A.C.' }).addTo(map);
 
+        // Cerrar el hub mobile al tocar el mapa
+        map.on('click', () => { if (window.innerWidth < 768) closeMobileHub(); });
+
         let clusterMarkers = L.markerClusterGroup({
             iconCreateFunction: function(cluster) {
                 return new L.DivIcon({ 
@@ -2463,6 +2567,9 @@
                 document.getElementById('shape-legend-map').classList.replace('opacity-100','opacity-0');
                 document.getElementById('shape-legend-map').classList.add('pointer-events-none');
                 document.getElementById('map-filter-indicator').style.display = 'none';
+                // Resetear hub mobile al volver a la vista inicial
+                closeMobileHub();
+                setMobileHubIcon('Logo CV2A-05 (1).png');
                 cropNodes.classList.add('opacity-0');
                 cropNodes.classList.remove('opacity-100');
 
@@ -2545,14 +2652,15 @@
             if (!currentUser) { openAuthModal(); return; }
             if (!checkEcosistemaAccess()) return;
             const bolaMap = {
-                'ict': { id: 'btn-ict', label: 'Instituciones de Ciencia y Tecnología (ICT)' },
-                'raa': { id: 'btn-raa', label: 'Instituciones y Negocios de la Red de Aliados y Asesoría (RAA)' },
-                'spt': { id: 'btn-spt', label: 'Sector Productivo y Transformador (SPT)' },
+                'ict': { id: 'btn-ict', label: 'Instituciones de Ciencia y Tecnología (ICT)',            img: 'ICT.png' },
+                'raa': { id: 'btn-raa', label: 'Instituciones y Negocios de la Red de Aliados y Asesoría (RAA)', img: 'RAA.png' },
+                'spt': { id: 'btn-spt', label: 'Sector Productivo y Transformador (SPT)',                img: 'SPT.png' },
             };
-            const meta = bolaMap[category] || { id: null, label: category };
+            const meta = bolaMap[category] || { id: null, label: category, img: 'Logo CV2A-05 (1).png' };
             ensureMapVisible(() => {
                 filterMainCategory(category);
                 setActiveFilter(meta.id, meta.label);
+                afterMobileFilterSelect(meta.img);
             });
         }
 
@@ -2626,6 +2734,32 @@
 
         let _cv2aCycle = 0; // 0=todos, 1=solo inst, 2=solo personas
 
+        // ── Mobile hub helpers ──
+        function isMobileHub() { return window.innerWidth < 768 && window.scrollY > 50; }
+
+        function openMobileHub() {
+            document.getElementById('masterPanel').classList.add('mobile-panel-open');
+        }
+
+        function closeMobileHub() {
+            document.getElementById('masterPanel').classList.remove('mobile-panel-open');
+        }
+
+        function setMobileHubIcon(src) {
+            if (window.innerWidth >= 768) return;
+            const img = document.getElementById('hub-cv2a-img');
+            if (img) img.src = src;
+        }
+
+        // Cierra el hub 500 ms después de seleccionar un filtro y cambia el ícono
+        function afterMobileFilterSelect(imgSrc) {
+            if (!isMobileHub()) return;
+            setTimeout(() => {
+                setMobileHubIcon(imgSrc);
+                closeMobileHub();
+            }, 500);
+        }
+
         async function resetToAllPoints(fromCycle = false) {
             if (!fromCycle) _cv2aCycle = 0;
             closeSidebar();
@@ -2639,6 +2773,27 @@
         async function handleCV2AClick() {
             if (!currentUser) { openAuthModal(); return; }
             if (!checkEcosistemaAccess()) return;
+
+            // ── MOBILE: el botón CV2A abre/cierra el hub ──
+            if (isMobileHub()) {
+                const panel = document.getElementById('masterPanel');
+                if (!panel.classList.contains('mobile-panel-open')) {
+                    openMobileHub();
+                } else {
+                    // Toca CV2A dentro del hub abierto → "Todo el ecosistema"
+                    closeSidebar();
+                    clusterMarkers.clearLayers();
+                    if (!usersMapDB.length) await loadUsersFromDB();
+                    unifedDB.forEach(item => addInstMarker(item));
+                    usersMapDB.forEach(item => addPersonMarker(item));
+                    _cv2aCycle = 0;
+                    setActiveFilter('btn-cv2a', 'Todo el ecosistema');
+                    afterMobileFilterSelect('Logo CV2A-05 (1).png');
+                }
+                return;
+            }
+
+            // ── DESKTOP: ciclo todos / solo inst / solo personas ──
             ensureMapVisible(async () => {
                 _cv2aCycle = (_cv2aCycle + 1) % 3;
                 closeSidebar();
@@ -2678,10 +2833,10 @@
             if (!currentUser) { openAuthModal(); return; }
             if (!checkEcosistemaAccess()) return;
             const cropMeta = {
-                'Vid':   { id: 'btn-vid',   label: 'Todo y todos los relacionados a la Vid' },
-                'Carne': { id: 'btn-carne', label: 'Todo y todos los relacionados a la Carne' },
-                'Leche': { id: 'btn-leche', label: 'Todo y todos los relacionados a la Leche' },
-                'Nuez':  { id: 'btn-nuez',  label: 'Todo y todos los relacionados a la Nuez' },
+                'Vid':   { id: 'btn-vid',   label: 'Todo y todos los relacionados a la Vid',   img: 'icon.vid.png'  },
+                'Carne': { id: 'btn-carne', label: 'Todo y todos los relacionados a la Carne', img: 'icon.meat.png' },
+                'Leche': { id: 'btn-leche', label: 'Todo y todos los relacionados a la Leche', img: 'icon.milk.png' },
+                'Nuez':  { id: 'btn-nuez',  label: 'Todo y todos los relacionados a la Nuez',  img: 'icon.nuts.png' },
             };
             const meta = cropMeta[cropName] || { id: null, label: cropName };
             ensureMapVisible(async () => {
@@ -2696,6 +2851,7 @@
                     .filter(u => u.sectors.some(s => s.toLowerCase().includes(cn)))
                     .forEach(item => addPersonMarker(item));
                 setActiveFilter(meta.id, meta.label);
+                afterMobileFilterSelect(meta.img);
             });
         }
 
