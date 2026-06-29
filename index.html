@@ -66,18 +66,28 @@
         /* ── Leyenda estática formas ── */
         .shape-legend {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-direction: column;
+            gap: 5px;
             margin-top: 6px;
-            flex-wrap: wrap;
         }
         .shape-legend-item {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             font-size: 9px;
             font-weight: 600;
             color: #64748b;
+        }
+        .shape-legend-count {
+            margin-left: auto;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 999px;
+            min-width: 24px;
+            text-align: center;
         }
 
         /* Contenedor del Panel de Control */
@@ -334,16 +344,6 @@
                 <div id="heroHeader" class="fixed top-24 left-12 z-10 max-w-md pointer-events-none transition-all duration-500 opacity-100">
                     <h1 class="text-3xl font-black text-slate-900 tracking-tight leading-none">Ecosistema<br><span class="text-blue-600">del CV2A</span></h1>
                     <p class="text-xs text-slate-500 mt-2 font-medium leading-relaxed">Capacidades científicas,<br>tecnológicas y de soporte</p>
-                    <div class="shape-legend mt-3">
-                        <div class="shape-legend-item">
-                            <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#6366f1" stroke="white" stroke-width="1.5"/></svg>
-                            <span>Personas</span>
-                        </div>
-                        <div class="shape-legend-item">
-                            <svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,11 1,11" fill="#2563eb" stroke="white" stroke-width="1.2"/></svg>
-                            <span>Instituciones / Empresas</span>
-                        </div>
-                    </div>
                 </div>
 
                 <div id="map-wrapper">
@@ -411,6 +411,21 @@
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Showroom de Infraestructura</p>
                         <div class="bg-slate-100 border border-dashed border-slate-200 rounded-xl h-20 flex items-center justify-center text-slate-400 text-[10px] text-center p-2">
                             [ Imagen del Establecimiento Comercial ]
+                        </div>
+                    </div>
+                </div>
+
+                <div id="shape-legend-map" class="fixed bottom-20 left-4 z-40 bg-white/90 backdrop-blur-sm border border-slate-200 rounded-xl px-3 py-2 shadow-md opacity-0 pointer-events-none transition-opacity duration-500">
+                    <div class="shape-legend">
+                        <div class="shape-legend-item">
+                            <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#6366f1" stroke="white" stroke-width="1.5"/></svg>
+                            <span>Personas</span>
+                            <span id="legend-count-personas" class="shape-legend-count">—</span>
+                        </div>
+                        <div class="shape-legend-item">
+                            <svg width="12" height="12" viewBox="0 0 12 12"><polygon points="6,1 11,11 1,11" fill="#10b981" stroke="white" stroke-width="1.2"/></svg>
+                            <span>Instituciones / Empresas</span>
+                            <span id="legend-count-inst" class="shape-legend-count">—</span>
                         </div>
                     </div>
                 </div>
@@ -2354,6 +2369,8 @@
                     lat: i.ubicacion_lat,
                     lng: i.ubicacion_lng
                 }));
+            const el = document.getElementById('legend-count-inst');
+            if (el) el.textContent = unifedDB.length;
             resetToAllPoints();
             populateTable();
         }
@@ -2376,6 +2393,8 @@
                 masterPanel.classList.add('scrolled');
                 mapWrapper.classList.add('map-active');
                 heroHeader.classList.add('opacity-0', 'pointer-events-none');
+                document.getElementById('shape-legend-map').classList.replace('opacity-0','opacity-100');
+                document.getElementById('shape-legend-map').classList.remove('pointer-events-none');
                 cropNodes.classList.remove('opacity-0');
                 cropNodes.classList.add('opacity-100');
 
@@ -2406,6 +2425,8 @@
                 masterPanel.classList.remove('scrolled');
                 mapWrapper.classList.remove('map-active');
                 heroHeader.classList.remove('opacity-0', 'pointer-events-none');
+                document.getElementById('shape-legend-map').classList.replace('opacity-100','opacity-0');
+                document.getElementById('shape-legend-map').classList.add('pointer-events-none');
                 cropNodes.classList.add('opacity-0');
                 cropNodes.classList.remove('opacity-100');
 
@@ -2500,7 +2521,7 @@
         }
 
         // ── Colores y formas ──
-        const INST_COLORS = { 'spt': '#f59e0b', 'ict': '#2563eb', 'raa': '#10b981' };
+        const INST_COLORS = { 'spt': '#10b981', 'ict': '#10b981', 'raa': '#10b981' };
         const PERSON_COLOR = '#6366f1';
 
         function triangleIcon(color) {
@@ -2559,6 +2580,8 @@
                     lat: a.instituciones.ubicacion_lat,
                     lng: a.instituciones.ubicacion_lng
                 }));
+            const el = document.getElementById('legend-count-personas');
+            if (el) el.textContent = usersMapDB.length;
         }
 
         // ── Funciones de filtrado ──
