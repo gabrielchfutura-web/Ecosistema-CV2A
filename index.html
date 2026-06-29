@@ -218,6 +218,23 @@
 
         @media (max-width: 767px) {
 
+            /* Indicador de filtro: abajo centrado en mobile, encima de botones de perfil */
+            #map-filter-indicator {
+                top: auto !important;
+                bottom: 76px;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                max-width: calc(100vw - 120px); /* no empalmar con botón tablas a la derecha */
+                text-overflow: ellipsis;
+                overflow: hidden;
+            }
+
+            /* Tarjeta de leyenda flotante: oculta en mobile (se muestra en heroHeader) */
+            #shape-legend-map { display: none !important; }
+
+            /* Contadores mobile: visible en heroHeader, oculto en desktop */
+            #shape-legend-mobile { display: flex !important; }
+
             /* ──────────────────────────────────────────
                ECOSISTEMA — ESTADO INICIAL (sin mapa)
                Círculo 20% más grande y bajado para no
@@ -344,6 +361,19 @@
                 <div id="heroHeader" class="fixed top-24 left-12 z-10 max-w-md pointer-events-none transition-all duration-500 opacity-100">
                     <h1 class="text-3xl font-black text-slate-900 tracking-tight leading-none">Ecosistema<br><span class="text-blue-600">del CV2A</span></h1>
                     <p class="text-xs text-slate-500 mt-2 font-medium leading-relaxed">Capacidades científicas,<br>tecnológicas y de soporte</p>
+                    <!-- Contadores solo visible en mobile -->
+                    <div id="shape-legend-mobile" class="hidden flex-col gap-1.5 mt-3">
+                        <div class="flex items-center gap-1.5">
+                            <svg width="11" height="11" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#6366f1" stroke="white" stroke-width="1.5"/></svg>
+                            <span class="text-[9px] font-semibold text-slate-500">Personas</span>
+                            <span id="legend-count-personas-m" class="ml-1 bg-slate-100 text-slate-500 text-[9px] font-bold px-1.5 py-px rounded-full">—</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <svg width="11" height="11" viewBox="0 0 12 12"><polygon points="6,1 11,11 1,11" fill="#10b981" stroke="white" stroke-width="1.2"/></svg>
+                            <span class="text-[9px] font-semibold text-slate-500">Instituciones / Empresas</span>
+                            <span id="legend-count-inst-m" class="ml-1 bg-slate-100 text-slate-500 text-[9px] font-bold px-1.5 py-px rounded-full">—</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="map-wrapper">
@@ -2371,6 +2401,8 @@
                 }));
             const el = document.getElementById('legend-count-inst');
             if (el) el.textContent = unifedDB.length;
+            const elm = document.getElementById('legend-count-inst-m');
+            if (elm) elm.textContent = unifedDB.length;
             resetToAllPoints();
             populateTable();
         }
@@ -2494,9 +2526,9 @@
                 'Investigador': { id: 'perf1', label: 'Investigadores afiliados a ICT' },
                 'Maestro':      { id: 'perf2', label: 'Maestros afiliados a ICT' },
                 'Estudiante':   { id: 'perf3', label: 'Estudiantes afiliados a ICT' },
-                'Productor':    { id: 'perf4', label: 'Productores afiliados al SPT' },
-                'Facilitador':  { id: 'perf5', label: 'Facilitadores afiliados a la RAA' },
-                'Empresario':   { id: 'perf6', label: 'Empresarios del SPT' },
+                'Productor':    { id: 'perf4', label: 'Productores afiliados a alguna Unidad de Producción del SPT' },
+                'Facilitador':  { id: 'perf5', label: 'Facilitadores afiliados a instituciones públicas o privadas de la RAA' },
+                'Empresario':   { id: 'perf6', label: 'Empresarios, emprendedores o empleados de empresas del SPT' },
             };
             const meta = perfMap[subType] || { id: null, label: subType };
             ensureMapVisible(() => {
@@ -2509,9 +2541,9 @@
             if (!currentUser) { openAuthModal(); return; }
             if (!checkEcosistemaAccess()) return;
             const bolaMap = {
-                'ict': { id: 'btn-ict', label: 'Instituciones de Ciencia y Tecnología' },
-                'raa': { id: 'btn-raa', label: 'Instituciones y Negocios de la Red de Aliados y Asesoría' },
-                'spt': { id: 'btn-spt', label: 'Sector Productivo y Transformador' },
+                'ict': { id: 'btn-ict', label: 'Instituciones de Ciencia y Tecnología (ICT)' },
+                'raa': { id: 'btn-raa', label: 'Instituciones y Negocios de la Red de Aliados y Asesoría (RAA)' },
+                'spt': { id: 'btn-spt', label: 'Sector Productivo y Transformador (SPT)' },
             };
             const meta = bolaMap[category] || { id: null, label: category };
             ensureMapVisible(() => {
@@ -2582,6 +2614,8 @@
                 }));
             const el = document.getElementById('legend-count-personas');
             if (el) el.textContent = usersMapDB.length;
+            const elm = document.getElementById('legend-count-personas-m');
+            if (elm) elm.textContent = usersMapDB.length;
         }
 
         // ── Funciones de filtrado ──
@@ -2612,10 +2646,10 @@
                     setActiveFilter('btn-cv2a', 'Todo el ecosistema');
                 } else if (_cv2aCycle === 1) {
                     unifedDB.forEach(item => addInstMarker(item));
-                    setActiveFilter('btn-cv2a', 'Solo instituciones y empresas');
+                    setActiveFilter('btn-cv2a', 'Instituciones y Negocios de todo el ecosistema');
                 } else {
                     usersMapDB.forEach(item => addPersonMarker(item));
-                    setActiveFilter('btn-cv2a', 'Solo personas');
+                    setActiveFilter('btn-cv2a', 'Personas de todo el ecosistema');
                 }
             });
         }
@@ -2640,10 +2674,10 @@
             if (!currentUser) { openAuthModal(); return; }
             if (!checkEcosistemaAccess()) return;
             const cropMeta = {
-                'Vid':   { id: 'btn-vid',   label: 'Todo y todos los relacionados a la vid' },
-                'Carne': { id: 'btn-carne', label: 'Todo y todos los relacionados a la carne' },
-                'Leche': { id: 'btn-leche', label: 'Todo y todos los relacionados a la leche' },
-                'Nuez':  { id: 'btn-nuez',  label: 'Todo y todos los relacionados a la nuez' },
+                'Vid':   { id: 'btn-vid',   label: 'Todo y todos los relacionados a la Vid' },
+                'Carne': { id: 'btn-carne', label: 'Todo y todos los relacionados a la Carne' },
+                'Leche': { id: 'btn-leche', label: 'Todo y todos los relacionados a la Leche' },
+                'Nuez':  { id: 'btn-nuez',  label: 'Todo y todos los relacionados a la Nuez' },
             };
             const meta = cropMeta[cropName] || { id: null, label: cropName };
             ensureMapVisible(async () => {
