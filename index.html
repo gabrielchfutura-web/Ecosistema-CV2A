@@ -368,7 +368,7 @@
                         <img src="CV2A grafica.png" alt="Ecosistema CV2A" class="w-full h-full object-contain filter drop-shadow-xl">
                     </div>
 
-                    <button id="btn-cv2a" onclick="resetToAllPoints()" title="Todo el ecosistema" class="smooth-ui centro-logo absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-36 h-36 shadow-xl border-4 border-white z-20 p-3 flex items-center justify-center cursor-pointer transition hover:scale-105 active:scale-95">
+                    <button id="btn-cv2a" onclick="handleCV2AClick()" title="Todo el ecosistema" class="smooth-ui centro-logo absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-36 h-36 shadow-xl border-4 border-white z-20 p-3 flex items-center justify-center cursor-pointer transition hover:scale-105 active:scale-95">
                         <img src="Logo CV2A-05 (1).png" alt="CV2A Central" class="w-full h-full object-contain">
                     </button>
 
@@ -2586,14 +2586,38 @@
 
         // ── Funciones de filtrado ──
 
-        // Sin filtro: todas las instituciones (triángulos) + todas las personas (círculos)
-        async function resetToAllPoints() {
+        let _cv2aCycle = 0; // 0=todos, 1=solo inst, 2=solo personas
+
+        async function resetToAllPoints(fromCycle = false) {
+            if (!fromCycle) _cv2aCycle = 0;
             closeSidebar();
             clusterMarkers.clearLayers();
             if (!usersMapDB.length) await loadUsersFromDB();
             unifedDB.forEach(item => addInstMarker(item));
             usersMapDB.forEach(item => addPersonMarker(item));
             setActiveFilter('btn-cv2a', 'Todo el ecosistema');
+        }
+
+        async function handleCV2AClick() {
+            if (!currentUser) { openAuthModal(); return; }
+            if (!checkEcosistemaAccess()) return;
+            ensureMapVisible(async () => {
+                _cv2aCycle = (_cv2aCycle + 1) % 3;
+                closeSidebar();
+                clusterMarkers.clearLayers();
+                if (!usersMapDB.length) await loadUsersFromDB();
+                if (_cv2aCycle === 0) {
+                    unifedDB.forEach(item => addInstMarker(item));
+                    usersMapDB.forEach(item => addPersonMarker(item));
+                    setActiveFilter('btn-cv2a', 'Todo el ecosistema');
+                } else if (_cv2aCycle === 1) {
+                    unifedDB.forEach(item => addInstMarker(item));
+                    setActiveFilter('btn-cv2a', 'Solo instituciones y empresas');
+                } else {
+                    usersMapDB.forEach(item => addPersonMarker(item));
+                    setActiveFilter('btn-cv2a', 'Solo personas');
+                }
+            });
         }
 
         // Filtros ICT / SPT / RAA: solo instituciones (triángulos)
