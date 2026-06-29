@@ -2746,7 +2746,6 @@
             populateTable();
         }
 
-        loadInstitucionesFromDB();
         populateTable();
 
         // ══ BLOG ══
@@ -3248,6 +3247,7 @@
 
         // ── Inicialización: recupera sesión persistida ──
         async function initAuth() {
+            loadInstitucionesFromDB();
             const { data: { session } } = await sb.auth.getSession();
             currentUser = session?.user ?? null;
             updateUIForAuthState(currentUser);
