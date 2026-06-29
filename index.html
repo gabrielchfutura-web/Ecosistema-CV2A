@@ -346,9 +346,9 @@
             .panel-master.scrolled {
                 width: 72px !important;
                 height: 72px !important;
-                right: 12px !important;
+                right: 19px !important;        /* 0.5cm del borde derecho */
                 left: auto !important;
-                top: 96px !important;          /* alineado con heroHeader top-24 */
+                top: 83px !important;          /* nav ~64px + 0.5cm gap */
                 transform: none !important;
                 border-radius: 50% !important;
                 background: transparent !important;
@@ -409,13 +409,28 @@
             .panel-master.scrolled.mobile-panel-open {
                 width: 220px !important;
                 height: 220px !important;
-                right: 8px !important;
-                top: 96px !important;
+                right: 19px !important;        /* 0.5cm del borde derecho */
+                top: 83px !important;          /* nav ~64px + 0.5cm gap */
                 border-radius: 26px !important;
                 background: rgba(248,250,252,0.97) !important;
                 backdrop-filter: blur(18px) !important;
                 -webkit-backdrop-filter: blur(18px) !important;
                 box-shadow: 0 8px 40px rgba(0,0,0,0.16) !important;
+            }
+
+            /* Círculo central: fijado exactamente en el centro del panel 220×220 */
+            .scrolled.mobile-panel-open .centro-logo {
+                top: 110px !important;
+                left: 110px !important;
+                transform: translate(-50%, -50%) !important;
+                width: 64px !important;
+                height: 64px !important;
+            }
+
+            /* heroHeader: 0.5cm del nav y del borde izquierdo */
+            #heroHeader {
+                top: 83px !important;
+                left: 19px !important;
             }
 
             /* Bolas principales */
