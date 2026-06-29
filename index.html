@@ -327,29 +327,40 @@
 
         /* ══════════════════════════════════════════════════════
            MOBILE HUB — Solo aplica en mobile con mapa abierto
-           Panel 72px colapsado → 240px expandido, bolas simétricas
+           Panel 72px colapsado → 220px expandido, 8 botones simétricos
+           Alineado con el texto "Ecosistema del CV2A" (top-24 = 96px)
+
+           Layout expandido (220×220), centro en (110,110), r=80px:
+             1 ICT      θ=  0°  → left:86,  top:6
+             2 RAA      θ= 45°  → left:143, top:29
+             3 SPT      θ= 90°  → left:166, top:86
+             4 CV2A-ring θ=135° → left:143, top:143
+             5 Nuez     θ=180°  → left:86,  top:166
+             6 Vid      θ=225°  → left:29,  top:143
+             7 Leche    θ=270°  → left:6,   top:86
+             8 Carne    θ=315°  → left:29,  top:29
            ══════════════════════════════════════════════════════ */
         @media (max-width: 767px) {
 
-            /* Colapsado: solo el botón CV2A circular */
+            /* ── COLAPSADO: botón circular único ── */
             .panel-master.scrolled {
                 width: 72px !important;
                 height: 72px !important;
                 right: 12px !important;
                 left: auto !important;
-                top: 72px !important;
+                top: 96px !important;          /* alineado con heroHeader top-24 */
                 transform: none !important;
                 border-radius: 50% !important;
                 background: transparent !important;
                 box-shadow: none !important;
                 overflow: visible !important;
-                transition: width 0.38s cubic-bezier(0.34,1.4,0.64,1),
-                            height 0.38s cubic-bezier(0.34,1.4,0.64,1),
+                transition: width 0.4s cubic-bezier(0.34,1.4,0.64,1),
+                            height 0.4s cubic-bezier(0.34,1.4,0.64,1),
                             border-radius 0.3s ease,
                             top 0.3s ease !important;
             }
 
-            /* CV2A logo — centrado en el panel (funciona para 72px y 240px) */
+            /* Círculo central — display del filtro activo, rellena el panel */
             .scrolled .centro-logo {
                 width: 64px !important;
                 height: 64px !important;
@@ -363,66 +374,105 @@
                 box-shadow: 0 4px 18px rgba(0,0,0,0.14) !important;
             }
 
-            /* Bolas: colapsadas al centro del botón CV2A */
+            /* Todos los botones del anillo: colapsados al centro */
             .scrolled .bola-ict,
             .scrolled .bola-raa,
-            .scrolled .bola-spt {
-                width: 52px !important;
-                height: 52px !important;
+            .scrolled .bola-spt,
+            .scrolled #btn-cv2a-ring,
+            .scrolled #btn-nuez,
+            .scrolled #btn-vid,
+            .scrolled #btn-leche,
+            .scrolled #btn-carne {
+                width: 48px !important;
+                height: 48px !important;
                 opacity: 0 !important;
                 pointer-events: none !important;
                 top: 50% !important;
                 left: 50% !important;
                 transform: translate(-50%,-50%) scale(0.1) !important;
-                transition: opacity 0.2s ease,
-                            top 0.38s cubic-bezier(0.34,1.4,0.64,1),
-                            left 0.38s cubic-bezier(0.34,1.4,0.64,1),
-                            transform 0.38s cubic-bezier(0.34,1.4,0.64,1) !important;
+                transition: opacity 0.22s ease,
+                            top  0.4s cubic-bezier(0.34,1.4,0.64,1),
+                            left 0.4s cubic-bezier(0.34,1.4,0.64,1),
+                            transform 0.4s cubic-bezier(0.34,1.4,0.64,1) !important;
             }
 
-            /* Crop nodes: ocultos en mobile (hub no los incluye) */
-            .scrolled #cropNodes { display: none !important; }
+            /* CV2A-ring: solo existe en mobile scrolled, oculto en collapsed */
+            .scrolled #btn-cv2a-ring { display: block !important; }
 
-            /* ── Expandido: fondo redondeado + bolas simétricas ── */
-            /* Layout: panel 240×240, CV2A centrado en (120,120), bolas a r=80px
-               ICT   →  0°  (arriba)       centro: (120, 40)  → left:94,  top:14
-               RAA   → 120° (abajo-der)    centro: (189,160)  → left:163, top:134
-               SPT   → 240° (abajo-izq)    centro:  (51,160)  → left:25,  top:134 */
-            .panel-master.scrolled.mobile-panel-open {
-                width: 240px !important;
-                height: 240px !important;
-                right: 8px !important;
-                top: 66px !important;
-                border-radius: 28px !important;
-                background: rgba(248,250,252,0.96) !important;
-                backdrop-filter: blur(16px) !important;
-                -webkit-backdrop-filter: blur(16px) !important;
-                box-shadow: 0 8px 40px rgba(0,0,0,0.15) !important;
-            }
-
-            .scrolled.mobile-panel-open .bola-ict {
+            /* Crop nodes: visibles solo en mobile-panel-open */
+            .scrolled #cropNodes {
+                display: none !important;
                 opacity: 1 !important;
-                pointer-events: auto !important;
-                top: 14px !important;
-                left: 94px !important;
-                transform: none !important;
-                transition-delay: 0ms !important;
+            }
+
+            /* ── EXPANDIDO: panel frosted-glass 220×220 ── */
+            .panel-master.scrolled.mobile-panel-open {
+                width: 220px !important;
+                height: 220px !important;
+                right: 8px !important;
+                top: 96px !important;
+                border-radius: 26px !important;
+                background: rgba(248,250,252,0.97) !important;
+                backdrop-filter: blur(18px) !important;
+                -webkit-backdrop-filter: blur(18px) !important;
+                box-shadow: 0 8px 40px rgba(0,0,0,0.16) !important;
+            }
+
+            /* Bolas principales */
+            .scrolled.mobile-panel-open .bola-ict {
+                opacity: 1 !important; pointer-events: auto !important;
+                top: 6px !important; left: 86px !important;
+                transform: none !important; transition-delay: 0ms !important;
             }
             .scrolled.mobile-panel-open .bola-raa {
-                opacity: 1 !important;
-                pointer-events: auto !important;
-                top: 134px !important;
-                left: 163px !important;
-                transform: none !important;
-                transition-delay: 55ms !important;
+                opacity: 1 !important; pointer-events: auto !important;
+                top: 29px !important; left: 143px !important;
+                transform: none !important; transition-delay: 30ms !important;
             }
             .scrolled.mobile-panel-open .bola-spt {
-                opacity: 1 !important;
-                pointer-events: auto !important;
-                top: 134px !important;
-                left: 25px !important;
-                transform: none !important;
-                transition-delay: 110ms !important;
+                opacity: 1 !important; pointer-events: auto !important;
+                top: 86px !important; left: 166px !important;
+                transform: none !important; transition-delay: 60ms !important;
+            }
+
+            /* CV2A ring button */
+            .scrolled.mobile-panel-open #btn-cv2a-ring {
+                opacity: 1 !important; pointer-events: auto !important;
+                top: 143px !important; left: 143px !important;
+                transform: none !important; transition-delay: 90ms !important;
+            }
+
+            /* Crop nodes visibles + posiciones de anillo */
+            .scrolled.mobile-panel-open #cropNodes {
+                display: block !important;
+            }
+            .scrolled.mobile-panel-open #btn-nuez {
+                opacity: 1 !important; pointer-events: auto !important;
+                top: 166px !important; left: 86px !important;
+                transform: none !important; transition-delay: 120ms !important;
+                width: 48px !important; height: 48px !important;
+                bottom: auto !important; right: auto !important;
+            }
+            .scrolled.mobile-panel-open #btn-vid {
+                opacity: 1 !important; pointer-events: auto !important;
+                top: 143px !important; left: 29px !important;
+                transform: none !important; transition-delay: 150ms !important;
+                width: 48px !important; height: 48px !important;
+                bottom: auto !important; right: auto !important;
+            }
+            .scrolled.mobile-panel-open #btn-leche {
+                opacity: 1 !important; pointer-events: auto !important;
+                top: 86px !important; left: 6px !important;
+                transform: none !important; transition-delay: 180ms !important;
+                width: 48px !important; height: 48px !important;
+                bottom: auto !important; right: auto !important;
+            }
+            .scrolled.mobile-panel-open #btn-carne {
+                opacity: 1 !important; pointer-events: auto !important;
+                top: 29px !important; left: 29px !important;
+                transform: none !important; transition-delay: 210ms !important;
+                width: 48px !important; height: 48px !important;
+                bottom: auto !important; right: auto !important;
             }
         }
     </style>
@@ -513,6 +563,11 @@
                     </button>
                     <button id="btn-spt" onclick="handleBolaClick('spt')" title="Sector Productivo y Transformador" class="smooth-ui bola-spt absolute w-28 h-28 rounded-full shadow-lg hover:scale-110 z-30 bg-white cursor-pointer">
                         <img src="SPT.png" alt="SPT" class="w-full h-full object-cover">
+                    </button>
+
+                    <!-- Botón CV2A del anillo (solo visible en mobile hub expandido) -->
+                    <button id="btn-cv2a-ring" onclick="handleCV2ARingClick()" title="Todo el ecosistema" class="absolute rounded-full bg-white shadow-md border-2 border-slate-200 flex items-center justify-center cursor-pointer p-1.5 hover:scale-105 transition" style="display:none;width:48px;height:48px;">
+                        <img src="Logo CV2A-05 (1).png" class="w-full h-full object-contain">
                     </button>
 
                     <div id="cropNodes" class="absolute inset-0 z-10 pointer-events-none opacity-0 transition-opacity duration-500">
@@ -2539,7 +2594,8 @@
 
                 const classes = "bg-white/95 px-3 py-1.5 rounded-full shadow-lg border border-slate-200 text-[10px] pointer-events-auto transform hover:-translate-y-1 cursor-pointer";
                 p1.className = p2.className = p3.className = p4.className = p5.className = p6.className = classes + " smooth-ui fixed bottom-6";
-                if (_activeFilterBtn && [p1,p2,p3,p4,p5,p6].includes(_activeFilterBtn)) _activeFilterBtn.classList.add('filter-btn-active');
+                const _cvr = document.getElementById('btn-cv2a-ring');
+                if (_activeFilterBtn && ([p1,p2,p3,p4,p5,p6].includes(_activeFilterBtn) || _activeFilterBtn === _cvr)) _activeFilterBtn.classList.add('filter-btn-active');
 
                 if (isMobile) {
                     // MAPA ABIERTO — 2 filas × 3 columnas en la parte inferior
@@ -2574,7 +2630,8 @@
                 cropNodes.classList.remove('opacity-100');
 
                 p1.className = p2.className = p3.className = p4.className = p5.className = p6.className = "smooth-ui absolute bg-white/95 text-slate-700 font-bold text-xs px-3 py-2 rounded-xl shadow-md border border-slate-200 pointer-events-auto hover:scale-105 cursor-pointer";
-                if (_activeFilterBtn && [p1,p2,p3,p4,p5,p6].includes(_activeFilterBtn)) _activeFilterBtn.classList.add('filter-btn-active');
+                const _cvr2 = document.getElementById('btn-cv2a-ring');
+                if (_activeFilterBtn && ([p1,p2,p3,p4,p5,p6].includes(_activeFilterBtn) || _activeFilterBtn === _cvr2)) _activeFilterBtn.classList.add('filter-btn-active');
 
                 if (isMobile) {
                     // SIN MAPA — botones DEBAJO del círculo: 2 columnas × 3 filas
@@ -2770,30 +2827,19 @@
             setActiveFilter('btn-cv2a', 'Todo el ecosistema');
         }
 
+        // ── Click en el círculo central: abre/cierra hub en mobile, cycling en desktop ──
         async function handleCV2AClick() {
             if (!currentUser) { openAuthModal(); return; }
             if (!checkEcosistemaAccess()) return;
 
-            // ── MOBILE: el botón CV2A abre/cierra el hub ──
             if (isMobileHub()) {
+                // Mobile: solo toggle del hub
                 const panel = document.getElementById('masterPanel');
-                if (!panel.classList.contains('mobile-panel-open')) {
-                    openMobileHub();
-                } else {
-                    // Toca CV2A dentro del hub abierto → "Todo el ecosistema"
-                    closeSidebar();
-                    clusterMarkers.clearLayers();
-                    if (!usersMapDB.length) await loadUsersFromDB();
-                    unifedDB.forEach(item => addInstMarker(item));
-                    usersMapDB.forEach(item => addPersonMarker(item));
-                    _cv2aCycle = 0;
-                    setActiveFilter('btn-cv2a', 'Todo el ecosistema');
-                    afterMobileFilterSelect('Logo CV2A-05 (1).png');
-                }
+                panel.classList.toggle('mobile-panel-open');
                 return;
             }
 
-            // ── DESKTOP: ciclo todos / solo inst / solo personas ──
+            // Desktop: ciclo todos / solo inst / solo personas
             ensureMapVisible(async () => {
                 _cv2aCycle = (_cv2aCycle + 1) % 3;
                 closeSidebar();
@@ -2811,6 +2857,36 @@
                     setActiveFilter('btn-cv2a', 'Personas de todo el ecosistema');
                 }
             });
+        }
+
+        // ── Botón CV2A del anillo: 1 clic / 2 clics / 3 clics ──
+        let _cv2aRingClickCount = 0;
+        let _cv2aRingTimer = null;
+
+        function handleCV2ARingClick() {
+            if (!currentUser) { openAuthModal(); return; }
+            if (!checkEcosistemaAccess()) return;
+            _cv2aRingClickCount++;
+            clearTimeout(_cv2aRingTimer);
+            _cv2aRingTimer = setTimeout(async () => {
+                const n = _cv2aRingClickCount;
+                _cv2aRingClickCount = 0;
+                closeSidebar();
+                clusterMarkers.clearLayers();
+                if (!usersMapDB.length) await loadUsersFromDB();
+                if (n === 1) {
+                    unifedDB.forEach(item => addInstMarker(item));
+                    usersMapDB.forEach(item => addPersonMarker(item));
+                    setActiveFilter('btn-cv2a-ring', 'Todo el ecosistema');
+                } else if (n === 2) {
+                    unifedDB.forEach(item => addInstMarker(item));
+                    setActiveFilter('btn-cv2a-ring', 'Instituciones y Negocios de todo el ecosistema');
+                } else {
+                    usersMapDB.forEach(item => addPersonMarker(item));
+                    setActiveFilter('btn-cv2a-ring', 'Personas de todo el ecosistema');
+                }
+                afterMobileFilterSelect('Logo CV2A-05 (1).png');
+            }, 350);
         }
 
         // Filtros ICT / SPT / RAA: solo instituciones (triángulos)
