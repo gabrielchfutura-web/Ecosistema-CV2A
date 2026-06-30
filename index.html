@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CV2A - Ecosistema Avanzado Territorial</title>
+    <title>CV²A – Ecosistema Avanzado Territorial de Chihuahua</title>
+    <meta name="description" content="CV²A conecta instituciones de ciencia, productores y aliados del ecosistema agroindustrial de Chihuahua en cadenas de nuez, vid, carne y leche.">
+    <meta property="og:title" content="CV²A – Ecosistema Avanzado Territorial">
+    <meta property="og:description" content="Ecosistema de innovación agroindustrial de Chihuahua impulsado por el sector privado, SDR y SIDE.">
+    <meta property="og:image" content="https://cv2a.netlify.app/CV2A%20grafica.webp">
+    <meta property="og:url" content="https://cv2a.netlify.app/">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <!-- Preconexión temprana a CDNs para reducir latencia -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <!-- Precarga de la imagen LCP (elemento más grande en pantalla inicial) -->
+    <link rel="preload" as="image" href="CV2A%20grafica.webp" fetchpriority="high">
+    <!-- Tailwind: debe ser síncrono porque genera CSS escaneando el DOM -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- CSS de Leaflet en carga no bloqueante — se activa cuando el usuario abre el mapa -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" media="print" onload="this.media='all'" />
 
     <style>
         .smooth-ui { transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
@@ -291,10 +301,10 @@
                 transform: none !important;
             }
 
-            /* Logo CV2A central más grande */
+            /* Logo CV2A central: oculto en desktop cuando está en modo mapa */
             .scrolled .centro-logo {
-                width: 80px !important;
-                height: 80px !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
             }
 
             /* Iconos de cultivo: restaurados (visibles en estado scrolled
@@ -468,7 +478,7 @@
 
                 <div id="masterPanel" class="smooth-ui panel-master">
                     <div class="grafica-inicial cursor-pointer" onclick="window.scrollTo({ top: 120, behavior: 'smooth' })">
-                        <img src="CV2A grafica.png" alt="Ecosistema CV2A" class="w-full h-full object-contain filter drop-shadow-xl">
+                        <img src="CV2A grafica.webp" alt="Ecosistema CV2A" class="w-full h-full object-contain filter drop-shadow-xl" width="462" height="390" fetchpriority="high">
                     </div>
 
                     <button id="btn-cv2a" onclick="handleCV2AClick()" title="Todo el ecosistema" class="smooth-ui centro-logo absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-36 h-36 shadow-xl border-4 border-white z-20 p-3 flex items-center justify-center cursor-pointer transition hover:scale-105 active:scale-95">
@@ -492,16 +502,16 @@
 
                     <div id="cropNodes" class="absolute inset-0 z-10 pointer-events-none opacity-0 transition-opacity duration-500">
                         <button id="btn-vid" onclick="filterByCrop('Vid')" class="absolute top-1/4 left-0 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Vid">
-                            <img src="icon.vid.png" alt="Vid" class="w-full h-full object-contain">
+                            <img src="icon.vid.webp" alt="Vid" class="w-full h-full object-contain">
                         </button>
                         <button id="btn-carne" onclick="filterByCrop('Carne')" class="absolute top-8 left-1/3 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Carne">
-                            <img src="icon.meat.png" alt="Carne" class="w-full h-full object-contain">
+                            <img src="icon.meat.webp" alt="Carne" class="w-full h-full object-contain">
                         </button>
                         <button id="btn-leche" onclick="filterByCrop('Leche')" class="absolute bottom-8 left-1/3 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Leche">
-                            <img src="icon.milk.png" alt="Leche" class="w-full h-full object-contain">
+                            <img src="icon.milk.webp" alt="Leche" class="w-full h-full object-contain">
                         </button>
                         <button id="btn-nuez" onclick="filterByCrop('Nuez')" class="absolute bottom-1/4 left-0 bg-white shadow-md border border-slate-200 rounded-full w-10 h-10 flex items-center justify-center pointer-events-auto cursor-pointer hover:scale-110 transition p-2" title="Nuez">
-                            <img src="icon.nuts.png" alt="Nuez" class="w-full h-full object-contain">
+                            <img src="icon.nuts.webp" alt="Nuez" class="w-full h-full object-contain">
                         </button>
                     </div>
                 </div>
@@ -584,11 +594,11 @@
                         El tema del valor agregado se ha discutido por años en los distintos ambientes empresariales y de gobierno. Sin embargo, había sido complicado ordenar todas estas ideas. Es por eso que optamos, en esta primera etapa, en establecer un mecanismo virtual para conectar la red. <em>Antes de construir un edificio, necesitamos tener funcional la red.</em>
                     </p>
                     <div class="flex flex-wrap items-center justify-center gap-8">
-                        <a href="https://www.chihuahua.gob.mx/sdr" target="_blank" rel="noopener" class="transition hover:opacity-75 hover:scale-105 duration-200">
-                            <img src="SDR.png" alt="Secretaría de Desarrollo Rural" class="h-16 object-contain">
+                        <a href="https://www.chihuahua.gob.mx/sdr" target="_blank" rel="noopener noreferrer" class="transition hover:opacity-75 hover:scale-105 duration-200">
+                            <img src="SDR.png" alt="Secretaría de Desarrollo Rural" class="h-16 object-contain" loading="lazy">
                         </a>
-                        <a href="https://www.chihuahua.com.mx/" target="_blank" rel="noopener" class="transition hover:opacity-75 hover:scale-105 duration-200">
-                            <img src="SIDE.png" alt="Secretaría de Innovación y Desarrollo Económico" class="h-16 object-contain">
+                        <a href="https://www.chihuahua.com.mx/" target="_blank" rel="noopener noreferrer" class="transition hover:opacity-75 hover:scale-105 duration-200">
+                            <img src="SIDE.png" alt="Secretaría de Innovación y Desarrollo Económico" class="h-16 object-contain" loading="lazy">
                         </a>
                     </div>
                 </div>
@@ -604,21 +614,21 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Clusters Agro</p>
                         <div class="flex flex-wrap justify-center gap-4">
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <a href="https://canacintrachihuahua.org.mx/cluster-agroindustrial/" target="_blank" rel="noopener" class="transition hover:opacity-75 hover:scale-105 duration-200">
-                                    <img src="agrocluster.png" alt="AgroCluster" class="h-16 object-contain">
+                                <a href="https://canacintrachihuahua.org.mx/cluster-agroindustrial/" target="_blank" rel="noopener noreferrer" class="transition hover:opacity-75 hover:scale-105 duration-200">
+                                    <img src="agrocluster.png" alt="AgroCluster" class="h-16 object-contain" loading="lazy">
                                 </a>
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">AgroCluster</figcaption>
                             </figure>
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="cluster.vid.png" alt="Cluster Vid" class="h-16 object-contain">
+                                <img src="cluster.vid.png" alt="Cluster Vid" class="h-16 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">Cluster Vid</figcaption>
                             </figure>
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="cluster.cervecero.png" alt="Cluster Cervecero" class="h-16 object-contain">
+                                <img src="cluster.cervecero.png" alt="Cluster Cervecero" class="h-16 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">Cluster Cervecero</figcaption>
                             </figure>
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="cluster.sotol.png" alt="Cluster Sotol" class="h-16 object-contain">
+                                <img src="cluster.sotol.png" alt="Cluster Sotol" class="h-16 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">Cluster Sotol</figcaption>
                             </figure>
                         </div>
@@ -629,15 +639,15 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Consejos Productores</p>
                         <div class="flex flex-wrap justify-center gap-4">
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="ceach.png" alt="CEACH" class="h-20 object-contain">
+                                <img src="ceach.png" alt="CEACH" class="h-20 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">CEACH</figcaption>
                             </figure>
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="comenuez.png" alt="COMENUEZ" class="h-16 object-contain">
+                                <img src="comenuez.png" alt="COMENUEZ" class="h-16 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">COMENUEZ</figcaption>
                             </figure>
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="logo-comecarne.png" alt="COMECARNE" class="h-20 object-contain">
+                                <img src="logo-comecarne.png" alt="COMECARNE" class="h-20 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">COMECARNE</figcaption>
                             </figure>
                         </div>
@@ -648,19 +658,19 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Asociaciones de Productores</p>
                         <div class="flex flex-wrap justify-center gap-4">
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="apronuez.png" alt="APRONUEZ" class="h-16 object-contain">
+                                <img src="apronuez.png" alt="APRONUEZ" class="h-16 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">APRONUEZ</figcaption>
                             </figure>
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="unifrut.png" alt="UNIFRUT" class="h-16 object-contain">
+                                <img src="unifrut.png" alt="UNIFRUT" class="h-16 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">UNIFRUT</figcaption>
                             </figure>
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="unipro.png" alt="UNIPRO" class="h-16 object-contain">
+                                <img src="unipro.png" alt="UNIPRO" class="h-16 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">UNIPRO</figcaption>
                             </figure>
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <img src="LogoProduce.png" alt="Fundación Produce" class="h-16 object-contain">
+                                <img src="LogoProduce.png" alt="Fundación Produce" class="h-16 object-contain" loading="lazy">
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">Fundación Produce</figcaption>
                             </figure>
                         </div>
@@ -671,8 +681,8 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Instituciones de Ciencia y Tecnología</p>
                         <div class="flex flex-wrap justify-center gap-4">
                             <figure class="flex flex-col items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-4 w-36">
-                                <a href="https://uach.mx/" target="_blank" rel="noopener" class="transition hover:opacity-75 hover:scale-105 duration-200">
-                                    <img src="uach.png" alt="UACH" class="h-16 object-contain">
+                                <a href="https://uach.mx/" target="_blank" rel="noopener noreferrer" class="transition hover:opacity-75 hover:scale-105 duration-200">
+                                    <img src="uach.png" alt="UACH" class="h-16 object-contain" loading="lazy">
                                 </a>
                                 <figcaption class="text-[10px] font-bold text-slate-500 text-center">UACH</figcaption>
                             </figure>
@@ -699,8 +709,8 @@
                                     <p class="text-sm text-slate-300 leading-relaxed"><strong class="text-white">Desarrollo Económico del Estado de Chihuahua A.C.</strong> es una organización privada con +50 años impulsando el desarrollo económico de Chihuahua. Se compone de <strong class="text-white">8 vicepresidencias</strong>.</p>
                                 </div>
                                 <div class="md:w-1/2 flex items-center justify-center p-6 min-h-56" style="background:#eeeeee">
-                                    <a href="https://desec.mx/" target="_blank" rel="noopener" class="transition hover:opacity-80 duration-200 w-full">
-                                        <img src="vice.desec.png" alt="DESEC vicepresidencias" class="w-full max-h-64 object-contain">
+                                    <a href="https://desec.mx/" target="_blank" rel="noopener noreferrer" class="transition hover:opacity-80 duration-200 w-full">
+                                        <img src="vice.desec.png" alt="DESEC vicepresidencias" class="w-full max-h-64 object-contain" loading="lazy">
                                     </a>
                                 </div>
                             </div>
@@ -727,8 +737,8 @@
                                     </ul>
                                 </div>
                                 <div class="md:w-1/2 flex items-center justify-center p-6 min-h-48" style="background:#eeeeee">
-                                    <a href="https://chihuahuafutura.org/" target="_blank" rel="noopener" class="transition hover:opacity-80 duration-200 w-full">
-                                        <img src="ch.futura.png" alt="Chihuahua Futura" class="w-full max-h-52 object-contain">
+                                    <a href="https://chihuahuafutura.org/" target="_blank" rel="noopener noreferrer" class="transition hover:opacity-80 duration-200 w-full">
+                                        <img src="ch.futura.png" alt="Chihuahua Futura" class="w-full max-h-52 object-contain" loading="lazy">
                                     </a>
                                 </div>
                             </div>
@@ -749,7 +759,7 @@
                                     <p class="text-sm text-slate-200 leading-relaxed">Estrategia de <strong class="text-white">Agroindustria y Alimentación Avanzada</strong> de cara al 2050, compuesta de <strong class="text-white">4 objetivos estratégicos</strong>, uno de los cuales es el <strong class="text-white">Valor Agregado</strong>.</p>
                                 </div>
                                 <div class="md:w-1/2 flex items-center justify-center p-6 min-h-56" style="background:#eeeeee">
-                                    <img src="ch.bio.flyer.png" alt="Chihuahua BIO" class="w-full max-h-64 object-contain">
+                                    <img src="ch.bio.flyer.png" alt="Chihuahua BIO" class="w-full max-h-64 object-contain" loading="lazy">
                                 </div>
                             </div>
                         </div>
@@ -769,7 +779,7 @@
                                     <p class="text-sm text-blue-100 leading-relaxed">El <strong class="text-white">Centro Virtual de Valor Agregado</strong> es la plataforma que conecta investigadores, productores, empresarios, facilitadores e inversionistas del ecosistema agroindustrial de Chihuahua.</p>
                                 </div>
                                 <div class="md:w-1/2 flex items-center justify-center p-8 min-h-44" style="background:#eeeeee">
-                                    <img src="cv2a.png" alt="CV2A" class="w-full max-h-36 object-contain">
+                                    <img src="cv2a.png" alt="CV2A" class="w-full max-h-36 object-contain" loading="lazy">
                                 </div>
                             </div>
                         </div>
@@ -877,10 +887,10 @@
                     <!-- Filtros por cadena de valor -->
                     <div id="sectorial-filtros" class="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
                         <button onclick="filterSectorial('todos')" id="sf-todos" class="px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-bold text-sm cursor-pointer -mb-3">Todos los sectores</button>
-                        <button onclick="filterSectorial('nuez')" id="sf-nuez" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.nuts.png" class="h-7 w-7 object-contain"> Nuez</button>
-                        <button onclick="filterSectorial('vid')" id="sf-vid" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.vid.png" class="h-7 w-7 object-contain"> Vid</button>
-                        <button onclick="filterSectorial('carne')" id="sf-carne" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.meat.png" class="h-7 w-7 object-contain"> Carne</button>
-                        <button onclick="filterSectorial('leche')" id="sf-leche" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.milk.png" class="h-7 w-7 object-contain"> Leche</button>
+                        <button onclick="filterSectorial('nuez')" id="sf-nuez" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.nuts.webp" class="h-7 w-7 object-contain" loading="lazy"> Nuez</button>
+                        <button onclick="filterSectorial('vid')" id="sf-vid" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.vid.webp" class="h-7 w-7 object-contain" loading="lazy"> Vid</button>
+                        <button onclick="filterSectorial('carne')" id="sf-carne" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.meat.webp" class="h-7 w-7 object-contain" loading="lazy"> Carne</button>
+                        <button onclick="filterSectorial('leche')" id="sf-leche" class="px-4 py-2 text-slate-500 border-b-2 border-transparent hover:text-slate-800 text-sm cursor-pointer -mb-3 flex items-center gap-2"><img src="icon.milk.webp" class="h-7 w-7 object-contain" loading="lazy"> Leche</button>
                     </div>
 
                     <!-- Dashboard: KPIs -->
@@ -919,7 +929,7 @@
                                 <div class="flex-[2] min-w-0">
                                     <div id="estudio-resumen"></div>
                                     <div class="mt-8 pt-6 border-t border-slate-100">
-                                        <a id="estudio-download-btn" href="#" target="_blank" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-3 rounded-full transition">
+                                        <a id="estudio-download-btn" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-3 rounded-full transition">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             Descargar documento
                                         </a>
@@ -1340,13 +1350,13 @@
                     <div class="mercado-card bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between transition duration-300">
                         <div>
                             <div class="h-16 flex items-center mb-2">
-                                <img src="tribu.png" alt="Tribu Consciente" class="max-h-16 object-contain">
+                                <img src="tribu.png" alt="Tribu Consciente" class="max-h-16 object-contain" loading="lazy">
                             </div>
                             <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Tribu Consciente</h2>
                             <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Una plataforma digital donde puedes vender directamente tus productos agropecuarios y agroindustriales dentro y fuera de Chihuahua sin depender de intermediarios.</p>
                         </div>
                         <div class="mt-4 border-t border-slate-50 pt-4">
-                            <a href="https://aut.tribuco.mx/realms/Tribu/protocol/openid-connect/auth?client_id=mementos&redirect_uri=https%3A%2F%2Fsuenos.tribuco.mx%2Flogin%2Fkeycloak%2Fcallback&scope=openid&response_type=code&state=YyHA4A6AvUQfPBoHLHz7b604UZJ9FAxuFc4f15MP" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Visitar Plataforma ➔</a>
+                            <a href="https://aut.tribuco.mx/realms/Tribu/protocol/openid-connect/auth?client_id=mementos&redirect_uri=https%3A%2F%2Fsuenos.tribuco.mx%2Flogin%2Fkeycloak%2Fcallback&scope=openid&response_type=code&state=YyHA4A6AvUQfPBoHLHz7b604UZJ9FAxuFc4f15MP" target="_blank" rel="noopener noreferrer" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Visitar Plataforma ➔</a>
                         </div>
                     </div>
                     <div class="mercado-overlay absolute inset-0 rounded-2xl cursor-pointer z-10 flex items-center justify-center bg-white/10" onclick="openAuthModal()">
@@ -1362,20 +1372,20 @@
                     <div class="mercado-card bg-white rounded-2xl shadow-md border-2 border-blue-500/20 p-6 flex flex-col justify-between transition duration-300">
                     <div>
                         <div class="h-16 flex items-center mb-2">
-                            <img src="ChihuahuaMarket.png" alt="Chihuahua Market" class="max-h-16 object-contain">
+                            <img src="ChihuahuaMarket.png" alt="Chihuahua Market" class="max-h-16 object-contain" loading="lazy">
                         </div>
                         <div class="flex items-center justify-between mb-3 gap-2">
                             <h2 class="text-2xl font-black text-blue-600 tracking-tight shrink-0">Chihuahua Market</h2>
                             <div class="flex items-center space-x-2 bg-slate-100/80 px-2 py-1 rounded-xl border border-slate-200/50 shrink-0">
-                                <img src="mercado-libre-logo.png" alt="Mercado Libre" class="h-5 object-contain" style="max-width:60px">
+                                <img src="mercado-libre-logo.png" alt="Mercado Libre" class="h-5 object-contain" style="max-width:60px" loading="lazy">
                                 <span class="text-slate-300 text-xs">|</span>
-                                <img src="dhl-worldwide-express-png-logo-1.png" alt="DHL Express" class="h-4 object-contain" style="max-width:44px">
+                                <img src="dhl-worldwide-express-png-logo-1.png" alt="DHL Express" class="h-4 object-contain" style="max-width:44px" loading="lazy">
                             </div>
                         </div>
                         <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Obtén tu distintivo y regístrate para poder vender en <strong class="text-slate-900">Mercado Libre</strong> a través de la tienda de Chihuahua Market. Además obtén precios preferenciales para envíos corporativos con <strong class="text-slate-900">DHL Express</strong>.</p>
                     </div>
                     <div class="mt-4 border-t border-slate-100 pt-4">
-                        <a href="https://chihuahuamarket.mx/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Registrar mi Negocio ➔</a>
+                        <a href="https://chihuahuamarket.mx/" target="_blank" rel="noopener noreferrer" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Registrar mi Negocio ➔</a>
                     </div>
                     </div>
                     <div class="mercado-overlay absolute inset-0 rounded-2xl cursor-pointer z-10 flex items-center justify-center bg-white/10" onclick="openAuthModal()">
@@ -1391,13 +1401,13 @@
                     <div class="mercado-card bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between transition duration-300">
                         <div>
                             <div class="h-16 flex items-center mb-2">
-                                <img src="logo_slogan.png" alt="Bosanet" class="max-h-12 object-contain">
+                                <img src="logo_slogan.png" alt="Bosanet" class="max-h-12 object-contain" loading="lazy">
                             </div>
                             <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Bosanet</h2>
                             <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Bosanet funciona como un aliado operativo y logístico para las empresas que quieren vender en el mercado estadounidense sin las complicaciones tradicionales de la exportación internacional.</p>
                         </div>
                         <div class="mt-4 border-t border-slate-50 pt-4">
-                            <a href="https://es.bosanet.com/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Explorar Alianza ➔</a>
+                            <a href="https://es.bosanet.com/" target="_blank" rel="noopener noreferrer" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Explorar Alianza ➔</a>
                         </div>
                     </div>
                     <div class="mercado-overlay absolute inset-0 rounded-2xl cursor-pointer z-10 flex items-center justify-center bg-white/10" onclick="openAuthModal()">
@@ -1413,13 +1423,13 @@
                     <div class="mercado-card bg-white rounded-2xl shadow-md border border-slate-100 p-6 flex flex-col justify-between transition duration-300">
                         <div>
                             <div class="h-16 flex items-center mb-2">
-                                <img src="Logo_Kompass_International_HD.png" alt="Kompass International" class="max-h-10 object-contain">
+                                <img src="Logo_Kompass_International_HD.png" alt="Kompass International" class="max-h-10 object-contain" loading="lazy">
                             </div>
                             <h2 class="text-2xl font-black text-blue-600 tracking-tight mb-3">Kompass</h2>
                             <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">Kompass es una plataforma líder de Data Marketing e inteligencia comercial diseñada estructuralmente para encontrar clientes corporativos (B2B) en más de 70 países.</p>
                         </div>
                         <div class="mt-4 border-t border-slate-50 pt-4">
-                            <a href="https://mx.kompass.com/" target="_blank" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Buscar Clientes B2B ➔</a>
+                            <a href="https://mx.kompass.com/" target="_blank" rel="noopener noreferrer" class="inline-block text-center bg-blue-600 text-white text-xs font-bold px-5 py-2.5 rounded-full hover:bg-blue-700 transition w-full sm:w-auto">Buscar Clientes B2B ➔</a>
                         </div>
                     </div>
                     <div class="mercado-overlay absolute inset-0 rounded-2xl cursor-pointer z-10 flex items-center justify-center bg-white/10" onclick="openAuthModal()">
@@ -1789,7 +1799,7 @@
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8" onclick="event.stopPropagation()">
             <!-- Logo + título -->
             <div class="text-center mb-6">
-                <img src="Logo CV2A-05 (1).png" alt="CV2A" class="h-10 mx-auto mb-3 object-contain">
+                <img src="Logo CV2A-05 (1).png" alt="CV2A" class="h-10 mx-auto mb-3 object-contain" loading="lazy">
                 <h2 class="text-xl font-black text-slate-900">Acceso al Ecosistema</h2>
                 <p class="text-xs text-slate-500 mt-1 font-medium">Inicia sesión o crea tu cuenta para continuar</p>
             </div>
@@ -2116,7 +2126,7 @@
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
         <div class="p-6 md:p-8">
           <div class="text-center mb-5">
-            <img src="Logo CV2A-05 (1).png" alt="CV2A" class="h-10 mx-auto mb-3 object-contain">
+            <img src="Logo CV2A-05 (1).png" alt="CV2A" class="h-10 mx-auto mb-3 object-contain" loading="lazy">
             <h2 class="text-xl font-black text-slate-900">Únete al Ecosistema</h2>
             <p class="text-xs text-slate-500 mt-1">Completa tu perfil para conectar con perfiles de tu interés</p>
           </div>
@@ -2225,7 +2235,7 @@
               <div class="flex items-center gap-2 mb-4">
                 <button type="button" onclick="hideNuevaInstSection()" class="text-slate-400 hover:text-slate-700 text-xs font-bold flex items-center gap-1 cursor-pointer">← Volver a buscar</button>
               </div>
-              <p class="text-xs font-bold text-blue-600 mb-3">Registrar nueva institución/negocio</p>
+              <p class="text-xs font-bold text-blue-600 mb-3">Registrar nueva Institución o Negocio</p>
               <div class="space-y-3" id="form-nueva-inst">
                 <div>
                   <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Tipo de institución/negocio *</label>
@@ -2257,6 +2267,10 @@
                   <input type="text" id="ni-nombre" required placeholder="Nombre completo de la institución/negocio" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                 </div>
                 <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Descripción</label>
+                  <textarea id="ni-descripcion" rows="2" placeholder="Breve descripción de la institución o negocio…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
+                </div>
+                <div>
                   <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Dirección o referencia</label>
                   <input type="text" id="ni-ubicacion" placeholder="Colonia, calle, CP…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition" oninput="geocodeAddressDebounced('ni')">
                 </div>
@@ -2286,6 +2300,10 @@
                 </div>
                 <!-- Campos dinámicos según subcategoría -->
                 <div id="ni-dynamic-fields" class="space-y-3"></div>
+                <div>
+                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Enlace Google Maps</label>
+                  <input type="text" id="ni-google-maps" placeholder="https://maps.app.goo.gl/…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
                 <div>
                   <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Comentarios</label>
                   <textarea id="ni-comentarios" rows="2" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
@@ -2369,7 +2387,7 @@
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
             <div class="space-y-2">
                 <div class="flex items-center justify-center md:justify-start space-x-3">
-                    <img src="CV2A.blanco.png" alt="CV2A" class="h-8 object-contain">
+                    <img src="CV2A.blanco.png" alt="CV2A" class="h-8 object-contain" loading="lazy">
                     <span class="text-xs border-l border-slate-700 pl-3 text-slate-500 font-medium">Centro Virtual de Valor Agregado</span>
                 </div>
                 <p class="text-[11px] text-slate-500 leading-normal max-w-xl">
@@ -2385,6 +2403,12 @@
             </div>
         </div>
     </footer>
+
+    <!-- Scripts JS al fondo: no bloquean el render del HTML/CSS inicial -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         // ── Menú móvil ──
@@ -2506,9 +2530,11 @@
                     sectors: i.sector || [],
                     name: i.nombre,
                     acronimo: i.datos_especificos?.acronimo || '',
+                    descripcion: i.datos_especificos?.descripcion || '',
+                    google_maps_url: i.datos_especificos?.google_maps_url || '',
                     inst: i.ubicacion_texto || '',
                     web: i.web || '',
-                    contact: i.datos_especificos?.contacto || i.web || '',
+                    contact: i.datos_especificos?.contacto || '',
                     desc: i.comentarios || '',
                     lat: i.ubicacion_lat,
                     lng: i.ubicacion_lng
@@ -2967,15 +2993,15 @@
                 badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-indigo-100 text-indigo-800";
                 // Find the institution item from unifedDB to make it clickable
                 const instItem = unifedDB.find(d => d.id === item.instId);
+                const instLabel = instItem ? (instItem.acronimo || instItem.name) : (item.inst || '—');
                 const instBtn = instItem
-                    ? `<button onclick='openSidebar(${JSON.stringify(instItem).replace(/'/g,"&#39;")})' class="text-blue-600 font-semibold hover:underline cursor-pointer text-left">${item.inst}</button>`
-                    : `<span>${item.inst || '—'}</span>`;
+                    ? `<button onclick='openSidebar(${JSON.stringify(instItem).replace(/'/g,"&#39;")})' class="text-blue-600 font-semibold hover:underline cursor-pointer text-left">${instLabel}</button>`
+                    : `<span>${instLabel}</span>`;
                 document.getElementById('sideContent').innerHTML = `
-                    <p><strong>Perfil:</strong> ${item.sub}</p>
                     <p class="mt-1"><strong>Institución/Negocio:</strong> ${instBtn}</p>
                     ${item.crop ? `<p class="mt-1"><strong>Sector(es):</strong> ${item.crop}</p>` : ''}
                     ${item.contact ? `<p class="mt-1"><strong>Contacto:</strong> ${item.contact}</p>` : ''}
-                    ${item.desc ? `<p class="mt-1"><strong>Comentarios:</strong> ${item.desc}</p>` : ''}
+                    ${item.desc ? `<div class="mt-1"><strong>Comentarios:</strong><p class="mt-0.5 text-slate-600 whitespace-pre-wrap">${item.desc}</p></div>` : ''}
                 `;
             } else {
                 showroom.classList.remove('hidden');
@@ -2984,9 +3010,18 @@
                 if (item.type === 'spt') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-amber-100 text-amber-800";
                 if (item.type === 'raa') badge.className = "inline-block px-2 py-0.5 rounded-md text-[9px] font-bold uppercase mb-3 tracking-wider bg-emerald-100 text-emerald-800";
                 document.getElementById('sideContent').innerHTML = `
-                    <p><strong>Ubicación:</strong> ${item.inst}</p>
+                    ${item.descripcion ? `<div class="mb-2"><strong>Descripción:</strong><p class="mt-0.5 text-slate-600">${item.descripcion}</p></div>` : ''}
+                    ${item.web ? `<p class="mt-1"><strong>Página web:</strong> <a href="${item.web}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline break-all">${item.web.replace(/^https?:\/\//,'')}</a></p>` : ''}
                     ${item.contact ? `<p class="mt-1"><strong>Contacto:</strong> ${item.contact}</p>` : ''}
-                    ${item.desc ? `<p class="mt-1 text-slate-500 italic">"${item.desc}"</p>` : ''}
+                    ${item.desc ? `<div class="mt-1"><strong>Comentarios:</strong><p class="mt-0.5 text-slate-600 whitespace-pre-wrap">${item.desc}</p></div>` : ''}
+                    ${item.google_maps_url ? `
+                    <div class="mt-3 pt-3 border-t border-slate-100">
+                        <a href="${item.google_maps_url}" target="_blank" rel="noopener noreferrer"
+                           class="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-xl text-xs transition cursor-pointer">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                            GOOGLE MAPS
+                        </a>
+                    </div>` : ''}
                     <div id="sidebar-afiliados" class="mt-3 pt-3 border-t border-slate-100">
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Personas afiliadas</p>
                         <div id="sidebar-afiliados-list" class="flex flex-wrap gap-1.5">
@@ -3079,20 +3114,20 @@
             ict: [
                 { label: 'Acrónimo', render: row => `<span class="text-blue-600 font-bold cursor-pointer hover:underline" onclick='openSidebar(${JSON.stringify(row).replace(/'/g,"&#39;")})'>${row.acronimo || row.name}</span>` },
                 { label: 'Ubicación', render: row => `<span class="text-slate-500">${row.inst || '—'}</span>` },
-                { label: 'Página web', render: row => row.web ? `<a href="${row.web}" target="_blank" rel="noopener" class="text-blue-600 hover:underline truncate max-w-[160px] block">${row.web.replace(/^https?:\/\//,'')}</a>` : '<span class="text-slate-300">—</span>' },
+                { label: 'Página web', render: row => row.web ? `<a href="${row.web}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline truncate max-w-[160px] block">${row.web.replace(/^https?:\/\//,'')}</a>` : '<span class="text-slate-300">—</span>' },
                 { label: 'Sectores', render: row => `<span class="text-slate-600">${row.sectors?.join(', ') || '—'}</span>` },
             ],
             spt: [
                 { label: 'Nombre', render: row => `<span class="text-blue-600 font-bold cursor-pointer hover:underline" onclick='openSidebar(${JSON.stringify(row).replace(/'/g,"&#39;")})'>${row.name}</span>` },
                 { label: 'Ubicación', render: row => `<span class="text-slate-500">${row.inst || '—'}</span>` },
-                { label: 'Página web', render: row => row.web ? `<a href="${row.web}" target="_blank" rel="noopener" class="text-blue-600 hover:underline truncate max-w-[160px] block">${row.web.replace(/^https?:\/\//,'')}</a>` : '<span class="text-slate-300">—</span>' },
+                { label: 'Página web', render: row => row.web ? `<a href="${row.web}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline truncate max-w-[160px] block">${row.web.replace(/^https?:\/\//,'')}</a>` : '<span class="text-slate-300">—</span>' },
                 { label: 'Sectores', render: row => `<span class="text-slate-600">${row.sectors?.join(', ') || '—'}</span>` },
             ],
             raa: [
                 { label: 'Acrónimo', render: row => `<span class="text-blue-600 font-bold cursor-pointer hover:underline" onclick='openSidebar(${JSON.stringify(row).replace(/'/g,"&#39;")})'>${row.acronimo || '—'}</span>` },
                 { label: 'Nombre Completo', render: row => `<span class="text-slate-800 font-medium">${row.name}</span>` },
                 { label: 'Ubicación', render: row => `<span class="text-slate-500">${row.inst || '—'}</span>` },
-                { label: 'Página web', render: row => row.web ? `<a href="${row.web}" target="_blank" rel="noopener" class="text-blue-600 hover:underline truncate max-w-[160px] block">${row.web.replace(/^https?:\/\//,'')}</a>` : '<span class="text-slate-300">—</span>' },
+                { label: 'Página web', render: row => row.web ? `<a href="${row.web}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline truncate max-w-[160px] block">${row.web.replace(/^https?:\/\//,'')}</a>` : '<span class="text-slate-300">—</span>' },
             ],
         };
 
@@ -4206,7 +4241,7 @@
                     <div>
                         <span class="text-[9px] font-bold uppercase tracking-widest ${badgeClass} px-2 py-0.5 rounded-md">${inst.subcategoria || inst.categoria}</span>
                         <h3 class="font-bold text-slate-900 text-sm mt-1">${inst.nombre}</h3>
-                        <p class="text-xs text-slate-500">${inst.ubicacion_texto || ''} ${inst.web ? `• <a href="${inst.web}" target="_blank" class="text-blue-600 hover:underline">Web</a>` : ''}</p>
+                        <p class="text-xs text-slate-500">${inst.ubicacion_texto || ''} ${inst.web ? `• <a href="${inst.web}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Web</a>` : ''}</p>
                         <p class="text-[10px] text-slate-400 mt-0.5">Rol: <strong class="text-slate-600">${inst.rol}</strong>${inst.sector?.length ? ' • ' + inst.sector.join(', ') : ''}</p>
                     </div>
                     ${canEdit ? `<button onclick="openInstitucionModal('${inst.id}')" class="shrink-0 bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 text-[10px] font-bold px-3 py-1.5 rounded-lg transition cursor-pointer">✏ Editar</button>` : ''}
@@ -4241,7 +4276,7 @@
             modal.classList.remove('hidden'); modal.classList.add('flex');
 
             if (!instId) {
-                title.textContent = 'Registrar Nueva Institución';
+                title.textContent = 'Registrar nueva Institución o Negocio';
                 body.innerHTML = buildInstForm(null);
                 setTimeout(() => initMapPicker('if-map-picker', 'if-lat', 'if-lng', 'if-coords-display', null, null), 150);
             } else {
@@ -4348,6 +4383,10 @@
                 <input id="if-nombre" required value="${v.nombre||''}" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
               <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Descripción</label>
+                <textarea id="if-descripcion" rows="2" placeholder="Breve descripción de la institución o negocio…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">${v.datos_especificos?.descripcion||''}</textarea>
+              </div>
+              <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Dirección o referencia</label>
                 <input id="if-ubicacion" value="${v.ubicacion_texto||''}" placeholder="Colonia, calle, CP…" oninput="geocodeAddressDebounced('if')" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
               </div>
@@ -4370,6 +4409,10 @@
                 <div class="flex flex-wrap gap-3">${sectorCbs}</div>
               </div>
               <div id="if-dynamic-fields" class="space-y-3">${buildDynamicInstFields(v.subcategoria, v.datos_especificos||{})}</div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Enlace Google Maps</label>
+                <input type="text" id="if-google-maps" value="${v.datos_especificos?.google_maps_url||''}" placeholder="https://maps.app.goo.gl/…" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Comentarios</label>
                 <textarea id="if-comentarios" rows="2" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none">${v.comentarios||''}</textarea>
@@ -4415,7 +4458,7 @@
                 if (!chipData[labKey]) chipData[labKey] = [];
                 chipData[labKey] = existingLabs;
                 setTimeout(() => renderChips(labKey), 0);
-                const existingPdfs = (de.pdfs || []).map(url => `<a href="${url}" target="_blank" rel="noopener" class="text-blue-600 text-[10px] hover:underline truncate block">${url.split('/').pop()}</a>`).join('');
+                const existingPdfs = (de.pdfs || []).map(url => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 text-[10px] hover:underline truncate block">${url.split('/').pop()}</a>`).join('');
                 return `
               <div>
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">¿Con qué laboratorios cuenta?</label>
@@ -4488,7 +4531,7 @@
                 web: webVal || null,
                 sector,
                 comentarios: document.getElementById('if-comentarios').value.trim(),
-                datos_especificos: { ...dynFields, acronimo: document.getElementById('if-acronimo')?.value.trim() || '' },
+                datos_especificos: { ...dynFields, acronimo: document.getElementById('if-acronimo')?.value.trim() || '', descripcion: document.getElementById('if-descripcion')?.value.trim() || '', google_maps_url: document.getElementById('if-google-maps')?.value.trim() || '' },
                 admin_id: currentUser.id,
                 updated_at: new Date().toISOString()
             };
@@ -4901,7 +4944,7 @@
                     web: niWeb || null,
                     sector: niSector,
                     comentarios: document.getElementById('ni-comentarios').value.trim(),
-                    datos_especificos: { ...collectDynamicFieldsNi(sub), acronimo: document.getElementById('ni-acronimo')?.value.trim() || '' },
+                    datos_especificos: { ...collectDynamicFieldsNi(sub), acronimo: document.getElementById('ni-acronimo')?.value.trim() || '', descripcion: document.getElementById('ni-descripcion')?.value.trim() || '', google_maps_url: document.getElementById('ni-google-maps')?.value.trim() || '' },
                     admin_id: currentUser.id
                 };
                 const { data: newInst, error: instErr } = await sb.from('instituciones').insert(instData).select().single();
