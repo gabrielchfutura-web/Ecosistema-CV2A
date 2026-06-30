@@ -101,6 +101,13 @@
         }
 
         /* Contenedor del Panel de Control */
+        /* Botón central CV2A: posición y tamaño fuera de @layer Tailwind */
+        #btn-cv2a {
+            width: 9rem; height: 9rem;           /* 144px — estado hero/inicial */
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
         .panel-master {
             position: fixed;
             width: 480px;
@@ -127,6 +134,8 @@
             transition: all 0.7s cubic-bezier(0.25, 1, 0.5, 1);
             opacity: 1;
             transform: scale(1);
+            background: white;
+            border-radius: 50%;
         }
         .scrolled .grafica-inicial {
             opacity: 0;
@@ -255,10 +264,20 @@
             .panel-master {
                 width: 264px !important;
                 height: 264px !important;
-                top: 57% !important;
+                top: 44% !important;
                 left: 50% !important;
                 transform: translate(-50%, -50%) scale(1) !important;
             }
+
+            /* ── Botones de perfil: debajo del gráfico en estado inicial (móvil) ──
+               Posicionados via CSS para el render inicial, antes de que corra el
+               scroll handler que los mueve via inline style. */
+            #perfilesContainer:not(.map-mode) #perf1 { left: 8%  !important; top: 76% !important; right: auto !important; }
+            #perfilesContainer:not(.map-mode) #perf2 { left: 8%  !important; top: 83% !important; right: auto !important; }
+            #perfilesContainer:not(.map-mode) #perf3 { left: 8%  !important; top: 90% !important; right: auto !important; }
+            #perfilesContainer:not(.map-mode) #perf4 { left: 54% !important; top: 76% !important; right: auto !important; }
+            #perfilesContainer:not(.map-mode) #perf5 { left: 54% !important; top: 83% !important; right: auto !important; }
+            #perfilesContainer:not(.map-mode) #perf6 { left: 54% !important; top: 90% !important; right: auto !important; }
 
             /* ──────────────────────────────────────────
                ECOSISTEMA — ESTADO CON MAPA ABIERTO
@@ -360,14 +379,13 @@
                             border-radius 0.3s ease !important;
             }
 
-            /* Círculo central: siempre centrado en el panel */
+            /* Círculo central: centrado y redimensionado con scale para no pelear con Tailwind layers */
             .scrolled .centro-logo {
                 position: absolute !important;
-                width: 64px !important;
-                height: 64px !important;
                 left: 50% !important;
                 top: 50% !important;
-                transform: translate(-50%, -50%) !important;
+                /* scale(0.444) = 64px visual sobre 144px layout; center permanece en (50%, 50%) */
+                transform: translate(-50%, -50%) scale(0.444) !important;
                 opacity: 1 !important;
                 pointer-events: auto !important;
                 z-index: 20 !important;
@@ -384,6 +402,7 @@
 
             /* Crop nodes ocultos en colapsado */
             .scrolled #cropNodes { display: none !important; }
+
 
             /* ── EXPANDIDO ── */
             .panel-master.scrolled.mobile-panel-open {
@@ -481,7 +500,7 @@
                         <img src="CV2A grafica.webp" alt="Ecosistema CV2A" class="w-full h-full object-contain filter drop-shadow-xl" width="462" height="390" fetchpriority="high">
                     </div>
 
-                    <button id="btn-cv2a" onclick="handleCV2AClick()" title="Todo el ecosistema" class="smooth-ui centro-logo absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-full w-36 h-36 shadow-xl border-4 border-white z-20 p-3 flex items-center justify-center cursor-pointer transition hover:scale-105 active:scale-95">
+                    <button id="btn-cv2a" onclick="handleCV2AClick()" title="Todo el ecosistema" class="smooth-ui centro-logo absolute bg-white rounded-full shadow-xl border-4 border-white z-20 p-3 flex items-center justify-center cursor-pointer transition hover:scale-105 active:scale-95">
                         <img id="hub-cv2a-img" src="Logo CV2A-05 (1).png" alt="CV2A Central" class="w-full h-full object-contain">
                     </button>
 
@@ -2349,7 +2368,7 @@
 
     <!-- ══ MODAL EDITAR INSTITUCIÓN ══ -->
     <!-- ── Feedback button ── -->
-    <button id="feedback-btn" onclick="openFeedbackModal()" class="fixed bottom-20 right-6 bg-white border border-slate-200 text-slate-600 text-xs font-semibold px-3 py-2 rounded-full shadow-lg hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all z-50 flex items-center gap-1.5 cursor-pointer" title="Enviar comentarios">
+    <button id="feedback-btn" onclick="openFeedbackModal()" class="fixed bottom-20 right-6 bg-white border border-slate-200 text-slate-600 text-xs font-semibold px-3 py-2 rounded-full shadow-lg hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all z-50 flex items-center gap-1.5 cursor-pointer" title="Enviar comentarios" style="display:none">
         <span>💬</span> Feedback
     </button>
 
@@ -2456,6 +2475,9 @@
                 event.currentTarget.className = "text-blue-600 border-b-2 border-blue-600 pb-1 font-bold text-sm";
             }
             
+            const feedbackBtn = document.getElementById('feedback-btn');
+            if (feedbackBtn) feedbackBtn.style.display = sectionId === 'ecosistema' ? 'none' : '';
+
             if (sectionId === 'ecosistema') {
                 setTimeout(() => { map.invalidateSize(); }, 100);
             }
@@ -2564,6 +2586,7 @@
             if (scroll > 50) {
                 masterPanel.classList.add('scrolled');
                 mapWrapper.classList.add('map-active');
+                document.getElementById('perfilesContainer').classList.add('map-mode');
                 heroHeader.classList.add('opacity-0', 'pointer-events-none');
                 document.getElementById('shape-legend-map').classList.replace('opacity-0','opacity-100');
                 document.getElementById('shape-legend-map').classList.remove('pointer-events-none');
@@ -2598,6 +2621,7 @@
             } else {
                 masterPanel.classList.remove('scrolled');
                 mapWrapper.classList.remove('map-active');
+                document.getElementById('perfilesContainer').classList.remove('map-mode');
                 heroHeader.classList.remove('opacity-0', 'pointer-events-none');
                 document.getElementById('shape-legend-map').classList.replace('opacity-100','opacity-0');
                 document.getElementById('shape-legend-map').classList.add('pointer-events-none');
@@ -2788,20 +2812,11 @@
             const panel = document.getElementById('masterPanel');
             panel.classList.add('mobile-panel-open');
 
-            // Círculo central: exactamente en el centro geométrico
-            const C = _HUB.center, halfC = _HUB.centerBtnSize / 2;
-            _hubSetStyle(document.getElementById('btn-cv2a'), {
-                position: 'absolute',
-                left: (C - halfC) + 'px',
-                top:  (C - halfC) + 'px',
-                width:  _HUB.centerBtnSize + 'px',
-                height: _HUB.centerBtnSize + 'px',
-                transform: 'none',
-                'z-index': '20',
-            });
+            // tamaño y posición del botón central los maneja .scrolled .centro-logo en CSS
 
-            // Botones del anillo: posiciones calculadas con sin/cos
+            // Botones del anillo: el panel siempre es 220×220 cuando está abierto, centro = 110
             const halfB = _HUB.btnSize / 2;
+            const C = 110; // mitad de los 220px del panel abierto
             _HUB_RING.forEach((id, i) => {
                 const el = document.getElementById(id);
                 if (!el) return;
@@ -2880,9 +2895,13 @@
             if (!checkEcosistemaAccess()) return;
 
             if (isMobileHub()) {
-                // Mobile: solo toggle del hub
+                // Mobile: abrir/cerrar hub con posicionamiento radial completo
                 const panel = document.getElementById('masterPanel');
-                panel.classList.toggle('mobile-panel-open');
+                if (panel.classList.contains('mobile-panel-open')) {
+                    closeMobileHub();
+                } else {
+                    openMobileHub();
+                }
                 return;
             }
 
