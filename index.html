@@ -33,6 +33,12 @@
             border-color: #93c5fd !important;
             z-index: 60 !important;
         }
+        /* #btn-cv2a se centra con translate(-50%,-50%); .filter-btn-active no debe
+           perder ese offset al aplicar su scale, o el botón se desplaza a la
+           derecha y hacia abajo al activarse. */
+        #btn-cv2a.filter-btn-active {
+            transform: translate(-50%, -50%) scale(1.13) !important;
+        }
 
         /* ── Indicador de filtro en el mapa ── */
         #map-filter-indicator {
@@ -107,6 +113,13 @@
             left: 50%; top: 50%;
             transform: translate(-50%, -50%);
         }
+
+        /* Botón CV2A del anillo móvil: oculto salvo cuando openMobileHub() lo
+           posiciona vía inline style !important. closeMobileHub() limpia ese
+           inline style con removeAttribute('style'), así que sin esta regla de
+           base el botón cae al "display:flex" de Tailwind y queda visible
+           (enorme, sin tamaño) también en escritorio. */
+        #btn-cv2a-ring { display: none; }
 
         .panel-master {
             position: fixed;
@@ -255,6 +268,14 @@
 
             /* Contadores mobile: visible en heroHeader, oculto en desktop */
             #shape-legend-mobile { display: flex !important; }
+
+            /* Contador bajado a estado inicial (sin mapa): justo arriba del
+               botón Investigadores, para no encimarse con el círculo central */
+            #shape-legend-mobile {
+                position: fixed !important;
+                top: 67% !important;
+                left: 19px !important;
+            }
 
             /* ──────────────────────────────────────────
                ECOSISTEMA — ESTADO INICIAL (sin mapa)
@@ -933,7 +954,23 @@
 
                     <!-- Tarjetas de estudios -->
                     <div id="sectorial-estudios-section">
-                        <p class="text-sm font-black text-slate-900 mb-4">Estudios y Reportes</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                            <p class="text-sm font-black text-slate-900">Estudios y Reportes</p>
+                            <button id="btn-add-estudio" onclick="openEstudioUploadModal()" class="hidden items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-4 py-2.5 rounded-full transition cursor-pointer shadow-sm self-start sm:self-auto">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                                Añadir un nuevo estudio o reporte al repositorio
+                            </button>
+                        </div>
+
+                        <!-- Panel de aprobación (solo perfil maestro) -->
+                        <div id="estudios-pendientes-wrap" class="hidden mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
+                            <div class="flex items-center gap-2 mb-3">
+                                <span class="bg-amber-500 text-white text-[10px] font-black rounded-full px-2 py-0.5">REVISIÓN</span>
+                                <p class="text-xs font-black text-amber-800">Estudios pendientes de aprobación (<span id="estudios-pendientes-count">0</span>)</p>
+                            </div>
+                            <div id="estudios-pendientes-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                        </div>
+
                         <div id="sectorial-estudios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                     </div>
 
@@ -2140,6 +2177,62 @@
       </div>
     </div>
 
+    <!-- ══ MODAL: AÑADIR ESTUDIO AL REPOSITORIO ══ -->
+    <div id="estudio-upload-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[90] hidden items-center justify-center p-4" onclick="closeEstudioUploadModal()">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="p-6 md:p-8">
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <h2 class="text-xl font-black text-slate-900">Añadir estudio o reporte</h2>
+              <p class="text-xs text-slate-500 mt-1">El documento se incorporará al repositorio una vez aprobado por el administrador.</p>
+            </div>
+            <button onclick="closeEstudioUploadModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none cursor-pointer">&times;</button>
+          </div>
+          <form id="form-estudio-upload" onsubmit="submitEstudioUpload(event)" class="space-y-4">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Nombre del estudio / reporte *</label>
+              <input type="text" id="eu-titulo" required maxlength="180" placeholder="Ej. Análisis de la Cadena de Valor de la Nuez Pecanera" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Institución que lo publica *</label>
+              <input type="text" id="eu-institucion" required maxlength="120" placeholder="Ej. SIAP-SADER, USDA, INC…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Año de publicación *</label>
+                <input type="number" id="eu-anio" required min="1980" max="2100" placeholder="2025" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Sector *</label>
+                <select id="eu-sector" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                  <option value="">Selecciona…</option>
+                  <option value="nuez">Nuez</option>
+                  <option value="vid">Vid</option>
+                  <option value="leche">Leche</option>
+                  <option value="carne">Carne</option>
+                  <option value="transversal">Transversal</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Resumen breve (opcional)</label>
+              <textarea id="eu-resumen" rows="2" maxlength="400" placeholder="Descripción corta del contenido y hallazgos principales…" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 transition resize-none"></textarea>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Archivo (PDF, máx. 20 MB) *</label>
+              <input type="file" id="eu-archivo" accept="application/pdf" required class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-200 rounded-xl p-2">
+            </div>
+            <p id="estudio-upload-status" class="text-xs min-h-4"></p>
+            <div class="flex gap-3 pt-2">
+              <button type="button" onclick="closeEstudioUploadModal()" class="flex-1 border border-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-sm hover:bg-slate-50 transition cursor-pointer">Cancelar</button>
+              <button type="submit" id="eu-submit-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-sm transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Enviar a revisión</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ MODAL 2DA BARRERA ══ -->
     <div id="ecosistema-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[80] hidden items-center justify-center p-4">
       <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
@@ -3336,7 +3429,7 @@
         let estudioChartInstances = [];
 
         function openEstudio(id) {
-            const e = estudiosDB.find(x => x.id === id);
+            const e = allEstudios().find(x => x.id === id);
             if (!e) return;
 
             const tagColors = { vid: 'bg-purple-100 text-purple-700', nuez: 'bg-amber-100 text-amber-700', carne: 'bg-red-100 text-red-700', leche: 'bg-blue-100 text-blue-700', todos: 'bg-slate-100 text-slate-600' };
@@ -3355,14 +3448,30 @@
             document.getElementById('estudio-resumen').innerHTML = e.detalle;
 
             const btn = document.getElementById('estudio-download-btn');
-            btn.href = e.url || '#';
-            if (!e.url || e.url === '#') {
-                btn.className = 'inline-flex items-center gap-2 bg-slate-200 text-slate-400 text-sm font-bold px-6 py-3 rounded-full cursor-not-allowed';
+            const BTN_ON = 'inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-3 rounded-full transition';
+            const BTN_OFF = 'inline-flex items-center gap-2 bg-slate-200 text-slate-400 text-sm font-bold px-6 py-3 rounded-full cursor-not-allowed';
+            const DL_ICON = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Descargar documento`;
+            if (e._remoto && e.archivo_path) {
+                // Bucket privado: se firma el enlace bajo demanda al abrir el estudio.
+                btn.className = BTN_ON + ' opacity-70 pointer-events-none';
+                btn.removeAttribute('href');
+                btn.innerHTML = 'Generando enlace…';
+                signedUrlForPath(e.archivo_path).then(u => {
+                    if (u) {
+                        btn.href = u; btn.setAttribute('target', '_blank');
+                        btn.className = BTN_ON; btn.innerHTML = DL_ICON;
+                    } else {
+                        btn.removeAttribute('href'); btn.className = BTN_OFF;
+                        btn.innerHTML = 'Documento no disponible';
+                    }
+                });
+            } else if (!e.url || e.url === '#') {
+                btn.href = '#'; btn.className = BTN_OFF;
                 btn.innerHTML = 'Próximamente disponible';
                 btn.removeAttribute('target');
             } else {
-                btn.className = 'inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-6 py-3 rounded-full transition';
-                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Descargar documento`;
+                btn.href = e.url; btn.className = BTN_ON;
+                btn.innerHTML = DL_ICON;
                 btn.setAttribute('target', '_blank');
             }
 
@@ -3438,11 +3547,14 @@
             ['sectorial-filtros','sectorial-kpis','sectorial-charts','sectorial-estudios-section'].forEach(id => document.getElementById(id).classList.remove('hidden'));
         }
 
-        function showSectorialDashboard() {
+        async function showSectorialDashboard() {
             if (!currentUser) { openAuthModal(); return; }
             document.getElementById('inteligencia-selector').classList.add('hidden');
             document.getElementById('inteligencia-sectorial').classList.remove('hidden');
+            await loadEstudiosAprobados();
             filterSectorial('todos');
+            toggleEstudioUploadButton();
+            loadEstudiosPendientes();
         }
 
         function hideSectorialDashboard() {
@@ -3453,6 +3565,7 @@
         }
 
         function filterSectorial(sector) {
+            currentSectorFilter = sector;
             ['todos','nuez','vid','carne','leche'].forEach(s => {
                 const btn = document.getElementById('sf-' + s);
                 if (!btn) return;
@@ -3509,10 +3622,11 @@
                 }
             });
 
-            // Estudios
+            // Estudios (hardcoded + aprobados en repositorio)
+            const pool = allEstudios();
             const filtered = sector === 'todos'
-                ? estudiosDB
-                : estudiosDB.filter(e => e.sector === sector || e.sector === 'todos');
+                ? pool
+                : pool.filter(e => e.sector === sector || e.sector === 'todos');
 
             document.getElementById('sectorial-estudios').innerHTML = filtered.map(e => `
                 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col gap-3">
@@ -3526,6 +3640,185 @@
                         <button onclick="openEstudio('${e.id}')" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-full transition cursor-pointer">Aprender más →</button>
                     </div>
                 </div>`).join('');
+        }
+
+        // ══ Repositorio de estudios (Supabase) ══
+        let estudiosRemotos = [];
+        let currentSectorFilter = 'todos';
+        const ESTUDIOS_BUCKET = 'estudios';
+
+        function allEstudios() { return estudiosDB.concat(estudiosRemotos); }
+
+        function canUploadEstudio() {
+            return isMaster() || ['Investigador', 'Facilitador'].includes(currentProfile?.perfil_tipo);
+        }
+
+        function toggleEstudioUploadButton() {
+            const btn = document.getElementById('btn-add-estudio');
+            if (!btn) return;
+            const show = canUploadEstudio();
+            btn.classList.toggle('hidden', !show);
+            btn.classList.toggle('inline-flex', show);
+        }
+
+        // Genera un enlace firmado temporal (bucket privado). Requiere sesión.
+        async function signedUrlForPath(path, expiresSec = 3600) {
+            if (!path) return null;
+            if (/^https?:\/\//.test(path)) return path;   // estudios hardcoded con URL externa
+            try {
+                const { data, error } = await sb.storage.from(ESTUDIOS_BUCKET).createSignedUrl(path, expiresSec);
+                if (error) { console.warn('No se pudo firmar el enlace:', error.message); return null; }
+                return data?.signedUrl || null;
+            } catch (e) { console.warn(e); return null; }
+        }
+
+        // Abre un PDF del repositorio en una pestaña nueva usando un enlace firmado.
+        async function verPdfEstudio(path) {
+            const u = await signedUrlForPath(path);
+            if (u) window.open(u, '_blank', 'noopener');
+            else alert('No se pudo generar el enlace del documento. Verifica tu sesión y que el archivo exista.');
+        }
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+        }
+
+        function mapRemoteEstudio(r) {
+            const sectorUi = (r.sector === 'transversal' || r.sector === 'otro') ? 'todos' : r.sector;
+            const resumen = r.resumen && r.resumen.trim() ? r.resumen.trim() : 'Documento incorporado al repositorio de Inteligencia Sectorial del CV²A.';
+            const etiqueta = r.sector.charAt(0).toUpperCase() + r.sector.slice(1);
+            return {
+                id: 'db-' + r.id,
+                title: r.titulo,
+                fuente: r.institucion,
+                'año': String(r.anio),
+                sector: sectorUi,
+                url: null,
+                archivo_path: r.archivo_path,   // se firma bajo demanda al abrir el estudio
+                resumen,
+                detalle: `<div class="space-y-4 text-sm text-slate-600 leading-relaxed">
+                    <p>${escapeHtml(resumen)}</p>
+                    <p class="text-xs text-slate-400">Clasificación: <strong class="text-slate-600">${escapeHtml(etiqueta)}</strong> · Institución: <strong class="text-slate-600">${escapeHtml(r.institucion)}</strong> · Año: <strong class="text-slate-600">${escapeHtml(String(r.anio))}</strong></p>
+                    <p class="text-[11px] text-slate-400 italic">Documento aprobado e integrado al repositorio del CV²A. Descárgalo para consultar el contenido completo y sus referencias.</p>
+                </div>`,
+                _remoto: true,
+            };
+        }
+
+        async function loadEstudiosAprobados() {
+            estudiosRemotos = [];
+            try {
+                const { data, error } = await sb.from('estudios_repositorio')
+                    .select('*').eq('estado', 'aprobado').order('anio', { ascending: false });
+                if (error) { console.warn('Repositorio no disponible:', error.message); return; }
+                estudiosRemotos = (data || []).map(mapRemoteEstudio);
+            } catch (e) { console.warn('Repositorio no disponible:', e); }
+        }
+
+        function openEstudioUploadModal() {
+            if (!currentUser) { openAuthModal(); return; }
+            if (!canUploadEstudio()) { alert('Solo los perfiles de Investigador, Facilitador o el administrador maestro pueden añadir estudios al repositorio.'); return; }
+            document.getElementById('form-estudio-upload').reset();
+            document.getElementById('estudio-upload-status').textContent = '';
+            const m = document.getElementById('estudio-upload-modal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+
+        function closeEstudioUploadModal() {
+            const m = document.getElementById('estudio-upload-modal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+
+        async function submitEstudioUpload(ev) {
+            ev.preventDefault();
+            if (!canUploadEstudio()) { alert('No tienes permiso para subir estudios.'); return; }
+            const statusEl = document.getElementById('estudio-upload-status');
+            const setStatus = (msg, kind) => {
+                statusEl.textContent = msg;
+                statusEl.className = 'text-xs min-h-4 ' + (kind === 'err' ? 'text-red-600 font-bold' : kind === 'ok' ? 'text-green-600 font-bold' : 'text-slate-500');
+            };
+
+            const titulo = document.getElementById('eu-titulo').value.trim();
+            const institucion = document.getElementById('eu-institucion').value.trim();
+            const anio = parseInt(document.getElementById('eu-anio').value, 10);
+            const sector = document.getElementById('eu-sector').value;
+            const resumen = document.getElementById('eu-resumen').value.trim();
+            const file = document.getElementById('eu-archivo').files[0];
+
+            if (!titulo || !institucion || !anio || !sector || !file) { setStatus('Completa todos los campos obligatorios y adjunta el PDF.', 'err'); return; }
+            if (file.type !== 'application/pdf') { setStatus('El archivo debe estar en formato PDF.', 'err'); return; }
+            if (file.size > 20 * 1024 * 1024) { setStatus('El archivo no debe superar los 20 MB.', 'err'); return; }
+
+            const btn = document.getElementById('eu-submit-btn');
+            btn.disabled = true;
+            setStatus('Subiendo documento…', 'info');
+
+            try {
+                const slug = titulo.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+                    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'estudio';
+                const path = `${sector}/${Date.now()}-${slug}.pdf`;
+
+                const { error: upErr } = await sb.storage.from(ESTUDIOS_BUCKET)
+                    .upload(path, file, { contentType: 'application/pdf', upsert: false });
+                if (upErr) throw upErr;
+
+                const { error: insErr } = await sb.from('estudios_repositorio').insert({
+                    titulo, institucion, anio, sector,
+                    resumen: resumen || null,
+                    archivo_path: path,
+                    estado: 'pendiente',
+                    subido_por: currentUser.id,
+                    subido_por_email: currentUser.email,
+                });
+                if (insErr) throw insErr;
+
+                setStatus('✓ Documento enviado. Aparecerá en el repositorio una vez que el administrador lo apruebe.', 'ok');
+                setTimeout(() => { closeEstudioUploadModal(); if (isMaster()) loadEstudiosPendientes(); }, 1900);
+            } catch (e) {
+                const msg = e?.message || String(e);
+                const hint = /bucket|not found|does not exist|relation|schema/i.test(msg)
+                    ? ' — verifica que la tabla "estudios_repositorio" y el bucket "estudios" existan en Supabase (ver supabase_estudios_repositorio.sql).'
+                    : '';
+                setStatus('Error al enviar: ' + msg + hint, 'err');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function loadEstudiosPendientes() {
+            const wrap = document.getElementById('estudios-pendientes-wrap');
+            const list = document.getElementById('estudios-pendientes-list');
+            if (!wrap || !list) return;
+            if (!isMaster()) { wrap.classList.add('hidden'); return; }
+            try {
+                const { data, error } = await sb.from('estudios_repositorio')
+                    .select('*').eq('estado', 'pendiente').order('created_at', { ascending: true });
+                if (error || !data || !data.length) { wrap.classList.add('hidden'); return; }
+                document.getElementById('estudios-pendientes-count').textContent = data.length;
+                list.innerHTML = data.map(r => `
+                    <div class="bg-white border border-amber-200 rounded-xl p-4 flex flex-col gap-2">
+                        <p class="text-xs font-black text-slate-900 leading-tight">${escapeHtml(r.titulo)}</p>
+                        <p class="text-[10px] text-slate-500">${escapeHtml(r.institucion)} · ${escapeHtml(String(r.anio))} · <span class="uppercase font-bold text-amber-700">${escapeHtml(r.sector)}</span></p>
+                        <p class="text-[10px] text-slate-400 truncate">Subido por: ${escapeHtml(r.subido_por_email || '—')}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <button onclick="verPdfEstudio('${escapeHtml(r.archivo_path)}')" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition cursor-pointer">Ver PDF</button>
+                            <button onclick="revisarEstudio('${r.id}', true)" class="text-[10px] font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-full transition cursor-pointer">Aprobar</button>
+                            <button onclick="revisarEstudio('${r.id}', false)" class="text-[10px] font-bold text-red-600 hover:text-white hover:bg-red-600 bg-red-50 px-3 py-1.5 rounded-full transition cursor-pointer">Rechazar</button>
+                        </div>
+                    </div>`).join('');
+                wrap.classList.remove('hidden');
+            } catch (e) { wrap.classList.add('hidden'); }
+        }
+
+        async function revisarEstudio(id, aprobar) {
+            if (!isMaster()) return;
+            if (!aprobar && !confirm('¿Rechazar este documento? No aparecerá en el repositorio.')) return;
+            const patch = { estado: aprobar ? 'aprobado' : 'rechazado', revisado_por: currentUser.id };
+            const { error } = await sb.from('estudios_repositorio').update(patch).eq('id', id);
+            if (error) { alert('Error al actualizar: ' + error.message); return; }
+            await loadEstudiosPendientes();
+            await loadEstudiosAprobados();
+            filterSectorial(currentSectorFilter);
         }
 
         // ── Ruta de Profesionalización ──
