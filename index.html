@@ -2159,6 +2159,16 @@
               <div class="p-6 text-center text-slate-400 text-xs">Cargando…</div>
             </div>
           </div>
+          <!-- Repositorio de estudios -->
+          <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+            <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 flex items-center gap-2">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Repositorio de estudios</span>
+              <span id="master-estudios-count" class="text-[10px] font-bold text-purple-600 bg-purple-100 px-2 py-0.5 rounded-full">0</span>
+            </div>
+            <div id="master-estudios-list" class="divide-y divide-slate-100">
+              <div class="p-6 text-center text-slate-400 text-xs">Cargando…</div>
+            </div>
+          </div>
         </div>
 
         <!-- TAB: Zona de Peligro -->
@@ -2227,6 +2237,72 @@
             <div class="flex gap-3 pt-2">
               <button type="button" onclick="closeEstudioUploadModal()" class="flex-1 border border-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-sm hover:bg-slate-50 transition cursor-pointer">Cancelar</button>
               <button type="submit" id="eu-submit-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-sm transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Enviar a revisión</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ MODAL: EDITAR ESTUDIO (solo maestro) ══ -->
+    <div id="estudio-edit-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[90] hidden items-center justify-center p-4" onclick="closeEstudioEditModal()">
+      <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="p-6 md:p-8">
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <h2 class="text-xl font-black text-slate-900">Editar estudio del repositorio</h2>
+              <p class="text-xs text-slate-500 mt-1">Modifica los datos o reemplaza el archivo. Los cambios se reflejan en el dashboard.</p>
+            </div>
+            <button onclick="closeEstudioEditModal()" class="text-slate-400 hover:text-slate-700 text-2xl leading-none cursor-pointer">&times;</button>
+          </div>
+          <form id="form-estudio-edit" onsubmit="submitEstudioEdit(event)" class="space-y-4">
+            <input type="hidden" id="ee-id">
+            <input type="hidden" id="ee-archivo-path">
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Nombre del estudio / reporte *</label>
+              <input type="text" id="ee-titulo" required maxlength="180" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Institución que lo publica *</label>
+              <input type="text" id="ee-institucion" required maxlength="120" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Año *</label>
+                <input type="number" id="ee-anio" required min="1980" max="2100" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Sector *</label>
+                <select id="ee-sector" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+                  <option value="nuez">Nuez</option>
+                  <option value="vid">Vid</option>
+                  <option value="leche">Leche</option>
+                  <option value="carne">Carne</option>
+                  <option value="transversal">Transversal</option>
+                  <option value="otro">Otro</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Estado *</label>
+                <select id="ee-estado" required class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+                  <option value="aprobado">Aprobado</option>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="rechazado">Rechazado</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Resumen breve (opcional)</label>
+              <textarea id="ee-resumen" rows="2" maxlength="400" class="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 transition resize-none"></textarea>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">Reemplazar archivo (PDF, opcional)</label>
+              <input type="file" id="ee-archivo" accept="application/pdf" class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 cursor-pointer border border-slate-200 rounded-xl p-2">
+              <p class="text-[10px] text-slate-400 mt-1">Déjalo vacío para conservar el PDF actual.</p>
+            </div>
+            <p id="estudio-edit-status" class="text-xs min-h-4"></p>
+            <div class="flex gap-3 pt-2">
+              <button type="button" onclick="closeEstudioEditModal()" class="flex-1 border border-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-sm hover:bg-slate-50 transition cursor-pointer">Cancelar</button>
+              <button type="submit" id="ee-submit-btn" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-sm transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">Guardar cambios</button>
             </div>
           </form>
         </div>
@@ -3821,6 +3897,136 @@
             filterSectorial(currentSectorFilter);
         }
 
+        // ── Panel maestro: gestión del repositorio de estudios ──
+        let masterEstudiosCache = [];
+
+        function refreshSectorialIfVisible() {
+            const sec = document.getElementById('inteligencia-sectorial');
+            if (sec && !sec.classList.contains('hidden')) filterSectorial(currentSectorFilter);
+        }
+
+        async function loadMasterEstudios() {
+            const list = document.getElementById('master-estudios-list');
+            const countEl = document.getElementById('master-estudios-count');
+            if (!list || !isMaster()) return;
+            try {
+                const { data, error } = await sb.from('estudios_repositorio')
+                    .select('*').order('created_at', { ascending: false });
+                if (error) {
+                    list.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs">Repositorio no disponible. Aplica la migración de Supabase (tabla estudios_repositorio).</div>';
+                    if (countEl) countEl.textContent = '0';
+                    return;
+                }
+                masterEstudiosCache = data || [];
+                if (countEl) countEl.textContent = masterEstudiosCache.length;
+                renderMasterEstudiosList(masterEstudiosCache);
+            } catch (e) {
+                list.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs">Repositorio no disponible.</div>';
+            }
+        }
+
+        function renderMasterEstudiosList(rows) {
+            const list = document.getElementById('master-estudios-list');
+            if (!list) return;
+            if (!rows.length) { list.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs">Aún no hay estudios en el repositorio. Súbelos desde Inteligencia en Sectores.</div>'; return; }
+            const badge = { aprobado: 'bg-green-100 text-green-700', pendiente: 'bg-amber-100 text-amber-700', rechazado: 'bg-red-100 text-red-600' };
+            list.innerHTML = rows.map(r => `
+                <div class="px-4 py-3 flex items-center gap-3 hover:bg-slate-50 transition">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-slate-800 truncate">${escapeHtml(r.titulo)}</p>
+                        <p class="text-[10px] text-slate-400 truncate">${escapeHtml(r.institucion)} · ${escapeHtml(String(r.anio))} · <span class="uppercase">${escapeHtml(r.sector)}</span></p>
+                    </div>
+                    <span class="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full shrink-0 ${badge[r.estado] || 'bg-slate-100 text-slate-500'}">${escapeHtml(r.estado)}</span>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <button onclick="verPdfEstudio('${escapeHtml(r.archivo_path)}')" title="Ver PDF" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-full transition cursor-pointer">Ver</button>
+                        <button onclick="openEstudioEditModal('${r.id}')" title="Editar" class="text-[10px] font-bold text-purple-600 hover:text-white hover:bg-purple-600 bg-purple-50 px-2.5 py-1.5 rounded-full transition cursor-pointer">Editar</button>
+                        <button onclick="deleteEstudioRepo('${r.id}')" title="Eliminar" class="text-[10px] font-bold text-red-600 hover:text-white hover:bg-red-600 bg-red-50 px-2.5 py-1.5 rounded-full transition cursor-pointer">Eliminar</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        function openEstudioEditModal(id) {
+            if (!isMaster()) return;
+            const r = masterEstudiosCache.find(x => String(x.id) === String(id));
+            if (!r) { alert('No se encontró el estudio.'); return; }
+            document.getElementById('ee-id').value = r.id;
+            document.getElementById('ee-archivo-path').value = r.archivo_path || '';
+            document.getElementById('ee-titulo').value = r.titulo || '';
+            document.getElementById('ee-institucion').value = r.institucion || '';
+            document.getElementById('ee-anio').value = r.anio || '';
+            document.getElementById('ee-sector').value = r.sector || 'nuez';
+            document.getElementById('ee-estado').value = r.estado || 'aprobado';
+            document.getElementById('ee-resumen').value = r.resumen || '';
+            document.getElementById('ee-archivo').value = '';
+            document.getElementById('estudio-edit-status').textContent = '';
+            const m = document.getElementById('estudio-edit-modal');
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+
+        function closeEstudioEditModal() {
+            const m = document.getElementById('estudio-edit-modal');
+            m.classList.add('hidden'); m.classList.remove('flex');
+        }
+
+        async function submitEstudioEdit(ev) {
+            ev.preventDefault();
+            if (!isMaster()) return;
+            const statusEl = document.getElementById('estudio-edit-status');
+            const setStatus = (msg, kind) => { statusEl.textContent = msg; statusEl.className = 'text-xs min-h-4 ' + (kind === 'err' ? 'text-red-600 font-bold' : kind === 'ok' ? 'text-green-600 font-bold' : 'text-slate-500'); };
+            const id = document.getElementById('ee-id').value;
+            const patch = {
+                titulo: document.getElementById('ee-titulo').value.trim(),
+                institucion: document.getElementById('ee-institucion').value.trim(),
+                anio: parseInt(document.getElementById('ee-anio').value, 10),
+                sector: document.getElementById('ee-sector').value,
+                estado: document.getElementById('ee-estado').value,
+                resumen: document.getElementById('ee-resumen').value.trim() || null,
+            };
+            if (!patch.titulo || !patch.institucion || !patch.anio || !patch.sector) { setStatus('Completa los campos obligatorios.', 'err'); return; }
+            const file = document.getElementById('ee-archivo').files[0];
+            if (file && file.type !== 'application/pdf') { setStatus('El archivo debe estar en formato PDF.', 'err'); return; }
+            if (file && file.size > 20 * 1024 * 1024) { setStatus('El archivo no debe superar los 20 MB.', 'err'); return; }
+
+            const btn = document.getElementById('ee-submit-btn');
+            btn.disabled = true; setStatus('Guardando…', 'info');
+            try {
+                if (file) {
+                    const slug = patch.titulo.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+                        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'estudio';
+                    const newPath = `${patch.sector}/${Date.now()}-${slug}.pdf`;
+                    const { error: upErr } = await sb.storage.from(ESTUDIOS_BUCKET).upload(newPath, file, { contentType: 'application/pdf', upsert: false });
+                    if (upErr) throw upErr;
+                    const oldPath = document.getElementById('ee-archivo-path').value;
+                    patch.archivo_path = newPath;
+                    if (oldPath && oldPath !== newPath) { try { await sb.storage.from(ESTUDIOS_BUCKET).remove([oldPath]); } catch (_) {} }
+                }
+                const { error } = await sb.from('estudios_repositorio').update(patch).eq('id', id);
+                if (error) throw error;
+                setStatus('✓ Cambios guardados.', 'ok');
+                await loadMasterEstudios();
+                await loadEstudiosAprobados();
+                refreshSectorialIfVisible();
+                setTimeout(closeEstudioEditModal, 900);
+            } catch (e) {
+                setStatus('Error: ' + (e.message || e), 'err');
+            } finally { btn.disabled = false; }
+        }
+
+        async function deleteEstudioRepo(id) {
+            if (!isMaster()) return;
+            const r = masterEstudiosCache.find(x => String(x.id) === String(id));
+            if (!r) return;
+            if (!confirm(`¿Eliminar definitivamente "${r.titulo}"? Se borrará también el PDF y dejará de aparecer en el dashboard.`)) return;
+            try {
+                if (r.archivo_path) { try { await sb.storage.from(ESTUDIOS_BUCKET).remove([r.archivo_path]); } catch (_) {} }
+                const { error } = await sb.from('estudios_repositorio').delete().eq('id', id);
+                if (error) throw error;
+                await loadMasterEstudios();
+                await loadEstudiosAprobados();
+                refreshSectorialIfVisible();
+            } catch (e) { alert('Error al eliminar: ' + (e.message || e)); }
+        }
+
         // ── Ruta de Profesionalización ──
         let activeStep = null;
         const progressWidths = { 1: '0%', 2: '25%', 3: '50%', 4: '75%', 5: '100%' };
@@ -4909,6 +5115,8 @@
 
             const { data: insts } = await sb.from('instituciones').select('*, perfiles_usuario!admin_id(nombre_completo)').order('created_at', { ascending: false });
             renderMasterInstList(insts || []);
+
+            loadMasterEstudios();
         }
 
         function filterMasterList() {
